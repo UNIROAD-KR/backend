@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: backend
+  profiles:
+    active: local
+  output:
+    ansi:
+      enabled: DETECT
+
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
+    org.apache: WARN
+    org.hibernate: DEBUG
+    org.springframework.security: DEBUG
