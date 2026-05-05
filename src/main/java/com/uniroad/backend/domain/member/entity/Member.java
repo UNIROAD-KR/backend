@@ -1,5 +1,9 @@
 package com.uniroad.backend.domain.member.entity;
 
+import com.uniroad.backend.domain.verification.entity.Verification;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.uniroad.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -46,6 +50,10 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+    
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Verification> verifications = new ArrayList<>();
 
     public void updateName(String name) {
         this.name = name;
