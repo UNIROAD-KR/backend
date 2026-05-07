@@ -73,8 +73,6 @@ public class SecurityConfig {
                                                                 "/api/auth/login",
                                                                 "/api/auth/check-email",
                                                                 "/api/auth/reissue",
-                                                                "/api/v1/weather/**",
-                                                                "/api/v1/courses/random",
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
                                                                 "/h2-console/**",
