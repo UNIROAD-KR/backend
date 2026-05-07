@@ -28,8 +28,9 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
     OAUTH2_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 OAuth2 제공자입니다."),
 
-    // ===== 코스 (COURSE) =====
-    COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 코스입니다."),
+    // ===== 중고거래 (USED_ITEM) =====
+    USED_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 중고거래 게시글입니다."),
+    NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 코스입니다."),
     STOP_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 순서의 경유지 정보를 찾을 수 없습니다."),
     RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "탐방 기록을 찾을 수 없습니다.");
 
