@@ -28,5 +28,14 @@ public record SignUpRequest(
         @Schema(description = "사용자 이름", example = "홍길동")
         @NotBlank(message = "이름은 필수입니다.")
         @Size(min = 1, max = 20, message = "이름은 1~20자여야 합니다.")
-        String name
+        String name,
+
+        @Schema(description = "나이", example = "23")
+        Integer age,
+
+        @Schema(description = "파견 대학", example = "도쿄대학")
+        String dispatchedUniversity,
+
+        @Schema(description = "파견 지역", example = "일본")
+        String dispatchedRegion
 ) {}
