@@ -25,6 +25,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -53,7 +55,7 @@ class AuthServiceTest {
     @DisplayName("회원가입 성공")
     void signUp_Success() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터");
+        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "강남구", "강남대학교");
         given(memberRepository.findByEmail(request.email())).willReturn(Optional.empty());
         given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
         
@@ -76,7 +78,7 @@ class AuthServiceTest {
     @DisplayName("회원가입 실패 - 중복된 이메일")
     void signUp_Fail_DuplicateEmail() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터");
+        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터"  , 20, "강남구", "강남대학교");
         given(memberRepository.findByEmail(request.email())).willReturn(Optional.of(Member.builder().build()));
 
         // when & then
