@@ -53,6 +53,9 @@ public class AuthService {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .name(request.name())
+                .age(request.age())
+                .dispatchedUniversity(request.dispatchedUniversity())
+                .dispatchedRegion(request.dispatchedRegion())
                 .provider("LOCAL")
                 .role(Role.USER)
                 .build();

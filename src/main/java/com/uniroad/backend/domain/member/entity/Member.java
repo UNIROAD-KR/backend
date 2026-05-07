@@ -39,6 +39,14 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
+    private Integer age;
+
+    @Column(name = "dispatched_university")
+    private String dispatchedUniversity;
+
+    @Column(name = "dispatched_region")
+    private String dispatchedRegion;
+
     // KAKAO, NAVER, LOCAL 등 로그인 제공자 정보
     @Builder.Default
     private String provider = "LOCAL";
