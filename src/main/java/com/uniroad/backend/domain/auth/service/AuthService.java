@@ -54,6 +54,7 @@ public class AuthService {
                 .name(request.name())
                 .age(request.age())
                 .dispatchedUniversity(request.dispatchedUniversity())
+                .dispatchedCountry(request.dispatchedCountry())
                 .dispatchedRegion(request.dispatchedRegion())
                 .provider("LOCAL")
                 .role(Role.USER)

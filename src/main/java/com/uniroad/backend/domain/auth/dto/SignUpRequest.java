@@ -36,6 +36,9 @@ public record SignUpRequest(
         @Schema(description = "파견 대학", example = "도쿄대학")
         String dispatchedUniversity,
 
-        @Schema(description = "파견 지역", example = "일본")
+        @Schema(description = "파견 국가", example = "일본")
+        String dispatchedCountry,
+
+        @Schema(description = "파견 지역", example = "도쿄")
         String dispatchedRegion
 ) {}

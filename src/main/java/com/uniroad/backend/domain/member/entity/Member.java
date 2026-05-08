@@ -45,6 +45,9 @@ public class Member extends BaseTimeEntity {
     @Column(name = "dispatched_university")
     private String dispatchedUniversity;
 
+    @Column(name = "dispatched_country")
+    private String dispatchedCountry;
+
     @Column(name = "dispatched_region")
     private String dispatchedRegion;
 
