@@ -55,10 +55,10 @@ class AuthServiceTest {
     @DisplayName("회원가입 성공")
     void signUp_Success() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "강남구", "강남대학교");
+        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "한국", "서울특별시", "한양대학교");
         given(memberRepository.findByEmail(request.email())).willReturn(Optional.empty());
         given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
-        
+
         Member savedMember = Member.builder()
                 .id(1L)
                 .email(request.email())
@@ -78,7 +78,7 @@ class AuthServiceTest {
     @DisplayName("회원가입 실패 - 중복된 이메일")
     void signUp_Fail_DuplicateEmail() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터"  , 20, "강남구", "강남대학교");
+        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "한국", "서울특별시", "한양대학교");
         given(memberRepository.findByEmail(request.email())).willReturn(Optional.of(Member.builder().build()));
 
         // when & then
@@ -101,7 +101,7 @@ class AuthServiceTest {
 
         given(memberRepository.findByEmail(request.email())).willReturn(Optional.of(member));
         given(passwordEncoder.matches(request.password(), member.getPassword())).willReturn(true);
-        
+
         given(jwtProvider.createAccessToken(anyLong(), anyString())).willReturn("access-token");
         given(jwtProvider.createRefreshToken(anyLong())).willReturn("refresh-token");
         given(jwtProvider.getRefreshTokenValiditySeconds()).willReturn(3600L);
@@ -136,5 +136,4 @@ class AuthServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_CREDENTIALS);
     }
 
-    
 }

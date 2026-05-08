@@ -80,7 +80,7 @@ class AuthControllerTest {
     @WithMockUser // Spring Security 필터 통과를 위해 Mock 사용자 설정
     void signUp_Success() throws Exception {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "강남구", "강남대학교");
+        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "한국", "서울특별시", "한양대학교");
         given(authService.signUp(any(SignUpRequest.class))).willReturn(1L);
 
         // when & then
