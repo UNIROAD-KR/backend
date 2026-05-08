@@ -6,6 +6,7 @@ import com.uniroad.backend.domain.chat.entity.ChatReferenceType;
 import com.uniroad.backend.domain.chat.repository.ChatRoomMemberRepository;
 import com.uniroad.backend.domain.chat.repository.ChatRoomRepository;
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +22,11 @@ import java.util.List;
 public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public ChatRoom getOrCreateChatRoom(ChatReferenceType type, Long referenceId, List<Member> members) {
-        ChatRoom chatRoom = chatRoomRepository.findByReferenceTypeAndReferenceId(type, referenceId)
+        return chatRoomRepository.findByReferenceTypeAndReferenceId(type, referenceId)
                 .orElseGet(() -> {
                     ChatRoom newRoom = ChatRoom.create(type, referenceId);
                     chatRoomRepository.save(newRoom);
@@ -33,11 +36,19 @@ public class ChatRoomService {
                     }
                     return newRoom;
                 });
-        return chatRoom;
+    }
+
+    @Transactional
+    public ChatRoom getOrCreateChatRoomByMemberIds(ChatReferenceType type, Long referenceId, List<Long> memberIds) {
+        List<Member> members = memberIds.stream()
+                .map(id -> memberRepository.findById(id)
+                        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND)))
+                .collect(Collectors.toList());
+        return getOrCreateChatRoom(type, referenceId, members);
     }
 
     public ChatRoom findById(Long roomId) {
         return chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND)); // 기존 ErrorCode와 CustomException 사용
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
     }
 }
