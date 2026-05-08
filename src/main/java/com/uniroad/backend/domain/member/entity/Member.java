@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.member.entity;
 
 import com.uniroad.backend.domain.verification.entity.Verification;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +59,10 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Builder.Default
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
     
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
@@ -80,5 +85,17 @@ public class Member extends BaseTimeEntity {
      */
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
+    }
+
+    public void chargeBalance(BigDecimal amount) {
+        this.balance = this.balance.add(amount);
+    }
+
+    public void spendBalance(BigDecimal amount) {
+        if (this.balance.compareTo(amount) < 0) {
+            throw new com.uniroad.backend.global.exception.CustomException(
+                com.uniroad.backend.global.exception.ErrorCode.INSUFFICIENT_BALANCE);
+        }
+        this.balance = this.balance.subtract(amount);
     }
 }
