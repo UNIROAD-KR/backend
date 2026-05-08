@@ -1,9 +1,6 @@
 package com.uniroad.backend.domain.auth.controller;
 
-import com.uniroad.backend.domain.auth.dto.LoginRequest;
-import com.uniroad.backend.domain.auth.dto.ReissueRequest;
-import com.uniroad.backend.domain.auth.dto.SignUpRequest;
-import com.uniroad.backend.domain.auth.dto.TokenResponse;
+import com.uniroad.backend.domain.auth.dto.*;
 import com.uniroad.backend.domain.auth.service.AuthService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.security.CustomUserDetails;
@@ -55,6 +52,16 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokenResponse = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("로그인 성공", tokenResponse));
+    }
+
+    /**
+     * 소셜 로그인 (App SDK 방식)
+     */
+    @Operation(summary = "소셜 로그인", description = "App SDK에서 획득한 액세스 토큰으로 로그인을 진행합니다.")
+    @PostMapping("/social-login")
+    public ResponseEntity<ApiResponse<TokenResponse>> socialLogin(@Valid @RequestBody SocialLoginRequest request) {
+        TokenResponse tokenResponse = authService.socialLogin(request);
+        return ResponseEntity.ok(ApiResponse.success("소셜 로그인 성공", tokenResponse));
     }
 
     /**

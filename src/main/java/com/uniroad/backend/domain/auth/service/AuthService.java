@@ -1,9 +1,6 @@
 package com.uniroad.backend.domain.auth.service;
 
-import com.uniroad.backend.domain.auth.dto.LoginRequest;
-import com.uniroad.backend.domain.auth.dto.ReissueRequest;
-import com.uniroad.backend.domain.auth.dto.SignUpRequest;
-import com.uniroad.backend.domain.auth.dto.TokenResponse;
+import com.uniroad.backend.domain.auth.dto.*;
 import com.uniroad.backend.domain.auth.entity.RefreshToken;
 import com.uniroad.backend.domain.auth.repository.RefreshTokenRepository;
 import com.uniroad.backend.domain.member.entity.Member;
@@ -12,6 +9,7 @@ import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.jwt.JwtProvider;
+import com.uniroad.backend.global.oauth2.userinfo.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,6 +38,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final ApplicationEventPublisher eventPublisher;
+    private final SocialAuthService socialAuthService;
 
     // ── 회원가입 ────────────────────────────────────────────────
 
@@ -90,6 +89,58 @@ public class AuthService {
 
         // 3. 토큰 발급
         return issueTokens(member);
+    }
+
+    /**
+     * 소셜 로그인 (App SDK 방식)
+     */
+    @Transactional
+    public TokenResponse socialLogin(SocialLoginRequest request) {
+        // 1. 소셜 프로바이더로부터 사용자 정보 조회
+        OAuth2UserInfo userInfo = socialAuthService.getUserInfo(request.provider(), request.accessToken());
+
+        // 2. DB 저장 또는 업데이트
+        Member member = saveOrUpdateSocialMember(request.provider(), userInfo);
+
+        // 3. 토큰 발급
+        return issueTokens(member);
+    }
+
+    /**
+     * 소셜 사용자 저장 또는 업데이트 (공통 로직)
+     */
+    @Transactional
+    public Member saveOrUpdateSocialMember(String provider, OAuth2UserInfo userInfo) {
+        return memberRepository.findByProviderAndProviderId(provider, userInfo.getId())
+                .map(existing -> {
+                    existing.updateName(userInfo.getName());
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    // 동일 이메일로 일반 가입된 회원이 있는 경우 소셜 계정 연동
+                    if (userInfo.getEmail() != null) {
+                        return memberRepository.findByEmail(userInfo.getEmail())
+                                .map(existing -> {
+                                    existing.linkOAuth2(provider, userInfo.getId());
+                                    return existing;
+                                })
+                                .orElseGet(() -> createSocialMember(provider, userInfo));
+                    }
+                    return createSocialMember(provider, userInfo);
+                });
+    }
+
+    private Member createSocialMember(String provider, OAuth2UserInfo userInfo) {
+        Member member = Member.builder()
+                .email(userInfo.getEmail() != null
+                        ? userInfo.getEmail()
+                        : provider + "_" + userInfo.getId() + "@social.uniroad")
+                .name(userInfo.getName() != null ? userInfo.getName() : "소셜회원")
+                .provider(provider)
+                .providerId(userInfo.getId())
+                .role(Role.USER)
+                .build();
+        return memberRepository.save(member);
     }
 
     // ── 토큰 재발급 (Token Rotation) ────────────────────────────
