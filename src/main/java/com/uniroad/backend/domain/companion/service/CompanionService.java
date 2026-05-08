@@ -38,6 +38,7 @@ public class CompanionService {
                 .chatLink(request.chatLink())
                 .status(request.status())
                 .capacity(request.capacity())
+                .currentParticipants(request.currentParticipants())
                 .genderRatio(request.genderRatio())
                 .build();
 
@@ -63,6 +64,7 @@ public class CompanionService {
                 request.chatLink(),
                 request.status(),
                 request.capacity(),
+                request.currentParticipants(),
                 request.genderRatio()
         );
     }

@@ -21,6 +21,7 @@ public record CompanionPostResponse(
     RecruitmentStatus status,
     String statusDescription,
     Integer capacity,
+    Integer currentParticipants,
     String genderRatio,
     LocalDateTime createdAt
 ) {
@@ -38,6 +39,7 @@ public record CompanionPostResponse(
             post.getStatus(),
             post.getStatus().getDescription(),
             post.getCapacity(),
+            post.getCurrentParticipants(),
             post.getGenderRatio(),
             post.getCreatedAt()
         );

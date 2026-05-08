@@ -47,8 +47,11 @@ public record CompanionPostRequest(
     @Positive(message = "정원은 양수여야 합니다.")
     Integer capacity,
 
-    @Schema(description = "성비", example = "1:1")
-    @NotBlank(message = "성비는 필수입니다.")
+    @Schema(description = "현재 참여 인원", example = "2")
+    @NotNull(message = "현재 참여 인원은 필수입니다.")
+    Integer currentParticipants,
+
+    @Schema(description = "성비 (선택)", example = "1:1")
     String genderRatio
 ) {
 }

@@ -52,11 +52,14 @@ public class CompanionPost extends BaseTimeEntity {
     private Integer capacity;
 
     @Column(nullable = false)
+    private Integer currentParticipants;
+
+    @Column
     private String genderRatio;
 
     public void update(String title, String content, LocalDate startDate, LocalDate endDate,
                        String country, String region, String chatLink,
-                       RecruitmentStatus status, Integer capacity, String genderRatio) {
+                       RecruitmentStatus status, Integer capacity, Integer currentParticipants, String genderRatio) {
         this.title = title;
         this.content = content;
         this.startDate = startDate;
@@ -66,6 +69,7 @@ public class CompanionPost extends BaseTimeEntity {
         this.chatLink = chatLink;
         this.status = status;
         this.capacity = capacity;
+        this.currentParticipants = currentParticipants;
         this.genderRatio = genderRatio;
     }
 }
