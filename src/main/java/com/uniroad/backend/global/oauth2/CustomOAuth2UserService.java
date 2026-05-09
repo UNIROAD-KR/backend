@@ -7,7 +7,6 @@ import com.uniroad.backend.global.oauth2.userinfo.OAuth2UserInfo;
 import com.uniroad.backend.global.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.uniroad.backend.global.security.CustomUserDetails;
 
-import com.uniroad.backend.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
