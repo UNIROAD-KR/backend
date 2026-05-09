@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
-    private final AuthService authService;
 
     @Override
     @Transactional
@@ -42,11 +41,41 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         OAuth2UserInfo userInfo = OAuth2UserInfoFactory.of(registrationId, oAuth2User.getAttributes());
 
-        log.debug("[OAuth2] provider={}, userId={}, email={}",
-                registrationId, userInfo.getId(), userInfo.getEmail());
+        Member member = saveOrUpdateSocialMember(registrationId, userInfo);
 
-        Member member = authService.saveOrUpdateSocialMember(registrationId, userInfo);
         return new CustomUserDetails(member, oAuth2User.getAttributes());
     }
 
+    private Member saveOrUpdateSocialMember(String provider, OAuth2UserInfo userInfo) {
+        return memberRepository.findByProviderAndProviderId(provider, userInfo.getId())
+                .map(existing -> {
+                    existing.updateName(userInfo.getName());
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    if (userInfo.getEmail() != null) {
+                        return memberRepository.findByEmail(userInfo.getEmail())
+                                .map(existing -> {
+                                    existing.linkOAuth2(provider, userInfo.getId());
+                                    return existing;
+                                })
+                                .orElseGet(() -> createSocialMember(provider, userInfo));
+                    }
+                    return createSocialMember(provider, userInfo);
+                });
+    }
+
+    private Member createSocialMember(String provider, OAuth2UserInfo userInfo) {
+        Member member = Member.builder()
+                .email(userInfo.getEmail() != null
+                        ? userInfo.getEmail()
+                        : provider + "_" + userInfo.getId() + "@social.uniroad")
+                .name(userInfo.getName() != null ? userInfo.getName() : "소셜회원")
+                .provider(provider)
+                .providerId(userInfo.getId())
+                .role(Role.USER)
+                .build();
+
+        return memberRepository.save(member);
+    }
 }
