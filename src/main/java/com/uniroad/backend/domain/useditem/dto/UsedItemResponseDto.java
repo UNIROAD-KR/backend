@@ -1,7 +1,6 @@
 package com.uniroad.backend.domain.useditem.dto;
 
-import com.uniroad.backend.domain.useditem.entity.UsedItem;
-import com.uniroad.backend.domain.useditem.entity.UsedItemImage;
+import com.uniroad.backend.domain.useditem.entity.UsedItemPost;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -18,28 +16,59 @@ import java.util.stream.Collectors;
 public class UsedItemResponseDto {
 
     private Long id;
+
     private String title;
+
     private String content;
+
     private Long price;
+
     private String region;
+
     private String semester;
+
     private String authorName;
-    private List<String> imageUrls;
+
+    private String thumbnailImageUrl;
+
+    private List<TradeItemResponseDto> items;
+
+    private List<TradeCategoryImageResponseDto> categoryImages;
+
     private LocalDateTime createdAt;
 
-    public static UsedItemResponseDto from(UsedItem usedItem) {
+    public static UsedItemResponseDto from(UsedItemPost usedItemPost) {
+
         return UsedItemResponseDto.builder()
-                .id(usedItem.getId())
-                .title(usedItem.getTitle())
-                .content(usedItem.getContent())
-                .price(usedItem.getPrice())
-                .region(usedItem.getRegion())
-                .semester(usedItem.getSemester())
-                .authorName(usedItem.getAuthor().getName())
-                .imageUrls(usedItem.getImages().stream()
-                        .map(UsedItemImage::getImageUrl)
-                        .collect(Collectors.toList()))
-                .createdAt(usedItem.getCreatedAt())
+                .id(usedItemPost.getId())
+                .title(usedItemPost.getTitle())
+                .content(usedItemPost.getContent())
+                .price(usedItemPost.getPrice())
+                .region(usedItemPost.getRegion())
+                .semester(usedItemPost.getSemester())
+                .authorName(usedItemPost.getAuthor().getName())
+                .thumbnailImageUrl(usedItemPost.getThumbnailImageUrl())
+
+                .items(
+                        usedItemPost.getItems().stream()
+                                .map(item -> TradeItemResponseDto.builder()
+                                        .category(item.getCategory())
+                                        .name(item.getName())
+                                        .quantity(item.getQuantity())
+                                        .build())
+                                .toList()
+                )
+
+                .categoryImages(
+                        usedItemPost.getImages().stream()
+                                .map(image -> TradeCategoryImageResponseDto.builder()
+                                        .category(image.getCategory())
+                                        .imageUrl(image.getImageUrl())
+                                        .build())
+                                .toList()
+                )
+
+                .createdAt(usedItemPost.getCreatedAt())
                 .build();
     }
 }

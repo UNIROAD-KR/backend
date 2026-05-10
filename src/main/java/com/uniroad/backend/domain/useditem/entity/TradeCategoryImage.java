@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class UsedItemImage {
+public class TradeCategoryImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +19,13 @@ public class UsedItemImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "used_item_id")
-    private UsedItem usedItem;
+    private UsedItemPost usedItemPost;
 
-    public void setUsedItem(UsedItem usedItem) {
-        this.usedItem = usedItem;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TradeItemCategory category;
+
+    public void setUsedItemPost(UsedItemPost usedItemPost) {
+        this.usedItemPost = usedItemPost;
     }
 }

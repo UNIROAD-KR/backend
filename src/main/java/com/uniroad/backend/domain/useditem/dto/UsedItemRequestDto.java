@@ -30,5 +30,10 @@ public class UsedItemRequestDto {
     @NotBlank(message = "거래 학기는 필수입니다.")
     private String semester;
 
-    private List<String> imageUrls;
+    @NotBlank(message = "대표 이미지는 필수입니다.")
+    private String thumbnailImageUrl;
+
+    private List<TradeItemRequestDto> items;
+
+    private List<TradeCategoryImageRequestDto> categoryImages;
 }

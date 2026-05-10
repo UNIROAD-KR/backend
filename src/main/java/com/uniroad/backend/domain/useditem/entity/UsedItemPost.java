@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class UsedItem extends BaseTimeEntity {
+public class UsedItemPost extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,19 +39,33 @@ public class UsedItem extends BaseTimeEntity {
     private Member author;
 
     @Builder.Default
-    @OneToMany(mappedBy = "usedItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UsedItemImage> images = new ArrayList<>();
+    @OneToMany(mappedBy = "usedItemPost", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TradeCategoryImage> images = new ArrayList<>();
 
-    public void addImage(UsedItemImage image) {
-        images.add(image);
-        image.setUsedItem(this);
-    }
+    private String thumbnailImageUrl;
 
-    public void update(String title, String content, Long price, String region, String semester) {
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TradeItem> items = new ArrayList<>();
+
+    public void update(String title, String content, Long price, String region, String semester, String thumbnailImageUrl) {
         this.title = title;
         this.content = content;
         this.price = price;
         this.region = region;
         this.semester = semester;
+        this.thumbnailImageUrl = thumbnailImageUrl;
     }
+
+    public void addImage(TradeCategoryImage image) {
+        images.add(image);
+        image.setUsedItemPost(this);
+    }
+
+    public void addItem(TradeItem item) {
+        items.add(item);
+        item.setPost(this);
+    }
+
+
 }
