@@ -2,6 +2,7 @@ package com.uniroad.backend.domain.useditem.controller;
 
 import com.uniroad.backend.domain.useditem.dto.UsedItemRequestDto;
 import com.uniroad.backend.domain.useditem.dto.UsedItemResponseDto;
+import com.uniroad.backend.domain.useditem.dto.UsedItemSummaryResponseDto;
 import com.uniroad.backend.domain.useditem.service.UsedItemService;
 import com.uniroad.backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,11 +33,19 @@ public class UsedItemController {
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "중고거래 게시글이 등록되었습니다.", usedItemId));
     }
 
-    @Operation(summary = "중고거래 게시글 목록 조회", description = "로그인 사용자의 경우 소속 지역 게시글 우선, 그 외 최신순으로 조회합니다.")
+    @Operation(
+            summary = "중고거래 게시글 목록 조회",
+            description = "로그인 사용자의 경우 소속 지역 게시글을 우선 정렬하고, 이후 최신순으로 조회합니다."
+    )
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UsedItemResponseDto>>> getUsedItems() {
-        List<UsedItemResponseDto> response = usedItemService.getUsedItems();
-        return ResponseEntity.ok(ApiResponse.success("중고거래 게시글 목록 조회 성공", response));
+    public ResponseEntity<ApiResponse<List<UsedItemSummaryResponseDto>>> getUsedItems() {
+
+        List<UsedItemSummaryResponseDto> response =
+                usedItemService.getUsedItems();
+
+        return ResponseEntity.ok(
+                ApiResponse.success("중고거래 게시글 목록 조회 성공", response)
+        );
     }
 
     @Operation(summary = "중고거래 게시글 상세 조회")
