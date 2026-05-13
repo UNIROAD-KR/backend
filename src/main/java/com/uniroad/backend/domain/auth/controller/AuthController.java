@@ -34,14 +34,37 @@ public class AuthController {
     }
 
     /**
+     * 아이디 중복 확인
+     */
+    @Operation(summary = "아이디 중복 확인", description = "회원가입 전 아이디 중복 여부를 확인합니다.")
+    @GetMapping("/check-username")
+    public ResponseEntity<ApiResponse<Void>> checkUsername(@RequestParam String username) {
+        authService.checkUsernameDuplication(username);
+        return ResponseEntity.ok(ApiResponse.success("사용 가능한 아이디입니다.", null));
+    }
+
+    /**
      * 일반 회원가입
      */
-    @Operation(summary = "회원 가입", description = "기본 정보(이메일, 비밀번호, 이름)로 회원가입을 진행합니다.")
+    @Operation(summary = "회원 가입", description = "기본 정보(아이디, 이메일, 비밀번호, 이름)로 회원가입을 진행합니다.")
     @PostMapping("/sign-up")
     public ResponseEntity<ApiResponse<Long>> signUp(@Valid @RequestBody SignUpRequest request) {
         Long memberId = authService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED.value(), "회원가입이 완료되었습니다.", memberId));
+                .body(ApiResponse.success(HttpStatus.CREATED.value(), "회원가입이 완료되었습니다. 온보딩을 진행해주세요.", memberId));
+    }
+
+    /**
+     * 온보딩
+     */
+    @Operation(summary = "온보딩", description = "추가 정보(나이, 파견 정보 등)를 입력받아 온보딩을 완료합니다.")
+    @PostMapping("/onboarding")
+    public ResponseEntity<ApiResponse<Void>> onboarding(
+            @Valid @RequestBody OnboardingRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        authService.onboarding(userDetails.getMemberId(), request);
+        return ResponseEntity.ok(ApiResponse.success("온보딩이 완료되었습니다.", null));
     }
 
     /**

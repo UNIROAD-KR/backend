@@ -1,5 +1,7 @@
 package com.uniroad.backend.domain.auth.dto;
 
+import com.uniroad.backend.domain.member.entity.MemberStatus;
+
 /**
  * Access Token / Refresh Token 응답 DTO
  * - refreshToken은 HttpOnly Cookie로도 내려줄 수 있음 (보안 강화 시)
@@ -9,9 +11,10 @@ public record TokenResponse(
         String accessToken,
         String refreshToken,
         String tokenType,
-        long accessTokenExpiresIn  // 초(seconds) 단위
+        long accessTokenExpiresIn,  // 초(seconds) 단위
+        MemberStatus status
 ) {
-    public static TokenResponse of(String accessToken, String refreshToken, long expiresIn) {
-        return new TokenResponse(accessToken, refreshToken, "Bearer", expiresIn);
+    public static TokenResponse of(String accessToken, String refreshToken, long expiresIn, MemberStatus status) {
+        return new TokenResponse(accessToken, refreshToken, "Bearer", expiresIn, status);
     }
 }
