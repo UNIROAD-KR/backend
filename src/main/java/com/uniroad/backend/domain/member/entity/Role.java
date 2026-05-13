@@ -1,6 +1,6 @@
 package com.uniroad.backend.domain.member.entity;
 
-public enum Role {
+public enum     Role {
     USER("ROLE_USER"),
     VERIFIED("ROLE_VERIFIED"),
     ADMIN("ROLE_ADMIN");
