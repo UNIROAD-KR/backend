@@ -32,6 +32,9 @@ public class Member extends BaseTimeEntity {
     private Long id;
 
     @Column(unique = true)
+    private String username;
+
+    @Column(unique = true)
     private String email;
 
     // JWT 기반 일반 로그인 사용자를 위한 비밀번호 (OAuth2 가입자는 null)
@@ -63,6 +66,11 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private MemberStatus status = MemberStatus.NEED_SIGNUP;
+
     @Builder.Default
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
@@ -73,6 +81,22 @@ public class Member extends BaseTimeEntity {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updateUsername(String username) {
+        this.username = username;
+    }
+
+    public void updateStatus(MemberStatus status) {
+        this.status = status;
+    }
+
+    public void completeOnboarding(Integer age, String dispatchedUniversity, String dispatchedCountry, String dispatchedRegion) {
+        this.age = age;
+        this.dispatchedUniversity = dispatchedUniversity;
+        this.dispatchedCountry = dispatchedCountry;
+        this.dispatchedRegion = dispatchedRegion;
+        this.status = MemberStatus.ACTIVE;
     }
 
     /**

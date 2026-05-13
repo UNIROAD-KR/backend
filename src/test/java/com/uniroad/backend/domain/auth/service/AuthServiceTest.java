@@ -55,8 +55,8 @@ class AuthServiceTest {
     @DisplayName("회원가입 성공")
     void signUp_Success() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "한국", "서울특별시", "한양대학교");
-        given(memberRepository.findByEmail(request.email())).willReturn(Optional.empty());
+        SignUpRequest request = new SignUpRequest("test1234", "test@test.com", "Password123!", "테스터");
+        given(memberRepository.findByUsername(request.username())).willReturn(Optional.empty());
         given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
 
         Member savedMember = Member.builder()
@@ -78,8 +78,8 @@ class AuthServiceTest {
     @DisplayName("회원가입 실패 - 중복된 이메일")
     void signUp_Fail_DuplicateEmail() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "테스터", 20, "한국", "서울특별시", "한양대학교");
-        given(memberRepository.findByEmail(request.email())).willReturn(Optional.of(Member.builder().build()));
+        SignUpRequest request = new SignUpRequest("test1234", "test@test.com", "Password123!", "테스터");
+        given(memberRepository.findByUsername(request.username())).willReturn(Optional.of(Member.builder().build()));
 
         // when & then
         assertThatThrownBy(() -> authService.signUp(request))
@@ -91,15 +91,17 @@ class AuthServiceTest {
     @DisplayName("로그인 성공")
     void login_Success() {
         // given
-        LoginRequest request = new LoginRequest("test@test.com", "Password123!");
+        LoginRequest request = new LoginRequest("test1234", "Password123!");
         Member member = Member.builder()
                 .id(1L)
+                .username("test1234")
                 .email("test@test.com")
                 .password("encodedPassword")
                 .role(Role.USER)
+                .status(com.uniroad.backend.domain.member.entity.MemberStatus.ACTIVE)
                 .build();
 
-        given(memberRepository.findByEmail(request.email())).willReturn(Optional.of(member));
+        given(memberRepository.findByUsername(request.username())).willReturn(Optional.of(member));
         given(passwordEncoder.matches(request.password(), member.getPassword())).willReturn(true);
 
         given(jwtProvider.createAccessToken(anyLong(), anyString())).willReturn("access-token");
@@ -121,13 +123,14 @@ class AuthServiceTest {
     @DisplayName("로그인 실패 - 잘못된 비밀번호")
     void login_Fail_InvalidPassword() {
         // given
-        LoginRequest request = new LoginRequest("test@test.com", "WrongPassword");
+        LoginRequest request = new LoginRequest("test1234", "WrongPassword");
         Member member = Member.builder()
+                .username("test1234")
                 .email("test@test.com")
                 .password("encodedPassword")
                 .build();
 
-        given(memberRepository.findByEmail(request.email())).willReturn(Optional.of(member));
+        given(memberRepository.findByUsername(request.username())).willReturn(Optional.of(member));
         given(passwordEncoder.matches(request.password(), member.getPassword())).willReturn(false);
 
         // when & then

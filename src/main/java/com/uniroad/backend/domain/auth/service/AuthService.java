@@ -44,25 +44,36 @@ public class AuthService {
 
     @Transactional
     public Long signUp(SignUpRequest request) {
-        if (memberRepository.findByEmail(request.email()).isPresent()) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        if (memberRepository.findByUsername(request.username()).isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL); // Or DUPLICATE_USERNAME
         }
 
         Member member = Member.builder()
+                .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .name(request.name())
-                .age(request.age())
-                .dispatchedUniversity(request.dispatchedUniversity())
-                .dispatchedCountry(request.dispatchedCountry())
-                .dispatchedRegion(request.dispatchedRegion())
                 .provider("LOCAL")
                 .role(Role.USER)
+                .status(com.uniroad.backend.domain.member.entity.MemberStatus.NEED_ONBOARDING)
                 .build();
 
         Member savedMember = memberRepository.save(member);
-        log.info("[SignUp] 새 회원 가입: email={}, memberId={}", request.email(), savedMember.getId());
+        log.info("[SignUp] 새 회원 가입: username={}, memberId={}", request.username(), savedMember.getId());
         return savedMember.getId();
+    }
+
+    @Transactional
+    public void onboarding(Long memberId, OnboardingRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        member.completeOnboarding(
+                request.age(),
+                request.dispatchedUniversity(),
+                request.dispatchedCountry(),
+                request.dispatchedRegion()
+        );
     }
 
     /**
@@ -75,12 +86,22 @@ public class AuthService {
         }
     }
 
+    /**
+     * 아이디 중복 확인
+     */
+    @Transactional(readOnly = true)
+    public void checkUsernameDuplication(String username) {
+        if (memberRepository.findByUsername(username).isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL); // Or another error code like DUPLICATE_USERNAME
+        }
+    }
+
     // ── 로그인 ──────────────────────────────────────────────────
 
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        // 1. 이메일로 회원 조회
-        Member member = memberRepository.findByEmail(request.email())
+        // 1. 아이디로 회원 조회
+        Member member = memberRepository.findByUsername(request.username())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_CREDENTIALS));
 
         // 2. 비밀번호 검증
@@ -204,7 +225,7 @@ public class AuthService {
         refreshTokenRepository.save(newToken);
 
         log.debug("[Token Reissued] memberId={}", memberId);
-        return TokenResponse.of(newAccessToken, newRefreshToken, jwtProvider.getAccessTokenValiditySeconds());
+        return TokenResponse.of(newAccessToken, newRefreshToken, jwtProvider.getAccessTokenValiditySeconds(), member.getStatus());
     }
 
     // ── 로그아웃 ────────────────────────────────────────────────
@@ -238,6 +259,6 @@ public class AuthService {
                         .build()
         );
 
-        return TokenResponse.of(accessToken, refreshToken, jwtProvider.getAccessTokenValiditySeconds());
+        return TokenResponse.of(accessToken, refreshToken, jwtProvider.getAccessTokenValiditySeconds(), member.getStatus());
     }
 }
