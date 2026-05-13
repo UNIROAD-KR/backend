@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: ${ECR_REPOSITORY_URL}:latest
+    image: ${ECR_REPOSITORY_URL}:${IMAGE_TAG}
     container_name: uniroad-backend
     restart: always
     # 호스트의 네트워크를 공유하여 EC2에 설치된 Redis(localhost:6379)에 접근
