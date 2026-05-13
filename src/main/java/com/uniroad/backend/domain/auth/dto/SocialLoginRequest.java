@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "소셜 로그인 요청 (App SDK 전용)")
 public record SocialLoginRequest(
-    @Schema(description = "소셜 프로바이더 (kakao, naver)", example = "kakao")
+    @Schema(description = "소셜 프로바이더 (kakao, naver, google, apple)", example = "kakao")
     @NotBlank(message = "프로바이더는 필수입니다.")
     String provider,
 

@@ -16,6 +16,8 @@ public class OAuth2UserInfoFactory {
         return switch (registrationId.toLowerCase()) {
             case "kakao" -> new KakaoOAuth2UserInfo(attributes);
             case "naver" -> new NaverOAuth2UserInfo(attributes);
+            case "google" -> new GoogleOAuth2UserInfo(attributes);
+            case "apple" -> new AppleOAuth2UserInfo(attributes);
             default -> throw new CustomException(ErrorCode.OAUTH2_PROVIDER_NOT_SUPPORTED);
         };
     }
