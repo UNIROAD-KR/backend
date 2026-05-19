@@ -44,6 +44,13 @@ spring:
             client-name: Naver
             provider: naver
 
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize

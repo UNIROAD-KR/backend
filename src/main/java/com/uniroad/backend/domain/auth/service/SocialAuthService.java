@@ -27,9 +27,13 @@ public class SocialAuthService {
     private static final String NAVER_USER_INFO_URL = "https://openapi.naver.com/v1/nid/me";
 
     /**
-     * 소셜 액세스 토큰으로 사용자 정보 조회
+     * 소셜 액세스 토큰(또는 ID Token)으로 사용자 정보 조회
      */
     public OAuth2UserInfo getUserInfo(String provider, String accessToken) {
+        if ("google".equalsIgnoreCase(provider)) {
+            return getGoogleUserInfo(accessToken);
+        }
+
         String url = switch (provider.toLowerCase()) {
             case "kakao" -> KAKAO_USER_INFO_URL;
             case "naver" -> NAVER_USER_INFO_URL;
@@ -56,6 +60,31 @@ public class SocialAuthService {
             return OAuth2UserInfoFactory.of(provider, attributes);
         } catch (Exception e) {
             log.error("[SocialAuth] 사용자 정보 조회 실패: provider={}, error={}", provider, e.getMessage());
+            throw new CustomException(ErrorCode.INVALID_OAUTH2_TOKEN);
+        }
+    }
+
+    /**
+     * 구글 ID Token 검증 및 사용자 정보 조회
+     */
+    private OAuth2UserInfo getGoogleUserInfo(String idToken) {
+        String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            Map<String, Object> attributes = response.getBody();
+            if (attributes == null) {
+                throw new CustomException(ErrorCode.OAUTH2_USER_INFO_EMPTY);
+            }
+
+            return OAuth2UserInfoFactory.of("google", attributes);
+        } catch (Exception e) {
+            log.error("[SocialAuth] 구글 ID Token 검증 실패: error={}", e.getMessage());
             throw new CustomException(ErrorCode.INVALID_OAUTH2_TOKEN);
         }
     }

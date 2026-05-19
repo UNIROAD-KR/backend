@@ -77,3 +77,13 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: uniroad-image-bucket
+    credentials:
+      access-key: dummy-access-key
+      secret-key: dummy-secret-key
