@@ -73,6 +73,7 @@ public class SecurityConfig {
                                                                 "/api/auth/login",
                                                                 "/api/auth/social-login",
                                                                 "/api/auth/check-email",
+                                                                "/api/auth/check-username",
                                                                 "/api/auth/reissue",
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
