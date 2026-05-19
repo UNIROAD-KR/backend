@@ -1,8 +1,6 @@
 package com.uniroad.backend.domain.accountbook.service;
 
-import com.uniroad.backend.domain.accountbook.dto.AccountBookRequest;
-import com.uniroad.backend.domain.accountbook.dto.AccountBookResponse;
-import com.uniroad.backend.domain.accountbook.dto.MonthlySummaryResponse;
+import com.uniroad.backend.domain.accountbook.dto.*;
 import com.uniroad.backend.domain.accountbook.entity.AccountBook;
 import com.uniroad.backend.domain.accountbook.entity.TransactionType;
 import com.uniroad.backend.domain.accountbook.repository.AccountBookRepository;
@@ -108,5 +106,15 @@ public class AccountBookService {
                 .stream()
                 .map(AccountBookResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 현재 가계부 잔액 조회
+     */
+    @Transactional(readOnly = true)
+    public BalanceResponse getBalance(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        return BalanceResponse.of(member.getBalance());
     }
 }

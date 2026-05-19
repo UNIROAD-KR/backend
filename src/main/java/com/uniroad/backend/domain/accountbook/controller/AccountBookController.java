@@ -1,8 +1,6 @@
 package com.uniroad.backend.domain.accountbook.controller;
 
-import com.uniroad.backend.domain.accountbook.dto.AccountBookRequest;
-import com.uniroad.backend.domain.accountbook.dto.AccountBookResponse;
-import com.uniroad.backend.domain.accountbook.dto.MonthlySummaryResponse;
+import com.uniroad.backend.domain.accountbook.dto.*;
 import com.uniroad.backend.domain.accountbook.service.AccountBookService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.security.CustomUserDetails;
@@ -55,5 +53,14 @@ public class AccountBookController {
     ) {
         List<AccountBookResponse> details = accountBookService.getDailyDetails(userDetails.getMemberId(), date);
         return ResponseEntity.ok(ApiResponse.success("일간 상세 조회 성공", details));
+    }
+
+    @Operation(summary = "현재 잔액 조회", description = "인증된 사용자의 가계부 현재 잔액을 조회합니다.")
+    @GetMapping("/balance")
+    public ResponseEntity<ApiResponse<BalanceResponse>> getBalance(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        BalanceResponse balanceResponse = accountBookService.getBalance(userDetails.getMemberId());
+        return ResponseEntity.ok(ApiResponse.success("잔액 조회 성공", balanceResponse));
     }
 }
