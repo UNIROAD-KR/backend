@@ -75,8 +75,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입 실패 - 중복된 이메일")
-    void signUp_Fail_DuplicateEmail() {
+    @DisplayName("회원가입 실패 - 중복된 아이디")
+    void signUp_Fail_DuplicateUsername() {
         // given
         SignUpRequest request = new SignUpRequest("test1234", "test@test.com", "Password123!", "테스터");
         given(memberRepository.findByUsername(request.username())).willReturn(Optional.of(Member.builder().build()));
@@ -84,7 +84,7 @@ class AuthServiceTest {
         // when & then
         assertThatThrownBy(() -> authService.signUp(request))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_USERNAME);
     }
 
     @Test

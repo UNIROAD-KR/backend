@@ -88,6 +88,19 @@ public class AuthController {
     }
 
     /**
+     * 소셜 회원가입 (소셜 로그인 후 NEED_SIGNUP 상태일 때 아이디/비밀번호 설정)
+     */
+    @Operation(summary = "소셜 계정 회원가입", description = "소셜 로그인 완료 후 처음 가입한 경우, 로그인용 아이디와 비밀번호를 등록합니다.")
+    @PostMapping("/social-sign-up")
+    public ResponseEntity<ApiResponse<Void>> socialSignUp(
+            @Valid @RequestBody SocialSignUpRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        authService.socialSignUp(userDetails.getMemberId(), request);
+        return ResponseEntity.ok(ApiResponse.success("소셜 회원가입이 완료되었습니다. 온보딩을 진행해주세요.", null));
+    }
+
+    /**
      * Access Token 재발급 (Refresh Token Rotation)
      */
     @Operation(summary = "토큰 재발급", description = "Refresh Token을 제출하여 새로운 Access/Refresh 토큰을 재발급받습니다.")

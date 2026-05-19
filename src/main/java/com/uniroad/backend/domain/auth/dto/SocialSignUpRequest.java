@@ -5,19 +5,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * 일반 회원가입 요청 DTO
- */
-@Schema(description = "회원가입 요청 데이터")
-public record SignUpRequest(
+@Schema(description = "소셜 계정 전용 회원가입(아이디/비밀번호 설정) 요청 데이터")
+public record SocialSignUpRequest(
 
         @Schema(description = "아이디", example = "user123")
         @NotBlank(message = "아이디는 필수입니다.")
         String username,
-
-        @Schema(description = "이메일 주소 (선택)", example = "user@greenpath.seoul.kr")
-        @Email(message = "이메일 형식이 올바르지 않습니다.")
-        String email,
 
         @Schema(description = "비밀번호 (8~20자 영문, 숫자, 특수문자 포함)", example = "Password123!")
         @NotBlank(message = "비밀번호는 필수입니다.")
@@ -28,8 +21,7 @@ public record SignUpRequest(
         )
         String password,
 
-        @Schema(description = "사용자 이름", example = "홍길동")
-        @NotBlank(message = "이름은 필수입니다.")
-        @Size(min = 1, max = 20, message = "이름은 1~20자여야 합니다.")
-        String name
+        @Schema(description = "이메일 주소 (선택 - 비워둘 시 기존 소셜 이메일 유지 또는 미설정)", example = "user@greenpath.seoul.kr")
+        @Email(message = "이메일 형식이 올바르지 않습니다.")
+        String email
 ) {}

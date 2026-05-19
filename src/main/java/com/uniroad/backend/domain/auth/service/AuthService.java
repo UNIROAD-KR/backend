@@ -4,6 +4,7 @@ import com.uniroad.backend.domain.auth.dto.*;
 import com.uniroad.backend.domain.auth.entity.RefreshToken;
 import com.uniroad.backend.domain.auth.repository.RefreshTokenRepository;
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.domain.member.entity.MemberStatus;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.global.exception.CustomException;
@@ -45,12 +46,17 @@ public class AuthService {
     @Transactional
     public Long signUp(SignUpRequest request) {
         if (memberRepository.findByUsername(request.username()).isPresent()) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL); // Or DUPLICATE_USERNAME
+            throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
+        }
+
+        String email = (request.email() == null || request.email().isBlank()) ? null : request.email();
+        if (email != null && memberRepository.findByEmail(email).isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         Member member = Member.builder()
                 .username(request.username())
-                .email(request.email())
+                .email(email)
                 .password(passwordEncoder.encode(request.password()))
                 .name(request.name())
                 .provider("LOCAL")
@@ -77,14 +83,50 @@ public class AuthService {
     }
 
     /**
+     * 소셜 가입 회원 - 아이디 및 비밀번호 설정 (회원가입 완료)
+     */
+    @Transactional
+    public void socialSignUp(Long memberId, SocialSignUpRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (member.getStatus() != MemberStatus.NEED_SIGNUP) {
+            throw new CustomException(ErrorCode.ALREADY_SIGNED_UP);
+        }
+
+        // 1. 아이디 중복 확인
+        if (memberRepository.findByUsername(request.username()).isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
+        }
+
+        // 2. 이메일 중복 확인 (새로운 이메일이 입력된 경우에만)
+        String email = (request.email() == null || request.email().isBlank()) ? null : request.email();
+        if (email != null && !email.equals(member.getEmail())) {
+            if (memberRepository.findByEmail(email).isPresent()) {
+                throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+            }
+            member.updateEmail(email);
+        }
+
+        // 3. 아이디, 비밀번호 설정 및 상태 변경
+        member.updateUsername(request.username());
+        member.updatePassword(passwordEncoder.encode(request.password()));
+        member.updateStatus(MemberStatus.NEED_ONBOARDING);
+
+        log.info("[SocialSignUp] 소셜 회원 아이디/비밀번호 생성 완료: memberId={}, username={}", memberId, request.username());
+    }
+
+    /**
      * 이메일 중복 확인
      */
     @Transactional(readOnly = true)
     public void checkEmailDuplication(String email) {
-        if (memberRepository.findByEmail(email).isPresent()) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        if (email != null && !email.isBlank()) {
+            if (memberRepository.findByEmail(email).isPresent()) {
+                throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+            }
         }
-    }
+     }
 
     /**
      * 아이디 중복 확인
@@ -92,7 +134,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public void checkUsernameDuplication(String username) {
         if (memberRepository.findByUsername(username).isPresent()) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL); // Or another error code like DUPLICATE_USERNAME
+            throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
         }
     }
 

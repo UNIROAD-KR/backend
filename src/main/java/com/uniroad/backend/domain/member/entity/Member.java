@@ -87,6 +87,10 @@ public class Member extends BaseTimeEntity {
         this.username = username;
     }
 
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
     public void updateStatus(MemberStatus status) {
         this.status = status;
     }
