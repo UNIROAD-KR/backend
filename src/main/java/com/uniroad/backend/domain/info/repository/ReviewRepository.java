@@ -16,10 +16,25 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             JOIN pu.country c
             WHERE (:partnerUniversityId IS NULL OR pu.id = :partnerUniversityId)
               AND (:country IS NULL OR c.name = :country OR c.code = :country)
+              AND (:type IS NULL OR r.type = :type)
+              AND (:keyword IS NULL OR LOWER(r.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(r.summary) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(r.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
     Page<Review> search(
             @Param("partnerUniversityId") Long partnerUniversityId,
             @Param("country") String country,
+            @Param("type") String type,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT COUNT(r)
+            FROM Review r
+            JOIN r.partnerUniversity pu
+            JOIN pu.country c
+            WHERE c.id = :countryId
+            """)
+    long countByCountryId(@Param("countryId") Long countryId);
 }

@@ -41,6 +41,8 @@ public enum ErrorCode {
 
     // Info
     PARTNER_UNIVERSITY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 파견교입니다."),
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 후기입니다."),
+    SCHOLARSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 장학금입니다."),
     UNIVERSITY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 학교입니다."),
     EXCHANGE_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "교환학생 정보를 찾을 수 없습니다.");
 

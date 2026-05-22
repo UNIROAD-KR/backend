@@ -19,6 +19,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "review", indexes = {
@@ -51,8 +55,22 @@ public class Review extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private String type;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<String> tags;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Long viewCount = 0L;
+
     @Column(nullable = false, precision = 2, scale = 1)
     private BigDecimal rating;
 
     private String authorNickname;
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
 }

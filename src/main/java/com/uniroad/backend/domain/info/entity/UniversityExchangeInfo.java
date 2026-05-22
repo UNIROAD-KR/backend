@@ -42,6 +42,10 @@ public class UniversityExchangeInfo extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String creditPolicy;
 
+    private String officeName;
+    private String phone;
+    private String email;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSON")
     private List<String> requiredDocuments;
@@ -51,4 +55,12 @@ public class UniversityExchangeInfo extends BaseTimeEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSON")
     private List<ExchangeSchedule> schedules;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<ExchangeTip> tips;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<ExchangeBlogLink> blogLinks;
 }

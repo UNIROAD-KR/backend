@@ -18,6 +18,7 @@ public class MemberResponseDto {
     private Integer age;
     private Long domesticUniversityId;
     private String domesticUniversity;
+    private String homeUniversity;
     private String dispatchedUniversity;
     private String dispatchedCountry;
     private String dispatchedRegion;
@@ -34,6 +35,7 @@ public class MemberResponseDto {
                 .age(member.getAge())
                 .domesticUniversityId(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getId() : null)
                 .domesticUniversity(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getName() : null)
+                .homeUniversity(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getName() : null)
                 .dispatchedUniversity(member.getDispatchedUniversity())
                 .dispatchedCountry(member.getDispatchedCountry())
                 .dispatchedRegion(member.getDispatchedRegion())

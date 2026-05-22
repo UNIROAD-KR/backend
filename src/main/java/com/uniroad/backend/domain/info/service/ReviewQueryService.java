@@ -17,7 +17,7 @@ public class ReviewQueryService {
     private final ReviewRepository reviewRepository;
 
     public Page<ReviewSummaryResponse> getReviews(Long partnerUniversityId, String country, Pageable pageable) {
-        return reviewRepository.search(partnerUniversityId, normalize(country), pageable)
+        return reviewRepository.search(partnerUniversityId, normalize(country), null, null, pageable)
                 .map(ReviewSummaryResponse::from);
     }
 

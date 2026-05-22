@@ -18,6 +18,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "scholarship", indexes = {
@@ -44,6 +48,21 @@ public class Scholarship extends BaseTimeEntity {
     private Country country;
 
     private String amount;
+    private String target;
+
+    @Column(columnDefinition = "TEXT")
+    private String eligibility;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String tips;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<String> applicationPeriods;
+
     private LocalDate deadline;
     private String officialUrl;
 }

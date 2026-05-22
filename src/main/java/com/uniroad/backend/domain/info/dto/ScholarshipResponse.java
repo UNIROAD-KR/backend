@@ -3,12 +3,18 @@ package com.uniroad.backend.domain.info.dto;
 import com.uniroad.backend.domain.info.entity.Scholarship;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record ScholarshipResponse(
         Long id,
         String name,
         String provider,
         String amount,
+        String target,
+        String eligibility,
+        String description,
+        String tips,
+        List<String> applicationPeriods,
         LocalDate deadline,
         String officialUrl
 ) {
@@ -18,6 +24,11 @@ public record ScholarshipResponse(
                 scholarship.getName(),
                 scholarship.getProvider(),
                 scholarship.getAmount(),
+                scholarship.getTarget(),
+                scholarship.getEligibility(),
+                scholarship.getDescription(),
+                scholarship.getTips(),
+                scholarship.getApplicationPeriods(),
                 scholarship.getDeadline(),
                 scholarship.getOfficialUrl()
         );

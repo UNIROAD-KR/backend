@@ -55,6 +55,14 @@ public class PartnerUniversity extends BaseTimeEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSON")
+    private List<String> imageUrls;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<String> tags;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
     private List<String> classLanguages;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -64,6 +72,8 @@ public class PartnerUniversity extends BaseTimeEntity {
     private Boolean creditTransferPossible;
     private String internationalOfficeEmail;
     private String internationalOfficeSnsUrl;
+    private String contact;
+    private String semesterSystem;
 
     @Column(precision = 3, scale = 2)
     private BigDecimal minGpa;
@@ -87,6 +97,10 @@ public class PartnerUniversity extends BaseTimeEntity {
     private Integer rentAvg;
     private Integer mealAvg;
     private Integer transportAvg;
+    private String costLevel;
+
+    @Column(columnDefinition = "TEXT")
+    private String costDescription;
 
     @Builder.Default
     @Column(nullable = false, precision = 3, scale = 2)

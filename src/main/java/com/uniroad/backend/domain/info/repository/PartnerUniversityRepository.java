@@ -42,4 +42,6 @@ public interface PartnerUniversityRepository extends JpaRepository<PartnerUniver
             @Param("dormitoryAvailable") Boolean dormitoryAvailable,
             Pageable pageable
     );
+
+    long countByCountryId(Long countryId);
 }
