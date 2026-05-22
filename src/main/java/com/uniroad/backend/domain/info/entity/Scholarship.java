@@ -63,6 +63,14 @@ public class Scholarship extends BaseTimeEntity {
     @Column(columnDefinition = "JSON")
     private List<String> applicationPeriods;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<String> requiredDocuments;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSON")
+    private List<String> essayTips;
+
     private LocalDate deadline;
     private String officialUrl;
 }

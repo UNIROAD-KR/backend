@@ -15,6 +15,8 @@ public record ScholarshipResponse(
         String description,
         String tips,
         List<String> applicationPeriods,
+        List<String> requiredDocuments,
+        List<String> essayTips,
         LocalDate deadline,
         String officialUrl
 ) {
@@ -29,6 +31,8 @@ public record ScholarshipResponse(
                 scholarship.getDescription(),
                 scholarship.getTips(),
                 scholarship.getApplicationPeriods(),
+                scholarship.getRequiredDocuments(),
+                scholarship.getEssayTips(),
                 scholarship.getDeadline(),
                 scholarship.getOfficialUrl()
         );

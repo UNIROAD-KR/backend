@@ -38,7 +38,9 @@ public record PartnerSchoolDetailResponse(
                         university.getTransportAvg() == null ? null : university.getTransportAvg() + "원",
                         university.getCostLevel(),
                         university.getCostDescription(),
-                        university.getNearbyEnvironment()
+                        university.getNearbyEnvironment(),
+                        university.getSafetyScore(),
+                        university.getSafetyDescription()
                 ),
                 bookmarkedByMe
         );
@@ -73,7 +75,9 @@ public record PartnerSchoolDetailResponse(
             String transport,
             String costLevel,
             String costDescription,
-            String environment
+            String environment,
+            Integer safetyScore,
+            String safetyDescription
     ) {
     }
 }

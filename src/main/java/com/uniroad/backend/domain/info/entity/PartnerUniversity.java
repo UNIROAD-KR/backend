@@ -102,6 +102,11 @@ public class PartnerUniversity extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String costDescription;
 
+    private Integer safetyScore;
+
+    @Column(columnDefinition = "TEXT")
+    private String safetyDescription;
+
     @Builder.Default
     @Column(nullable = false, precision = 3, scale = 2)
     private BigDecimal avgRating = BigDecimal.ZERO;

@@ -52,7 +52,10 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: mkdir -p ~/app
+          script_stop: true
+          script: |
+            set -Eeuo pipefail
+            mkdir -p ~/app
 
       - name: Copy docker-compose.yml to EC2
         uses: appleboy/scp-action@master
@@ -69,7 +72,10 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
+            set -Eeuo pipefail
+
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
             cd ~/app
@@ -91,10 +97,11 @@ jobs:
             CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
             S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}
             S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            S3_BUCKET=${{ secrets.S3_BUCKET }}
             EOF
 
             docker compose down
+            docker system prune -af
             docker compose pull
             docker compose up -d
-
-            docker image prune -f
