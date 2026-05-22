@@ -1,5 +1,6 @@
 package com.uniroad.backend.domain.member.entity;
 
+import com.uniroad.backend.domain.info.entity.University;
 import com.uniroad.backend.domain.verification.entity.Verification;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -54,6 +55,10 @@ public class Member extends BaseTimeEntity {
     @Column(name = "dispatched_region")
     private String dispatchedRegion;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domestic_university_id")
+    private University domesticUniversity;
+
     // KAKAO, NAVER, LOCAL 등 로그인 제공자 정보
     @Builder.Default
     private String provider = "LOCAL";
@@ -95,8 +100,10 @@ public class Member extends BaseTimeEntity {
         this.status = status;
     }
 
-    public void completeOnboarding(Integer age, String dispatchedUniversity, String dispatchedCountry, String dispatchedRegion) {
+    public void completeOnboarding(Integer age, University domesticUniversity, String dispatchedUniversity,
+                                   String dispatchedCountry, String dispatchedRegion) {
         this.age = age;
+        this.domesticUniversity = domesticUniversity;
         this.dispatchedUniversity = dispatchedUniversity;
         this.dispatchedCountry = dispatchedCountry;
         this.dispatchedRegion = dispatchedRegion;

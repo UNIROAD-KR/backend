@@ -3,6 +3,8 @@ package com.uniroad.backend.domain.auth.service;
 import com.uniroad.backend.domain.auth.dto.*;
 import com.uniroad.backend.domain.auth.entity.RefreshToken;
 import com.uniroad.backend.domain.auth.repository.RefreshTokenRepository;
+import com.uniroad.backend.domain.info.entity.University;
+import com.uniroad.backend.domain.info.repository.UniversityRepository;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.entity.MemberStatus;
 import com.uniroad.backend.domain.member.entity.Role;
@@ -40,6 +42,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final SocialAuthService socialAuthService;
+    private final UniversityRepository universityRepository;
 
     // ── 회원가입 ────────────────────────────────────────────────
 
@@ -74,12 +77,32 @@ public class AuthService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
+        University domesticUniversity = findOrCreateUniversity(request.domesticUniversity());
+
         member.completeOnboarding(
                 request.age(),
+                domesticUniversity,
                 request.dispatchedUniversity(),
                 request.dispatchedCountry(),
                 request.dispatchedRegion()
         );
+    }
+
+    private University findOrCreateUniversity(String universityName) {
+        String normalizedName = normalizeRequired(universityName);
+        return universityRepository.findByName(normalizedName)
+                .orElseGet(() -> universityRepository.save(
+                        University.builder()
+                                .name(normalizedName)
+                                .build()
+                ));
+    }
+
+    private String normalizeRequired(String value) {
+        if (value == null || value.isBlank()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        return value.trim();
     }
 
     /**

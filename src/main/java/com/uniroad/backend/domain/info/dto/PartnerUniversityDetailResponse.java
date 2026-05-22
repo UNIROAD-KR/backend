@@ -36,7 +36,7 @@ public record PartnerUniversityDetailResponse(
         return new PartnerUniversityDetailResponse(
                 university.getId(),
                 university.getName(),
-                university.getCountry(),
+                university.getCountry().getName(),
                 university.getCity(),
                 university.getDescription(),
                 university.getWebsiteUrl(),

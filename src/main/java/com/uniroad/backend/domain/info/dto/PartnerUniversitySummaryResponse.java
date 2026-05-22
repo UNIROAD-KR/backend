@@ -17,7 +17,7 @@ public record PartnerUniversitySummaryResponse(
         return new PartnerUniversitySummaryResponse(
                 university.getId(),
                 university.getName(),
-                university.getCountry(),
+                university.getCountry().getName(),
                 university.getCity(),
                 university.getThumbnailUrl(),
                 university.getAvgRating(),

@@ -12,7 +12,8 @@ public interface ScholarshipRepository extends JpaRepository<Scholarship, Long> 
     @Query("""
             SELECT s
             FROM Scholarship s
-            WHERE (:country IS NULL OR s.country = :country)
+            LEFT JOIN s.country c
+            WHERE (:country IS NULL OR c.name = :country OR c.code = :country)
               AND (:keyword IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                    OR LOWER(s.provider) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)

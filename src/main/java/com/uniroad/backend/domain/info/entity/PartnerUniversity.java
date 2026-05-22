@@ -3,10 +3,13 @@ package com.uniroad.backend.domain.info.entity;
 import com.uniroad.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,7 +24,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "partner_university", indexes = {
-        @Index(name = "idx_partner_university_country", columnList = "country"),
+        @Index(name = "idx_partner_university_country", columnList = "country_id"),
         @Index(name = "idx_partner_university_name", columnList = "name"),
         @Index(name = "idx_partner_university_dormitory", columnList = "dormitory_available")
 })
@@ -38,8 +41,9 @@ public class PartnerUniversity extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String country;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id", nullable = false)
+    private Country country;
 
     private String city;
 

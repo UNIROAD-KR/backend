@@ -13,8 +13,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             SELECT r
             FROM Review r
             JOIN r.partnerUniversity pu
+            JOIN pu.country c
             WHERE (:partnerUniversityId IS NULL OR pu.id = :partnerUniversityId)
-              AND (:country IS NULL OR pu.country = :country)
+              AND (:country IS NULL OR c.name = :country OR c.code = :country)
             """)
     Page<Review> search(
             @Param("partnerUniversityId") Long partnerUniversityId,
