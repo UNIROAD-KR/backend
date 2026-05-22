@@ -62,7 +62,7 @@ public class Review extends BaseTimeEntity {
     private List<String> tags;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(columnDefinition = "BIGINT DEFAULT 0")
     private Long viewCount = 0L;
 
     @Column(nullable = false, precision = 2, scale = 1)
@@ -70,7 +70,11 @@ public class Review extends BaseTimeEntity {
 
     private String authorNickname;
 
+    public Long getViewCount() {
+        return viewCount == null ? 0L : viewCount;
+    }
+
     public void increaseViewCount() {
-        this.viewCount++;
+        this.viewCount = getViewCount() + 1;
     }
 }
