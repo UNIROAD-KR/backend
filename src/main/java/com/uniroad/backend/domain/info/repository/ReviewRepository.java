@@ -14,11 +14,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             FROM Review r
             JOIN r.partnerUniversity pu
             WHERE (:partnerUniversityId IS NULL OR pu.id = :partnerUniversityId)
-              AND (:countryCode IS NULL OR pu.countryCode = :countryCode)
+              AND (:country IS NULL OR pu.country = :country)
             """)
     Page<Review> search(
             @Param("partnerUniversityId") Long partnerUniversityId,
-            @Param("countryCode") String countryCode,
+            @Param("country") String country,
             Pageable pageable
     );
 }

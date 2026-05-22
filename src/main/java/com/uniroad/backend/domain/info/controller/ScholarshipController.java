@@ -26,11 +26,11 @@ public class ScholarshipController {
     @Operation(summary = "장학금 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ScholarshipResponse>>> getScholarships(
-            @RequestParam(required = false) String countryCode,
+            @RequestParam(required = false) String country,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<ScholarshipResponse> response = scholarshipService.getScholarships(countryCode, keyword, pageable);
+        Page<ScholarshipResponse> response = scholarshipService.getScholarships(country, keyword, pageable);
         return ResponseEntity.ok(ApiResponse.success("장학금 목록 조회 성공", response));
     }
 }

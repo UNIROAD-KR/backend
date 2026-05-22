@@ -16,8 +16,8 @@ public class ScholarshipService {
 
     private final ScholarshipRepository scholarshipRepository;
 
-    public Page<ScholarshipResponse> getScholarships(String countryCode, String keyword, Pageable pageable) {
-        return scholarshipRepository.search(normalize(countryCode), normalize(keyword), pageable)
+    public Page<ScholarshipResponse> getScholarships(String country, String keyword, Pageable pageable) {
+        return scholarshipRepository.search(normalize(country), normalize(keyword), pageable)
                 .map(ScholarshipResponse::from);
     }
 

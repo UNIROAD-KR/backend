@@ -21,7 +21,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "partner_university", indexes = {
-        @Index(name = "idx_partner_university_country", columnList = "country_code"),
+        @Index(name = "idx_partner_university_country", columnList = "country"),
         @Index(name = "idx_partner_university_name", columnList = "name"),
         @Index(name = "idx_partner_university_dormitory", columnList = "dormitory_available")
 })
@@ -38,8 +38,8 @@ public class PartnerUniversity extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "country_code", nullable = false, length = 2)
-    private String countryCode;
+    @Column(nullable = false)
+    private String country;
 
     private String city;
 

@@ -28,7 +28,7 @@ public class PartnerUniversityController {
     @Operation(summary = "파견교 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PartnerUniversitySummaryResponse>>> getPartnerUniversities(
-            @RequestParam(required = false) String countryCode,
+            @RequestParam(required = false) String country,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String major,
             @RequestParam(required = false) String language,
@@ -36,7 +36,7 @@ public class PartnerUniversityController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<PartnerUniversitySummaryResponse> response = partnerUniversityService.getPartnerUniversities(
-                countryCode,
+                country,
                 keyword,
                 major,
                 language,

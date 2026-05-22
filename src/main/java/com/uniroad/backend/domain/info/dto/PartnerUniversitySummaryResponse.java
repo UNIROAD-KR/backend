@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public record PartnerUniversitySummaryResponse(
         Long id,
         String name,
-        String countryCode,
+        String country,
         String city,
         String thumbnailUrl,
         BigDecimal avgRating,
@@ -17,7 +17,7 @@ public record PartnerUniversitySummaryResponse(
         return new PartnerUniversitySummaryResponse(
                 university.getId(),
                 university.getName(),
-                university.getCountryCode(),
+                university.getCountry(),
                 university.getCity(),
                 university.getThumbnailUrl(),
                 university.getAvgRating(),

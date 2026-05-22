@@ -8,7 +8,7 @@ import java.util.List;
 public record PartnerUniversityDetailResponse(
         Long id,
         String name,
-        String countryCode,
+        String country,
         String city,
         String description,
         String websiteUrl,
@@ -36,7 +36,7 @@ public record PartnerUniversityDetailResponse(
         return new PartnerUniversityDetailResponse(
                 university.getId(),
                 university.getName(),
-                university.getCountryCode(),
+                university.getCountry(),
                 university.getCity(),
                 university.getDescription(),
                 university.getWebsiteUrl(),

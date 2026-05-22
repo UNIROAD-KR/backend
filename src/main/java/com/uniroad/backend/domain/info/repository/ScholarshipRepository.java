@@ -12,12 +12,12 @@ public interface ScholarshipRepository extends JpaRepository<Scholarship, Long> 
     @Query("""
             SELECT s
             FROM Scholarship s
-            WHERE (:countryCode IS NULL OR s.countryCode = :countryCode)
+            WHERE (:country IS NULL OR s.country = :country)
               AND (:keyword IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
                    OR LOWER(s.provider) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
     Page<Scholarship> search(
-            @Param("countryCode") String countryCode,
+            @Param("country") String country,
             @Param("keyword") String keyword,
             Pageable pageable
     );

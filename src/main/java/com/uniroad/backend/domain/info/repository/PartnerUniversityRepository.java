@@ -13,7 +13,7 @@ public interface PartnerUniversityRepository extends JpaRepository<PartnerUniver
             value = """
                     SELECT *
                     FROM partner_university pu
-                    WHERE (:countryCode IS NULL OR pu.country_code = :countryCode)
+                    WHERE (:country IS NULL OR pu.country = :country)
                       AND (:keyword IS NULL OR LOWER(pu.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
                       AND (:major IS NULL OR JSON_SEARCH(pu.supported_majors, 'one', CONCAT('%', :major, '%')) IS NOT NULL)
                       AND (:language IS NULL OR JSON_SEARCH(pu.class_languages, 'one', CONCAT('%', :language, '%')) IS NOT NULL)
@@ -22,7 +22,7 @@ public interface PartnerUniversityRepository extends JpaRepository<PartnerUniver
             countQuery = """
                     SELECT COUNT(*)
                     FROM partner_university pu
-                    WHERE (:countryCode IS NULL OR pu.country_code = :countryCode)
+                    WHERE (:country IS NULL OR pu.country = :country)
                       AND (:keyword IS NULL OR LOWER(pu.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
                       AND (:major IS NULL OR JSON_SEARCH(pu.supported_majors, 'one', CONCAT('%', :major, '%')) IS NOT NULL)
                       AND (:language IS NULL OR JSON_SEARCH(pu.class_languages, 'one', CONCAT('%', :language, '%')) IS NOT NULL)
@@ -31,7 +31,7 @@ public interface PartnerUniversityRepository extends JpaRepository<PartnerUniver
             nativeQuery = true
     )
     Page<PartnerUniversity> search(
-            @Param("countryCode") String countryCode,
+            @Param("country") String country,
             @Param("keyword") String keyword,
             @Param("major") String major,
             @Param("language") String language,

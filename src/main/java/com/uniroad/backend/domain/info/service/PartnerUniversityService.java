@@ -21,7 +21,7 @@ public class PartnerUniversityService {
     private final PartnerUniversityRepository partnerUniversityRepository;
 
     public Page<PartnerUniversitySummaryResponse> getPartnerUniversities(
-            String countryCode,
+            String country,
             String keyword,
             String major,
             String language,
@@ -29,7 +29,7 @@ public class PartnerUniversityService {
             Pageable pageable
     ) {
         return partnerUniversityRepository.search(
-                        normalize(countryCode),
+                        normalize(country),
                         normalize(keyword),
                         normalize(major),
                         normalize(language),

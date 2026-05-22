@@ -27,12 +27,12 @@ public class ReviewQueryController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ReviewSummaryResponse>>> getReviews(
             @RequestParam(required = false) Long partnerUniversityId,
-            @RequestParam(required = false) String countryCode,
+            @RequestParam(required = false) String country,
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<ReviewSummaryResponse> response = reviewQueryService.getReviews(
                 partnerUniversityId,
-                countryCode,
+                country,
                 pageable
         );
 

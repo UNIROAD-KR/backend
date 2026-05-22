@@ -28,8 +28,7 @@ public class University extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(length = 2)
-    private String countryCode;
+    private String country;
 
     private String websiteUrl;
 }

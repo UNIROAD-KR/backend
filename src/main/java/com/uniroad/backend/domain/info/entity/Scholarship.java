@@ -18,7 +18,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "scholarship", indexes = {
-        @Index(name = "idx_scholarship_country", columnList = "country_code"),
+        @Index(name = "idx_scholarship_country", columnList = "country"),
         @Index(name = "idx_scholarship_name", columnList = "name")
 })
 @Getter
@@ -36,8 +36,7 @@ public class Scholarship extends BaseTimeEntity {
 
     private String provider;
 
-    @Column(name = "country_code", length = 2)
-    private String countryCode;
+    private String country;
 
     private String amount;
     private LocalDate deadline;
