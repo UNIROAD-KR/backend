@@ -48,7 +48,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private Member saveOrUpdateSocialMember(String provider, OAuth2UserInfo userInfo) {
         return memberRepository.findByProviderAndProviderId(provider, userInfo.getId())
                 .map(existing -> {
-                    existing.updateName(userInfo.getName());
+                    if (userInfo.getName() != null) {
+                        existing.updateName(userInfo.getName());
+                    }
                     return existing;
                 })
                 .orElseGet(() -> {
@@ -69,7 +71,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .email(userInfo.getEmail() != null
                         ? userInfo.getEmail()
                         : provider + "_" + userInfo.getId() + "@social.uniroad")
-                .name(userInfo.getName() != null ? userInfo.getName() : "소셜회원")
+                .name(userInfo.getName() != null ? userInfo.getName() : "")
                 .provider(provider)
                 .providerId(userInfo.getId())
                 .role(Role.USER)

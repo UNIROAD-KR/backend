@@ -12,6 +12,10 @@ public record SocialSignUpRequest(
         @NotBlank(message = "아이디는 필수입니다.")
         String username,
 
+        @Schema(description = "이름", example = "홍길동")
+        @NotBlank(message = "이름은 필수입니다.")
+        String name,
+
         @Schema(description = "비밀번호 (8~20자 영문, 숫자, 특수문자 포함)", example = "Password123!")
         @NotBlank(message = "비밀번호는 필수입니다.")
         @Size(min = 8, max = 20, message = "비밀번호는 8~20자여야 합니다.")

@@ -131,7 +131,8 @@ public class AuthService {
             member.updateEmail(email);
         }
 
-        // 3. 아이디, 비밀번호 설정 및 상태 변경
+        // 3. 이름, 아이디, 비밀번호 설정 및 상태 변경
+        member.updateName(request.name());
         member.updateUsername(request.username());
         member.updatePassword(passwordEncoder.encode(request.password()));
         member.updateStatus(MemberStatus.NEED_ONBOARDING);
@@ -200,7 +201,9 @@ public class AuthService {
     public Member saveOrUpdateSocialMember(String provider, OAuth2UserInfo userInfo) {
         return memberRepository.findByProviderAndProviderId(provider, userInfo.getId())
                 .map(existing -> {
-                    existing.updateName(userInfo.getName());
+                    if (userInfo.getName() != null) {
+                        existing.updateName(userInfo.getName());
+                    }
                     return existing;
                 })
                 .orElseGet(() -> {
@@ -222,7 +225,7 @@ public class AuthService {
                 .email(userInfo.getEmail() != null
                         ? userInfo.getEmail()
                         : provider + "_" + userInfo.getId() + "@social.uniroad")
-                .name(userInfo.getName() != null ? userInfo.getName() : "소셜회원")
+                .name(userInfo.getName() != null ? userInfo.getName() : "")
                 .provider(provider)
                 .providerId(userInfo.getId())
                 .role(Role.USER)
