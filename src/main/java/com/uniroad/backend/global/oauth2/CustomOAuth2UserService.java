@@ -1,8 +1,10 @@
 package com.uniroad.backend.global.oauth2;
 
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.domain.member.entity.MemberSocialAccount;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.member.repository.MemberSocialAccountRepository;
 import com.uniroad.backend.global.oauth2.userinfo.OAuth2UserInfo;
 import com.uniroad.backend.global.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.uniroad.backend.global.security.CustomUserDetails;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
+    private final MemberSocialAccountRepository memberSocialAccountRepository;
 
     @Override
     @Transactional
@@ -46,8 +49,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private Member saveOrUpdateSocialMember(String provider, OAuth2UserInfo userInfo) {
-        return memberRepository.findByProviderAndProviderId(provider, userInfo.getId())
-                .map(existing -> {
+        String normalizedProvider = MemberSocialAccount.normalizeProvider(provider);
+
+        return memberSocialAccountRepository.findByProviderIgnoreCaseAndProviderId(normalizedProvider, userInfo.getId())
+                .map(socialAccount -> {
+                    Member existing = socialAccount.getMember();
+                    socialAccount.updateEmail(userInfo.getEmail());
                     if (userInfo.getName() != null) {
                         existing.updateName(userInfo.getName());
                     }
@@ -57,12 +64,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     if (userInfo.getEmail() != null) {
                         return memberRepository.findByEmail(userInfo.getEmail())
                                 .map(existing -> {
-                                    existing.linkOAuth2(provider, userInfo.getId());
+                                    linkSocialAccount(existing, normalizedProvider, userInfo);
                                     return existing;
                                 })
-                                .orElseGet(() -> createSocialMember(provider, userInfo));
+                                .orElseGet(() -> createSocialMember(normalizedProvider, userInfo));
                     }
-                    return createSocialMember(provider, userInfo);
+                    return createSocialMember(normalizedProvider, userInfo);
                 });
     }
 
@@ -77,6 +84,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .role(Role.USER)
                 .build();
 
-        return memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+        linkSocialAccount(savedMember, provider, userInfo);
+        return savedMember;
+    }
+
+    private void linkSocialAccount(Member member, String provider, OAuth2UserInfo userInfo) {
+        boolean exists = memberSocialAccountRepository.existsByProviderIgnoreCaseAndProviderId(provider, userInfo.getId());
+        if (!exists) {
+            memberSocialAccountRepository.save(
+                    MemberSocialAccount.of(member, provider, userInfo.getId(), userInfo.getEmail())
+            );
+        }
     }
 }

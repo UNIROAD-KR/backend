@@ -7,8 +7,10 @@ import com.uniroad.backend.domain.info.entity.University;
 import com.uniroad.backend.domain.info.repository.UniversityRepository;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.entity.MemberStatus;
+import com.uniroad.backend.domain.member.entity.MemberSocialAccount;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.member.repository.MemberSocialAccountRepository;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.jwt.JwtProvider;
@@ -43,6 +45,7 @@ public class AuthService {
     private final ApplicationEventPublisher eventPublisher;
     private final SocialAuthService socialAuthService;
     private final UniversityRepository universityRepository;
+    private final MemberSocialAccountRepository memberSocialAccountRepository;
 
     // ── 회원가입 ────────────────────────────────────────────────
 
@@ -199,24 +202,27 @@ public class AuthService {
      */
     @Transactional
     public Member saveOrUpdateSocialMember(String provider, OAuth2UserInfo userInfo) {
-        return memberRepository.findByProviderAndProviderId(provider, userInfo.getId())
-                .map(existing -> {
+        String normalizedProvider = MemberSocialAccount.normalizeProvider(provider);
+
+        return memberSocialAccountRepository.findByProviderIgnoreCaseAndProviderId(normalizedProvider, userInfo.getId())
+                .map(socialAccount -> {
+                    Member existing = socialAccount.getMember();
+                    socialAccount.updateEmail(userInfo.getEmail());
                     if (userInfo.getName() != null) {
                         existing.updateName(userInfo.getName());
                     }
                     return existing;
                 })
                 .orElseGet(() -> {
-                    // 동일 이메일로 일반 가입된 회원이 있는 경우 소셜 계정 연동
                     if (userInfo.getEmail() != null) {
                         return memberRepository.findByEmail(userInfo.getEmail())
                                 .map(existing -> {
-                                    existing.linkOAuth2(provider, userInfo.getId());
+                                    linkSocialAccount(existing, normalizedProvider, userInfo);
                                     return existing;
                                 })
-                                .orElseGet(() -> createSocialMember(provider, userInfo));
+                                .orElseGet(() -> createSocialMember(normalizedProvider, userInfo));
                     }
-                    return createSocialMember(provider, userInfo);
+                    return createSocialMember(normalizedProvider, userInfo);
                 });
     }
 
@@ -230,7 +236,18 @@ public class AuthService {
                 .providerId(userInfo.getId())
                 .role(Role.USER)
                 .build();
-        return memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+        linkSocialAccount(savedMember, provider, userInfo);
+        return savedMember;
+    }
+
+    private void linkSocialAccount(Member member, String provider, OAuth2UserInfo userInfo) {
+        boolean exists = memberSocialAccountRepository.existsByProviderIgnoreCaseAndProviderId(provider, userInfo.getId());
+        if (!exists) {
+            memberSocialAccountRepository.save(
+                    MemberSocialAccount.of(member, provider, userInfo.getId(), userInfo.getEmail())
+            );
+        }
     }
 
     // ── 토큰 재발급 (Token Rotation) ────────────────────────────

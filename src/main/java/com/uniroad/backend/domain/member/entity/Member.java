@@ -14,8 +14,8 @@ import lombok.*;
  * 회원 엔티티
  *
  * - 일반 로그인: provider = "LOCAL", password 존재
- * - 소셜 로그인: provider = "KAKAO" | "NAVER", password = null
- * - 소셜 계정 연동: 기존 일반 회원에 provider/providerId 추가
+ * - 소셜 계정 식별 정보는 member_social_account 테이블에서 관리
+ * - provider/providerId 컬럼은 기존 데이터 호환을 위해 유지
  */
 @Entity
 @Table(name = "member", indexes = {
@@ -59,11 +59,11 @@ public class Member extends BaseTimeEntity {
     @JoinColumn(name = "domestic_university_id")
     private University domesticUniversity;
 
-    // KAKAO, NAVER, LOCAL 등 로그인 제공자 정보
+    // Legacy: 소셜 계정 식별은 MemberSocialAccount를 사용
     @Builder.Default
     private String provider = "LOCAL";
 
-    // 소셜 로그인에서 제공해주는 고유 ID (일반 로그인은 null)
+    // Legacy: 소셜 계정 식별은 MemberSocialAccount를 사용
     @Column(name = "provider_id")
     private String providerId;
 
@@ -108,14 +108,6 @@ public class Member extends BaseTimeEntity {
         this.dispatchedCountry = dispatchedCountry;
         this.dispatchedRegion = dispatchedRegion;
         this.status = MemberStatus.ACTIVE;
-    }
-
-    /**
-     * 일반 가입 회원이 소셜 로그인 최초 시도 시 계정 연동
-     */
-    public void linkOAuth2(String provider, String providerId) {
-        this.provider   = provider;
-        this.providerId = providerId;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.member.repository;
 
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.domain.member.entity.MemberSocialAccount;
 import com.uniroad.backend.domain.member.entity.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,9 @@ class MemberRepositoryTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private MemberSocialAccountRepository memberSocialAccountRepository;
 
     @Test
     @DisplayName("이메일로 회원 조회")
@@ -42,7 +46,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    @DisplayName("Provider와 ProviderId로 회원 조회")
+    @DisplayName("소셜 계정 Provider와 ProviderId로 회원 조회")
     void findByProviderAndProviderId_Success() {
         // given
         Member member = Member.builder()
@@ -50,17 +54,20 @@ class MemberRepositoryTest {
                 .password("password")
                 .name("카카오사용자")
                 .role(Role.USER)
-                .provider("KAKAO")
-                .providerId("123456")
                 .build();
-        memberRepository.save(member);
+        Member savedMember = memberRepository.save(member);
+        memberSocialAccountRepository.save(
+                MemberSocialAccount.of(savedMember, "kakao", "123456", "kakao@test.com")
+        );
 
         // when
-        Optional<Member> foundMember = memberRepository.findByProviderAndProviderId("KAKAO", "123456");
+        Optional<MemberSocialAccount> foundAccount =
+                memberSocialAccountRepository.findByProviderIgnoreCaseAndProviderId("KAKAO", "123456");
 
         // then
-        assertThat(foundMember).isPresent();
-        assertThat(foundMember.get().getProvider()).isEqualTo("KAKAO");
-        assertThat(foundMember.get().getProviderId()).isEqualTo("123456");
+        assertThat(foundAccount).isPresent();
+        assertThat(foundAccount.get().getMember().getId()).isEqualTo(savedMember.getId());
+        assertThat(foundAccount.get().getProvider()).isEqualTo("kakao");
+        assertThat(foundAccount.get().getProviderId()).isEqualTo("123456");
     }
 }
