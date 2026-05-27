@@ -84,3 +84,7 @@ frontend:
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+social:
+  apple:
+    audiences: ${APPLE_AUDIENCES:${APPLE_CLIENT_ID:}}
