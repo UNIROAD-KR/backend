@@ -82,19 +82,8 @@ public class CompanionService {
     }
 
     @Transactional(readOnly = true)
-    public List<CompanionPostResponse> getPostsByMemberCountry(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        String country = member.getDispatchedCountry();
-        if (country == null) {
-            // 국가 정보가 없는 경우 빈 리스트 반환 또는 전체 조회 (사용자 의도에 따라 다름)
-            // 여기선 빈 리스트를 반환하거나 예외를 던지는 대신 전체 조회를 할 수도 있지만
-            // "나라기반으로"라고 했으므로 국가 정보가 필수라고 가정.
-            return List.of();
-        }
-
-        return companionPostRepository.findAllByCountryOrderByCreatedAtDesc(country)
+    public List<CompanionPostResponse> getPosts() {
+        return companionPostRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(CompanionPostResponse::from)
                 .collect(Collectors.toList());

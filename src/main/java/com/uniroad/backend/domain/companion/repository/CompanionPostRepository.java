@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CompanionPostRepository extends JpaRepository<CompanionPost, Long> {
-    List<CompanionPost> findAllByCountryOrderByCreatedAtDesc(String country);
+    List<CompanionPost> findAllByOrderByCreatedAtDesc();
     List<CompanionPost> findAllByMemberIdOrderByCreatedAtDesc(Long memberId);
 }

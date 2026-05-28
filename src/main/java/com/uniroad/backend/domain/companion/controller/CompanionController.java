@@ -35,13 +35,11 @@ public class CompanionController {
         return ResponseEntity.ok(ApiResponse.success("게시글이 작성되었습니다.", id));
     }
 
-    @Operation(summary = "동행 구하기 목록 조회", description = "사용자의 파견 국가를 기반으로 동행 구하기 글 목록을 조회합니다. (인증된 사용자만 가능)")
+    @Operation(summary = "동행 구하기 목록 조회", description = "전체 동행 구하기 글 목록을 조회합니다. (인증된 사용자만 가능)")
     @GetMapping
     @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<CompanionPostResponse>>> getPosts(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        List<CompanionPostResponse> posts = companionService.getPostsByMemberCountry(userDetails.getMemberId());
+    public ResponseEntity<ApiResponse<List<CompanionPostResponse>>> getPosts() {
+        List<CompanionPostResponse> posts = companionService.getPosts();
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 목록 조회 성공", posts));
     }
 
