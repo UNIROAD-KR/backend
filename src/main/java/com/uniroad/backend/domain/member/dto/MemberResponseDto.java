@@ -2,6 +2,8 @@ package com.uniroad.backend.domain.member.dto;
 
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.entity.MemberStatus;
+import com.uniroad.backend.domain.member.entity.CurrentSituation;
+import com.uniroad.backend.domain.member.entity.Gender;
 import com.uniroad.backend.domain.member.entity.Role;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +17,9 @@ public class MemberResponseDto {
     private String username;
     private String email;
     private String name;
+    private String nickname;
+    private Gender gender;
+    private CurrentSituation currentSituation;
     private Integer age;
     private Long domesticUniversityId;
     private String domesticUniversity;
@@ -32,6 +37,9 @@ public class MemberResponseDto {
                 .username(member.getUsername())
                 .email(member.getEmail())
                 .name(member.getName())
+                .nickname(member.getNickname())
+                .gender(member.getGender())
+                .currentSituation(member.getCurrentSituation())
                 .age(member.getAge())
                 .domesticUniversityId(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getId() : null)
                 .domesticUniversity(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getName() : null)

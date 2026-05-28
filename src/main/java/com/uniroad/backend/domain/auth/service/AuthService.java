@@ -87,7 +87,10 @@ public class AuthService {
                 domesticUniversity,
                 request.dispatchedUniversity(),
                 request.dispatchedCountry(),
-                request.dispatchedRegion()
+                request.dispatchedRegion(),
+                normalizeRequired(request.nickname()),
+                request.gender(),
+                request.currentSituation()
         );
     }
 

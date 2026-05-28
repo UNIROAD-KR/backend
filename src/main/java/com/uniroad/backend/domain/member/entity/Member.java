@@ -44,6 +44,15 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
+    private String nickname;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "current_situation")
+    private CurrentSituation currentSituation;
+
     private Integer age;
 
     @Column(name = "dispatched_university")
@@ -101,12 +110,16 @@ public class Member extends BaseTimeEntity {
     }
 
     public void completeOnboarding(Integer age, University domesticUniversity, String dispatchedUniversity,
-                                   String dispatchedCountry, String dispatchedRegion) {
+                                   String dispatchedCountry, String dispatchedRegion, String nickname,
+                                   Gender gender, CurrentSituation currentSituation) {
         this.age = age;
         this.domesticUniversity = domesticUniversity;
         this.dispatchedUniversity = dispatchedUniversity;
         this.dispatchedCountry = dispatchedCountry;
         this.dispatchedRegion = dispatchedRegion;
+        this.nickname = nickname;
+        this.gender = gender;
+        this.currentSituation = currentSituation;
         this.status = MemberStatus.ACTIVE;
     }
 

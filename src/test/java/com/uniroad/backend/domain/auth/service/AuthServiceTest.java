@@ -1,13 +1,19 @@
 package com.uniroad.backend.domain.auth.service;
 
 import com.uniroad.backend.domain.auth.dto.LoginRequest;
+import com.uniroad.backend.domain.auth.dto.OnboardingRequest;
 import com.uniroad.backend.domain.auth.dto.SignUpRequest;
 import com.uniroad.backend.domain.auth.dto.TokenResponse;
 import com.uniroad.backend.domain.auth.entity.RefreshToken;
 import com.uniroad.backend.domain.auth.repository.RefreshTokenRepository;
+import com.uniroad.backend.domain.info.entity.University;
+import com.uniroad.backend.domain.info.repository.UniversityRepository;
+import com.uniroad.backend.domain.member.entity.CurrentSituation;
+import com.uniroad.backend.domain.member.entity.Gender;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.member.repository.MemberSocialAccountRepository;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.jwt.JwtProvider;
@@ -51,6 +57,15 @@ class AuthServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private SocialAuthService socialAuthService;
+
+    @Mock
+    private UniversityRepository universityRepository;
+
+    @Mock
+    private MemberSocialAccountRepository memberSocialAccountRepository;
+
     @Test
     @DisplayName("회원가입 성공")
     void signUp_Success() {
@@ -85,6 +100,45 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.signUp(request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_USERNAME);
+    }
+
+    @Test
+    @DisplayName("온보딩 성공 - 추가 회원 정보 저장")
+    void onboarding_Success_SaveAdditionalProfile() {
+        // given
+        Member member = Member.builder()
+                .id(1L)
+                .email("test@test.com")
+                .name("테스터")
+                .role(Role.USER)
+                .build();
+        University university = University.builder()
+                .id(1L)
+                .name("한국대학교")
+                .build();
+        OnboardingRequest request = new OnboardingRequest(
+                23,
+                "유니",
+                Gender.FEMALE,
+                CurrentSituation.PREPARING_APPLICATION,
+                "한국대학교",
+                "도쿄대학교",
+                "일본",
+                "도쿄"
+        );
+
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(universityRepository.findByName("한국대학교")).willReturn(Optional.of(university));
+
+        // when
+        authService.onboarding(1L, request);
+
+        // then
+        assertThat(member.getAge()).isEqualTo(23);
+        assertThat(member.getNickname()).isEqualTo("유니");
+        assertThat(member.getGender()).isEqualTo(Gender.FEMALE);
+        assertThat(member.getCurrentSituation()).isEqualTo(CurrentSituation.PREPARING_APPLICATION);
+        assertThat(member.getDomesticUniversity()).isEqualTo(university);
     }
 
     @Test
