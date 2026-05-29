@@ -14,9 +14,11 @@ import com.uniroad.backend.domain.community.freepost.repository.FreePostLikeRepo
 import com.uniroad.backend.domain.community.freepost.repository.FreePostRepository;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,14 +35,26 @@ public class FreePostService {
     private final FreePostLikeRepository freePostLikeRepository;
     private final MemberRepository memberRepository;
 
-    public List<FreePostSummaryResponse> getPosts() {
-        return freePostRepository.findAllByOrderByCreatedAtDesc().stream()
+    public CursorPageResponse<FreePostSummaryResponse> getPosts(Long cursorId, String keyword, int size) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.findByCursorAndKeyword(
+                cursorId,
+                normalizeKeyword(keyword),
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        boolean hasNext = posts.size() > requestSize;
+        List<FreePost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
+        List<FreePostSummaryResponse> items = pagePosts.stream()
                 .map(post -> FreePostSummaryResponse.from(
                         post,
                         freePostLikeRepository.countByFreePostId(post.getId()),
                         freePostCommentRepository.countByFreePostId(post.getId())
                 ))
                 .toList();
+
+        Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;
+        return new CursorPageResponse<>(items, nextCursorId, hasNext);
     }
 
     public FreePostDetailResponse getPost(Long memberId, Long postId) {
@@ -168,5 +182,19 @@ public class FreePostService {
                 .filter(url -> url != null && !url.isBlank())
                 .map(String::trim)
                 .toList();
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
+    }
+
+    private int normalizeSize(int size) {
+        if (size < 1) {
+            return 10;
+        }
+        return Math.min(size, 50);
     }
 }

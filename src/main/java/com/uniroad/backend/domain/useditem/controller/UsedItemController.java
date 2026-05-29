@@ -5,6 +5,7 @@ import com.uniroad.backend.domain.useditem.dto.UsedItemResponseDto;
 import com.uniroad.backend.domain.useditem.dto.UsedItemSummaryResponseDto;
 import com.uniroad.backend.domain.useditem.service.UsedItemService;
 import com.uniroad.backend.global.common.ApiResponse;
+import com.uniroad.backend.global.common.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "UsedItem", description = "중고거래 API")
 @RestController
@@ -38,10 +37,13 @@ public class UsedItemController {
             description = "로그인 사용자의 경우 소속 지역 게시글을 우선 정렬하고, 이후 최신순으로 조회합니다."
     )
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UsedItemSummaryResponseDto>>> getUsedItems() {
+    public ResponseEntity<ApiResponse<CursorPageResponse<UsedItemSummaryResponseDto>>> getUsedItems(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
 
-        List<UsedItemSummaryResponseDto> response =
-                usedItemService.getUsedItems();
+        CursorPageResponse<UsedItemSummaryResponseDto> response =
+                usedItemService.getUsedItems(cursorId, size);
 
         return ResponseEntity.ok(
                 ApiResponse.success("중고거래 게시글 목록 조회 성공", response)

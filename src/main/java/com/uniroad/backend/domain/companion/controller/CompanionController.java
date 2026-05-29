@@ -4,6 +4,7 @@ import com.uniroad.backend.domain.companion.dto.CompanionPostRequest;
 import com.uniroad.backend.domain.companion.dto.CompanionPostResponse;
 import com.uniroad.backend.domain.companion.service.CompanionService;
 import com.uniroad.backend.global.common.ApiResponse;
+import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,8 +39,11 @@ public class CompanionController {
     @Operation(summary = "동행 구하기 목록 조회", description = "전체 동행 구하기 글 목록을 조회합니다. (인증된 사용자만 가능)")
     @GetMapping
     @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<CompanionPostResponse>>> getPosts() {
-        List<CompanionPostResponse> posts = companionService.getPosts();
+    public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> getPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<CompanionPostResponse> posts = companionService.getPosts(cursorId, size);
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 목록 조회 성공", posts));
     }
 

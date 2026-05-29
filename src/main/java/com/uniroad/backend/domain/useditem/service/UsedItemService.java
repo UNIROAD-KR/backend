@@ -7,10 +7,12 @@ import com.uniroad.backend.domain.useditem.entity.TradeCategoryImage;
 import com.uniroad.backend.domain.useditem.entity.TradeItem;
 import com.uniroad.backend.domain.useditem.entity.UsedItemPost;
 import com.uniroad.backend.domain.useditem.repository.UsedItemRepository;
+import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,35 +99,27 @@ public class UsedItemService {
         usedItemRepository.delete(usedItemPost);
     }
 
-    public List<UsedItemSummaryResponseDto> getUsedItems() {
+    public CursorPageResponse<UsedItemSummaryResponseDto> getUsedItems(Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<UsedItemPost> posts = usedItemRepository.findByCursor(
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
 
-        String userRegion = null;
-
-        try {
-
-            Long memberId = SecurityUtil.getCurrentMemberId();
-
-            Member member = memberRepository.findById(memberId)
-                    .orElse(null);
-
-            if (member != null) {
-                userRegion = member.getDispatchedRegion();
-            }
-
-        } catch (Exception e) {
-            // 비회원은 최신순
-        }
-
-        List<UsedItemPost> posts;
-
-        if (userRegion != null) {
-            posts = usedItemRepository.findAllSortedByRegion(userRegion);
-        } else {
-            posts = usedItemRepository.findAllByOrderByCreatedAtDesc();
-        }
-
-        return posts.stream()
+        boolean hasNext = posts.size() > requestSize;
+        List<UsedItemPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
+        List<UsedItemSummaryResponseDto> items = pagePosts.stream()
                 .map(UsedItemSummaryResponseDto::from)
                 .toList();
+
+        Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;
+        return new CursorPageResponse<>(items, nextCursorId, hasNext);
+    }
+
+    private int normalizeSize(int size) {
+        if (size < 1) {
+            return 10;
+        }
+        return Math.min(size, 50);
     }
 }
