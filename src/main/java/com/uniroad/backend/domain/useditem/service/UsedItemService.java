@@ -106,6 +106,22 @@ public class UsedItemService {
                 PageRequest.of(0, requestSize + 1)
         );
 
+        return toCursorResponse(posts, requestSize);
+    }
+
+    public CursorPageResponse<UsedItemSummaryResponseDto> getMyUsedItems(Long cursorId, int size) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        int requestSize = normalizeSize(size);
+        List<UsedItemPost> posts = usedItemRepository.findByAuthorIdAndCursor(
+                memberId,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
+    private CursorPageResponse<UsedItemSummaryResponseDto> toCursorResponse(List<UsedItemPost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<UsedItemPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
         List<UsedItemSummaryResponseDto> items = pagePosts.stream()

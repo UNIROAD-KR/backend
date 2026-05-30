@@ -126,6 +126,25 @@ public class Member extends BaseTimeEntity {
     /**
      * 비밀번호 변경 (인코딩 완료된 값을 전달받아 저장)
      */
+    public void updateProfile(CurrentSituation currentSituation, String nickname, String dispatchedUniversity,
+                              String dispatchedCountry, University domesticUniversity) {
+        if (currentSituation != null) {
+            this.currentSituation = currentSituation;
+        }
+        if (nickname != null) {
+            this.nickname = nickname;
+        }
+        if (dispatchedUniversity != null) {
+            this.dispatchedUniversity = dispatchedUniversity;
+        }
+        if (dispatchedCountry != null) {
+            this.dispatchedCountry = dispatchedCountry;
+        }
+        if (domesticUniversity != null) {
+            this.domesticUniversity = domesticUniversity;
+        }
+    }
+
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }

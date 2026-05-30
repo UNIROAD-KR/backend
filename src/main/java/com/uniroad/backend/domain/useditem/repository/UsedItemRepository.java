@@ -31,4 +31,17 @@ public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT u
+        FROM UsedItemPost u
+        WHERE u.author.id = :memberId
+          AND (:cursorId IS NULL OR u.id < :cursorId)
+        ORDER BY u.id DESC
+    """)
+    List<UsedItemPost> findByAuthorIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 }

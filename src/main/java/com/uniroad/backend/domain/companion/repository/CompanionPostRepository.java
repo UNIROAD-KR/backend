@@ -22,4 +22,17 @@ public interface CompanionPostRepository extends JpaRepository<CompanionPost, Lo
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT c
+            FROM CompanionPost c
+            WHERE c.member.id = :memberId
+              AND (:cursorId IS NULL OR c.id < :cursorId)
+            ORDER BY c.id DESC
+            """)
+    List<CompanionPost> findByMemberIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 }

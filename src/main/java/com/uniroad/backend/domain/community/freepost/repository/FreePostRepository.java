@@ -28,4 +28,17 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
             @Param("keyword") String keyword,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT f
+            FROM FreePost f
+            WHERE f.member.id = :memberId
+              AND (:cursorId IS NULL OR f.id < :cursorId)
+            ORDER BY f.id DESC
+            """)
+    List<FreePost> findByMemberIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 }

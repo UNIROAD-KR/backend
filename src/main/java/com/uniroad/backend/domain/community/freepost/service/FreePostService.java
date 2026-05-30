@@ -43,6 +43,21 @@ public class FreePostService {
                 PageRequest.of(0, requestSize + 1)
         );
 
+        return toCursorResponse(posts, requestSize);
+    }
+
+    public CursorPageResponse<FreePostSummaryResponse> getMyPosts(Long memberId, Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.findByMemberIdAndCursor(
+                memberId,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
+    private CursorPageResponse<FreePostSummaryResponse> toCursorResponse(List<FreePost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<FreePost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
         List<FreePostSummaryResponse> items = pagePosts.stream()

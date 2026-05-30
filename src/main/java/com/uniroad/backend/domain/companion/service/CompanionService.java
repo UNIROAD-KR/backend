@@ -91,6 +91,22 @@ public class CompanionService {
                 PageRequest.of(0, requestSize + 1)
         );
 
+        return toCursorResponse(posts, requestSize);
+    }
+
+    @Transactional(readOnly = true)
+    public CursorPageResponse<CompanionPostResponse> getMyPosts(Long memberId, Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<CompanionPost> posts = companionPostRepository.findByMemberIdAndCursor(
+                memberId,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
+    private CursorPageResponse<CompanionPostResponse> toCursorResponse(List<CompanionPost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<CompanionPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
         List<CompanionPostResponse> items = pagePosts.stream()
@@ -99,14 +115,6 @@ public class CompanionService {
 
         Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;
         return new CursorPageResponse<>(items, nextCursorId, hasNext);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CompanionPostResponse> getMyPosts(Long memberId) {
-        return companionPostRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId)
-                .stream()
-                .map(CompanionPostResponse::from)
-                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

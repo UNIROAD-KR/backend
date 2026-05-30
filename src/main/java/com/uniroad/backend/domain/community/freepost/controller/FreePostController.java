@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "FreePost", description = "자유게시판 관련 API")
+@Tag(name = "FreePost", description = "자유게시판 API")
 @RestController
 @RequestMapping("/api/community/free-posts")
 @RequiredArgsConstructor
@@ -45,6 +45,19 @@ public class FreePostController {
                 "자유게시판 목록 조회 성공",
                 freePostService.getPosts(cursorId, keyword, size)
         ));
+    }
+
+    @Operation(summary = "내 자유게시판 글 조회")
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getMyPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<FreePostSummaryResponse> response =
+                freePostService.getMyPosts(userDetails.getMemberId(), cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("내 자유게시판 글 조회 성공", response));
     }
 
     @Operation(summary = "자유게시판 상세 조회")

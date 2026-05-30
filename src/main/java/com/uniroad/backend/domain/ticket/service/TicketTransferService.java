@@ -7,12 +7,16 @@ import com.uniroad.backend.domain.ticket.dto.TicketTransferRequestDto;
 import com.uniroad.backend.domain.ticket.dto.TicketTransferResponseDto;
 import com.uniroad.backend.domain.ticket.entity.TicketTransferPost;
 import com.uniroad.backend.domain.ticket.repository.TicketTransferRepository;
+import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +49,28 @@ public class TicketTransferService {
     public TicketTransferResponseDto getDetail(Long id) {
         TicketTransferPost post = getPost(id);
         return TicketTransferResponseDto.from(post);
+    }
+
+    public CursorPageResponse<TicketTransferResponseDto> getTickets(Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<TicketTransferPost> posts = ticketTransferRepository.findByCursor(
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
+    public CursorPageResponse<TicketTransferResponseDto> getMyTickets(Long cursorId, int size) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        int requestSize = normalizeSize(size);
+        List<TicketTransferPost> posts = ticketTransferRepository.findByAuthorIdAndCursor(
+                memberId,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
     }
 
     @Transactional
@@ -113,5 +139,23 @@ public class TicketTransferService {
         if (!post.getAuthor().getId().equals(member.getId())) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
+    }
+
+    private CursorPageResponse<TicketTransferResponseDto> toCursorResponse(List<TicketTransferPost> posts, int requestSize) {
+        boolean hasNext = posts.size() > requestSize;
+        List<TicketTransferPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
+        List<TicketTransferResponseDto> items = pagePosts.stream()
+                .map(TicketTransferResponseDto::from)
+                .toList();
+
+        Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;
+        return new CursorPageResponse<>(items, nextCursorId, hasNext);
+    }
+
+    private int normalizeSize(int size) {
+        if (size < 1) {
+            return 10;
+        }
+        return Math.min(size, 50);
     }
 }
