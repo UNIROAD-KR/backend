@@ -27,6 +27,8 @@ public class UsedItemResponseDto {
 
     private String semester;
 
+    private Long memberId;
+
     private String authorName;
 
     private String thumbnailImageUrl;
@@ -46,6 +48,7 @@ public class UsedItemResponseDto {
                 .price(usedItemPost.getPrice())
                 .region(usedItemPost.getRegion())
                 .semester(usedItemPost.getSemester())
+                .memberId(usedItemPost.getAuthor().getId())
                 .authorName(usedItemPost.getAuthor().getName())
                 .thumbnailImageUrl(usedItemPost.getThumbnailImageUrl())
 
