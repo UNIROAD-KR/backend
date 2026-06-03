@@ -90,7 +90,11 @@ public class AuthService {
                 request.dispatchedRegion(),
                 normalizeRequired(request.nickname()),
                 request.gender(),
-                request.currentSituation()
+                request.currentSituation(),
+                request.applicationDeadline(),
+                request.departureDate(),
+                request.dispatchStartDate(),
+                request.returnDate()
         );
     }
 

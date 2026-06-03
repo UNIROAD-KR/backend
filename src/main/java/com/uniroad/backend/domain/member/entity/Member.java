@@ -10,6 +10,8 @@ import com.uniroad.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 /**
  * 회원 엔티티
  *
@@ -64,6 +66,18 @@ public class Member extends BaseTimeEntity {
     @Column(name = "dispatched_region")
     private String dispatchedRegion;
 
+    @Column(name = "application_deadline")
+    private LocalDate applicationDeadline;
+
+    @Column(name = "departure_date")
+    private LocalDate departureDate;
+
+    @Column(name = "dispatch_start_date")
+    private LocalDate dispatchStartDate;
+
+    @Column(name = "return_date")
+    private LocalDate returnDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domestic_university_id")
     private University domesticUniversity;
@@ -111,7 +125,9 @@ public class Member extends BaseTimeEntity {
 
     public void completeOnboarding(Integer age, University domesticUniversity, String dispatchedUniversity,
                                    String dispatchedCountry, String dispatchedRegion, String nickname,
-                                   Gender gender, CurrentSituation currentSituation) {
+                                   Gender gender, CurrentSituation currentSituation,
+                                   LocalDate applicationDeadline, LocalDate departureDate,
+                                   LocalDate dispatchStartDate, LocalDate returnDate) {
         this.age = age;
         this.domesticUniversity = domesticUniversity;
         this.dispatchedUniversity = dispatchedUniversity;
@@ -120,6 +136,7 @@ public class Member extends BaseTimeEntity {
         this.nickname = nickname;
         this.gender = gender;
         this.currentSituation = currentSituation;
+        updateSituationDates(applicationDeadline, departureDate, dispatchStartDate, returnDate);
         this.status = MemberStatus.ACTIVE;
     }
 
@@ -127,7 +144,9 @@ public class Member extends BaseTimeEntity {
      * 비밀번호 변경 (인코딩 완료된 값을 전달받아 저장)
      */
     public void updateProfile(CurrentSituation currentSituation, String nickname, String dispatchedUniversity,
-                              String dispatchedCountry, University domesticUniversity) {
+                              String dispatchedCountry, University domesticUniversity,
+                              LocalDate applicationDeadline, LocalDate departureDate,
+                              LocalDate dispatchStartDate, LocalDate returnDate) {
         if (currentSituation != null) {
             this.currentSituation = currentSituation;
         }
@@ -142,6 +161,31 @@ public class Member extends BaseTimeEntity {
         }
         if (domesticUniversity != null) {
             this.domesticUniversity = domesticUniversity;
+        }
+        updateSituationDatesIfPresent(applicationDeadline, departureDate, dispatchStartDate, returnDate);
+    }
+
+    public void updateSituationDates(LocalDate applicationDeadline, LocalDate departureDate,
+                                     LocalDate dispatchStartDate, LocalDate returnDate) {
+        this.applicationDeadline = applicationDeadline;
+        this.departureDate = departureDate;
+        this.dispatchStartDate = dispatchStartDate;
+        this.returnDate = returnDate;
+    }
+
+    public void updateSituationDatesIfPresent(LocalDate applicationDeadline, LocalDate departureDate,
+                                              LocalDate dispatchStartDate, LocalDate returnDate) {
+        if (applicationDeadline != null) {
+            this.applicationDeadline = applicationDeadline;
+        }
+        if (departureDate != null) {
+            this.departureDate = departureDate;
+        }
+        if (dispatchStartDate != null) {
+            this.dispatchStartDate = dispatchStartDate;
+        }
+        if (returnDate != null) {
+            this.returnDate = returnDate;
         }
     }
 

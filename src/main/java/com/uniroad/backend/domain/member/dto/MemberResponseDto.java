@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Getter
 @Builder
@@ -27,6 +28,10 @@ public class MemberResponseDto {
     private String dispatchedUniversity;
     private String dispatchedCountry;
     private String dispatchedRegion;
+    private LocalDate applicationDeadline;
+    private LocalDate departureDate;
+    private LocalDate dispatchStartDate;
+    private LocalDate returnDate;
     private Role role;
     private MemberStatus status;
     private BigDecimal balance;
@@ -47,6 +52,10 @@ public class MemberResponseDto {
                 .dispatchedUniversity(member.getDispatchedUniversity())
                 .dispatchedCountry(member.getDispatchedCountry())
                 .dispatchedRegion(member.getDispatchedRegion())
+                .applicationDeadline(member.getApplicationDeadline())
+                .departureDate(member.getDepartureDate())
+                .dispatchStartDate(member.getDispatchStartDate())
+                .returnDate(member.getReturnDate())
                 .role(member.getRole())
                 .status(member.getStatus())
                 .balance(member.getBalance())

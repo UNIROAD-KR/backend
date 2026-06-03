@@ -53,7 +53,11 @@ public class MemberService {
                 normalizeOptional(request.nickname()),
                 normalizeOptional(request.dispatchedUniversity()),
                 normalizeOptional(request.dispatchedCountry()),
-                domesticUniversity
+                domesticUniversity,
+                request.applicationDeadline(),
+                request.departureDate(),
+                request.dispatchStartDate(),
+                request.returnDate()
         );
 
         return MemberResponseDto.from(member);

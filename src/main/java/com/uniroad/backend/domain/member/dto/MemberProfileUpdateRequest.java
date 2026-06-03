@@ -3,6 +3,8 @@ package com.uniroad.backend.domain.member.dto;
 import com.uniroad.backend.domain.member.entity.CurrentSituation;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 public record MemberProfileUpdateRequest(
         CurrentSituation currentSituation,
 
@@ -16,6 +18,14 @@ public record MemberProfileUpdateRequest(
         String dispatchedCountry,
 
         @Size(max = 100, message = "현재 대학교는 100자 이하여야 합니다.")
-        String domesticUniversity
+        String domesticUniversity,
+
+        LocalDate applicationDeadline,
+
+        LocalDate departureDate,
+
+        LocalDate dispatchStartDate,
+
+        LocalDate returnDate
 ) {
 }

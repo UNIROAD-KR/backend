@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+
 @Schema(description = "온보딩 요청 데이터")
 public record OnboardingRequest(
         @Schema(description = "나이", example = "23")
@@ -35,6 +37,18 @@ public record OnboardingRequest(
         String dispatchedCountry,
 
         @Schema(description = "파견 지역", example = "도쿄")
-        String dispatchedRegion
+        String dispatchedRegion,
+
+        @Schema(description = "지원 마감일 (지원중 상태)", example = "2026-09-30")
+        LocalDate applicationDeadline,
+
+        @Schema(description = "출국일 (출국 준비중 상태)", example = "2027-02-15")
+        LocalDate departureDate,
+
+        @Schema(description = "파견 시작일 (파견중 상태)", example = "2027-03-01")
+        LocalDate dispatchStartDate,
+
+        @Schema(description = "귀국일 (파견중 상태)", example = "2027-12-20")
+        LocalDate returnDate
 ) {
 }
