@@ -39,6 +39,8 @@ public class UsedItemResponseDto {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime updatedAt;
+
     public static UsedItemResponseDto from(UsedItemPost usedItemPost) {
 
         return UsedItemResponseDto.builder()
@@ -72,6 +74,7 @@ public class UsedItemResponseDto {
                 )
 
                 .createdAt(usedItemPost.getCreatedAt())
+                .updatedAt(usedItemPost.getUpdatedAt())
                 .build();
     }
 }

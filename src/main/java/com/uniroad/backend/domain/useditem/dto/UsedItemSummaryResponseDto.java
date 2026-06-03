@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,6 +28,8 @@ public class UsedItemSummaryResponseDto {
 
     private String authorName;
 
+    private LocalDateTime updatedAt;
+
     public static UsedItemSummaryResponseDto from(UsedItemPost post) {
 
         return UsedItemSummaryResponseDto.builder()
@@ -36,6 +40,7 @@ public class UsedItemSummaryResponseDto {
                 .semester(post.getSemester())
                 .thumbnailImageUrl(post.getThumbnailImageUrl())
                 .authorName(post.getAuthor().getName())
+                .updatedAt(post.getUpdatedAt())
                 .build();
     }
 

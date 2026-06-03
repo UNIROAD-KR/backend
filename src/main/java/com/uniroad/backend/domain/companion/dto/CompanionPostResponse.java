@@ -23,7 +23,8 @@ public record CompanionPostResponse(
     Integer capacity,
     Integer currentParticipants,
     String genderRatio,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
     public static CompanionPostResponse from(CompanionPost post) {
         return new CompanionPostResponse(
@@ -41,7 +42,8 @@ public record CompanionPostResponse(
             post.getCapacity(),
             post.getCurrentParticipants(),
             post.getGenderRatio(),
-            post.getCreatedAt()
+            post.getCreatedAt(),
+            post.getUpdatedAt()
         );
     }
 }

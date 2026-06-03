@@ -15,7 +15,8 @@ public record FreePostSummaryResponse(
         long likeCount,
         long commentCount,
         String thumbnailImageUrl,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {
     private static final int PREVIEW_LENGTH = 80;
 
@@ -30,7 +31,8 @@ public record FreePostSummaryResponse(
                 likeCount,
                 commentCount,
                 firstImageUrl(post.getImageUrls()),
-                post.getCreatedAt()
+                post.getCreatedAt(),
+                post.getUpdatedAt()
         );
     }
 

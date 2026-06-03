@@ -60,6 +60,15 @@ public class FreePostController {
         return ResponseEntity.ok(ApiResponse.success("내 자유게시판 글 조회 성공", response));
     }
 
+    @Operation(summary = "자유게시판 인기글 Top 3 조회", description = "좋아요 수가 많은 자유게시판 글 3개를 조회합니다.")
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<java.util.List<FreePostSummaryResponse>>> getPopularPosts() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "자유게시판 인기글 Top 3 조회 성공",
+                freePostService.getTopLikedPosts()
+        ));
+    }
+
     @Operation(summary = "자유게시판 상세 조회")
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<FreePostDetailResponse>> getPost(

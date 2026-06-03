@@ -18,6 +18,7 @@ public record FreePostDetailResponse(
         boolean liked,
         boolean mine,
         LocalDateTime createdAt,
+        LocalDateTime updatedAt,
         List<FreePostCommentResponse> comments
 ) {
     public static FreePostDetailResponse from(
@@ -41,6 +42,7 @@ public record FreePostDetailResponse(
                 liked,
                 post.getMember().getId().equals(memberId),
                 post.getCreatedAt(),
+                post.getUpdatedAt(),
                 comments
         );
     }

@@ -41,4 +41,13 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT f
+            FROM FreePost f
+            LEFT JOIN FreePostLike l ON l.freePost = f
+            GROUP BY f
+            ORDER BY COUNT(l.id) DESC, f.createdAt DESC
+            """)
+    List<FreePost> findTopByLikeCount(Pageable pageable);
 }

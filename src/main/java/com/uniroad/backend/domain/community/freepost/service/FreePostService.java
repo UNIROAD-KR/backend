@@ -57,6 +57,17 @@ public class FreePostService {
         return toCursorResponse(posts, requestSize);
     }
 
+    public List<FreePostSummaryResponse> getTopLikedPosts() {
+        return freePostRepository.findTopByLikeCount(PageRequest.of(0, 3))
+                .stream()
+                .map(post -> FreePostSummaryResponse.from(
+                        post,
+                        freePostLikeRepository.countByFreePostId(post.getId()),
+                        freePostCommentRepository.countByFreePostId(post.getId())
+                ))
+                .toList();
+    }
+
     private CursorPageResponse<FreePostSummaryResponse> toCursorResponse(List<FreePost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<FreePost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
