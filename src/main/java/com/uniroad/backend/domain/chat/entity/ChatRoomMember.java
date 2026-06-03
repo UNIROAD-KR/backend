@@ -27,6 +27,8 @@ public class ChatRoomMember extends BaseTimeEntity {
 
     private LocalDateTime lastReadAt;
 
+    private LocalDateTime leftAt;
+
     public static ChatRoomMember create(ChatRoom chatRoom, Member member) {
         ChatRoomMember chatRoomMember = new ChatRoomMember();
         chatRoomMember.chatRoom = chatRoom;
@@ -37,5 +39,13 @@ public class ChatRoomMember extends BaseTimeEntity {
 
     public void updateLastReadAt() {
         this.lastReadAt = LocalDateTime.now();
+    }
+
+    public void leave() {
+        this.leftAt = LocalDateTime.now();
+    }
+
+    public boolean isActive() {
+        return leftAt == null;
     }
 }
