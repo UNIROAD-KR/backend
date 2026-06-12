@@ -4,6 +4,7 @@ import com.uniroad.backend.domain.chat.dto.ChatMessageRequest;
 import com.uniroad.backend.domain.chat.dto.ChatMessageResponse;
 import com.uniroad.backend.domain.chat.entity.ChatMessage;
 import com.uniroad.backend.domain.chat.service.ChatService;
+import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import java.security.Principal;
 public class ChatController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ChatService chatService;
+    private final NotificationService notificationService;
 
     @MessageMapping("/chat/message")
     public void message(@Valid ChatMessageRequest request, Principal principal) {
@@ -36,5 +38,6 @@ public class ChatController {
         );
 
         messagingTemplate.convertAndSend("/sub/chat/room/" + request.getRoomId(), ChatMessageResponse.from(message));
+        notificationService.notifyChatMessage(message);
     }
 }

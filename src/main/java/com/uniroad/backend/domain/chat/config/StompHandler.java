@@ -1,5 +1,6 @@
 package com.uniroad.backend.domain.chat.config;
 
+import com.uniroad.backend.domain.notification.service.ChatPresenceService;
 import com.uniroad.backend.global.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,31 +16,62 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class StompHandler implements ChannelInterceptor {
+    private static final String CHAT_ROOM_DESTINATION_PREFIX = "/sub/chat/room/";
+
     private final JwtProvider jwtProvider;
+    private final ChatPresenceService chatPresenceService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        StompCommand command = accessor.getCommand();
 
-        if (StompCommand.CONNECT == accessor.getCommand()) {
-            String jwt = accessor.getFirstNativeHeader("Authorization");
-            if (jwt != null && jwt.startsWith("Bearer ")) {
-                jwt = jwt.substring(7);
-            }
-            // JwtProvider의 validateToken 메서드 이름이 다를 수 있으므로 확인 필요
-            // 여기서는 일반적인 validateToken 또는 parseToken을 가정
-            if (!jwtProvider.validateToken(jwt)) {
-                log.error("Invalid JWT token in STOMP connection");
-                throw new RuntimeException("Invalid JWT token");
-            }
-
-            Long memberId = jwtProvider.getMemberId(jwt);
-            // 인증 객체 생성 및 설정
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    memberId, null, null // 권한 정보가 필요하면 로드해서 추가
-            );
-            accessor.setUser(authentication);
+        if (StompCommand.CONNECT == command) {
+            handleConnect(accessor);
+        } else if (StompCommand.SUBSCRIBE == command) {
+            handleSubscribe(accessor);
+        } else if (StompCommand.UNSUBSCRIBE == command) {
+            chatPresenceService.unsubscribe(accessor.getSessionId(), accessor.getSubscriptionId());
+        } else if (StompCommand.DISCONNECT == command) {
+            chatPresenceService.disconnect(accessor.getSessionId());
         }
+
         return message;
+    }
+
+    private void handleConnect(StompHeaderAccessor accessor) {
+        String jwt = accessor.getFirstNativeHeader("Authorization");
+        if (jwt != null && jwt.startsWith("Bearer ")) {
+            jwt = jwt.substring(7);
+        }
+
+        if (!jwtProvider.validateToken(jwt)) {
+            log.error("Invalid JWT token in STOMP connection");
+            throw new RuntimeException("Invalid JWT token");
+        }
+
+        Long memberId = jwtProvider.getMemberId(jwt);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(memberId, null, null);
+        accessor.setUser(authentication);
+        chatPresenceService.connect(accessor.getSessionId(), memberId);
+    }
+
+    private void handleSubscribe(StompHeaderAccessor accessor) {
+        Long roomId = extractRoomId(accessor.getDestination());
+        if (roomId != null) {
+            chatPresenceService.subscribeRoom(accessor.getSessionId(), accessor.getSubscriptionId(), roomId);
+        }
+    }
+
+    private Long extractRoomId(String destination) {
+        if (destination == null || !destination.startsWith(CHAT_ROOM_DESTINATION_PREFIX)) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(destination.substring(CHAT_ROOM_DESTINATION_PREFIX.length()));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

@@ -14,3 +14,6 @@ logging:
     org.apache: WARN
     org.hibernate: DEBUG
     org.springframework.security: DEBUG
+
+firebase:
+  enabled: false
