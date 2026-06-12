@@ -20,7 +20,12 @@ public class TicketTransferRequestDto {
     private String content;
 
     @NotBlank
+    private String country;
+
+    @NotBlank
     private String eventDate;
+
+    private String eventEndDate;
 
     @NotBlank
     private String eventTime;

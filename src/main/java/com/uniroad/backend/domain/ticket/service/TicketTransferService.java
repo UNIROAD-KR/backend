@@ -35,7 +35,9 @@ public class TicketTransferService {
                 .ticketType(requestDto.getTicketType())
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
+                .country(requestDto.getCountry())
                 .eventDate(requestDto.getEventDate())
+                .eventEndDate(requestDto.getEventEndDate())
                 .eventTime(requestDto.getEventTime())
                 .location(requestDto.getLocation())
                 .quantity(requestDto.getQuantity())
@@ -84,7 +86,9 @@ public class TicketTransferService {
                 requestDto.getTicketType(),
                 requestDto.getTitle(),
                 requestDto.getContent(),
+                requestDto.getCountry(),
                 requestDto.getEventDate(),
+                requestDto.getEventEndDate(),
                 requestDto.getEventTime(),
                 requestDto.getLocation(),
                 requestDto.getQuantity(),
