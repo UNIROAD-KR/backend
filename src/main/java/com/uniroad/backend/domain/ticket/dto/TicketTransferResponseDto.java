@@ -5,6 +5,7 @@ import com.uniroad.backend.domain.ticket.entity.TicketTransferStatus;
 import com.uniroad.backend.domain.ticket.entity.TicketType;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -15,7 +16,11 @@ public class TicketTransferResponseDto {
 
     private Long id;
     private String authorName;
+    private String authorNickname;
     private String authorDispatchedCountry;
+    private String authorDispatchedRegion;
+    private String authorDispatchedUniversity;
+    private LocalDate authorDispatchStartDate;
     private TicketType ticketType;
     private String title;
     private String content;
@@ -35,7 +40,11 @@ public class TicketTransferResponseDto {
         return TicketTransferResponseDto.builder()
                 .id(post.getId())
                 .authorName(post.getAuthor().getName())
+                .authorNickname(post.getAuthor().getNickname())
                 .authorDispatchedCountry(post.getAuthor().getDispatchedCountry())
+                .authorDispatchedRegion(post.getAuthor().getDispatchedRegion())
+                .authorDispatchedUniversity(post.getAuthor().getDispatchedUniversity())
+                .authorDispatchStartDate(post.getAuthor().getDispatchStartDate())
                 .ticketType(post.getTicketType())
                 .title(post.getTitle())
                 .content(post.getContent())
