@@ -153,7 +153,7 @@ public class Member extends BaseTimeEntity {
      * 비밀번호 변경 (인코딩 완료된 값을 전달받아 저장)
      */
     public void updateProfile(CurrentSituation currentSituation, String nickname, String dispatchedUniversity,
-                              String dispatchedCountry, University domesticUniversity,
+                              String dispatchedCountry, String dispatchedRegion, University domesticUniversity,
                               Integer dispatchYear, String dispatchSemester,
                               LocalDate applicationDeadline, LocalDate departureDate,
                               LocalDate dispatchStartDate, LocalDate returnDate) {
@@ -168,6 +168,9 @@ public class Member extends BaseTimeEntity {
         }
         if (dispatchedCountry != null) {
             this.dispatchedCountry = dispatchedCountry;
+        }
+        if (dispatchedRegion != null) {
+            this.dispatchedRegion = dispatchedRegion;
         }
         if (domesticUniversity != null) {
             this.domesticUniversity = domesticUniversity;

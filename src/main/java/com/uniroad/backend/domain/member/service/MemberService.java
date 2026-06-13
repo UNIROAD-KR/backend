@@ -53,6 +53,7 @@ public class MemberService {
                 normalizeOptional(request.nickname()),
                 normalizeOptional(request.dispatchedUniversity()),
                 normalizeOptional(request.dispatchedCountry()),
+                normalizeOptional(request.dispatchedRegion()),
                 domesticUniversity,
                 request.dispatchYear(),
                 normalizeOptional(request.dispatchSemester()),

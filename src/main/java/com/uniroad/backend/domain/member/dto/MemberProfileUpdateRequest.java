@@ -17,6 +17,9 @@ public record MemberProfileUpdateRequest(
         @Size(max = 100, message = "파견 국가는 100자 이하여야 합니다.")
         String dispatchedCountry,
 
+        @Size(max = 100, message = "파견 지역은 100자 이하여야 합니다.")
+        String dispatchedRegion,
+
         @Size(max = 100, message = "현재 대학교는 100자 이하여야 합니다.")
         String domesticUniversity,
 
