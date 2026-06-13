@@ -31,6 +31,10 @@ public class UsedItemResponseDto {
 
     private String authorName;
 
+    private Integer authorDispatchYear;
+
+    private String authorDispatchSemester;
+
     private String thumbnailImageUrl;
 
     private List<TradeItemResponseDto> items;
@@ -52,6 +56,8 @@ public class UsedItemResponseDto {
                 .semester(usedItemPost.getSemester())
                 .memberId(usedItemPost.getAuthor().getId())
                 .authorName(usedItemPost.getAuthor().getName())
+                .authorDispatchYear(usedItemPost.getAuthor().getDispatchYear())
+                .authorDispatchSemester(usedItemPost.getAuthor().getDispatchSemester())
                 .thumbnailImageUrl(usedItemPost.getThumbnailImageUrl())
 
                 .items(

@@ -66,6 +66,12 @@ public class Member extends BaseTimeEntity {
     @Column(name = "dispatched_region")
     private String dispatchedRegion;
 
+    @Column(name = "dispatch_year")
+    private Integer dispatchYear;
+
+    @Column(name = "dispatch_semester")
+    private String dispatchSemester;
+
     @Column(name = "application_deadline")
     private LocalDate applicationDeadline;
 
@@ -126,6 +132,7 @@ public class Member extends BaseTimeEntity {
     public void completeOnboarding(Integer age, University domesticUniversity, String dispatchedUniversity,
                                    String dispatchedCountry, String dispatchedRegion, String nickname,
                                    Gender gender, CurrentSituation currentSituation,
+                                   Integer dispatchYear, String dispatchSemester,
                                    LocalDate applicationDeadline, LocalDate departureDate,
                                    LocalDate dispatchStartDate, LocalDate returnDate) {
         this.age = age;
@@ -133,6 +140,8 @@ public class Member extends BaseTimeEntity {
         this.dispatchedUniversity = dispatchedUniversity;
         this.dispatchedCountry = dispatchedCountry;
         this.dispatchedRegion = dispatchedRegion;
+        this.dispatchYear = dispatchYear;
+        this.dispatchSemester = dispatchSemester;
         this.nickname = nickname;
         this.gender = gender;
         this.currentSituation = currentSituation;
@@ -145,6 +154,7 @@ public class Member extends BaseTimeEntity {
      */
     public void updateProfile(CurrentSituation currentSituation, String nickname, String dispatchedUniversity,
                               String dispatchedCountry, University domesticUniversity,
+                              Integer dispatchYear, String dispatchSemester,
                               LocalDate applicationDeadline, LocalDate departureDate,
                               LocalDate dispatchStartDate, LocalDate returnDate) {
         if (currentSituation != null) {
@@ -161,6 +171,12 @@ public class Member extends BaseTimeEntity {
         }
         if (domesticUniversity != null) {
             this.domesticUniversity = domesticUniversity;
+        }
+        if (dispatchYear != null) {
+            this.dispatchYear = dispatchYear;
+        }
+        if (dispatchSemester != null) {
+            this.dispatchSemester = dispatchSemester;
         }
         updateSituationDatesIfPresent(applicationDeadline, departureDate, dispatchStartDate, returnDate);
     }

@@ -20,6 +20,11 @@ public record MemberProfileUpdateRequest(
         @Size(max = 100, message = "현재 대학교는 100자 이하여야 합니다.")
         String domesticUniversity,
 
+        Integer dispatchYear,
+
+        @Size(max = 30, message = "파견 학기는 30자 이하여야 합니다.")
+        String dispatchSemester,
+
         LocalDate applicationDeadline,
 
         LocalDate departureDate,

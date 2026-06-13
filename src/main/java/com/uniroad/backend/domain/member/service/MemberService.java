@@ -54,6 +54,8 @@ public class MemberService {
                 normalizeOptional(request.dispatchedUniversity()),
                 normalizeOptional(request.dispatchedCountry()),
                 domesticUniversity,
+                request.dispatchYear(),
+                normalizeOptional(request.dispatchSemester()),
                 request.applicationDeadline(),
                 request.departureDate(),
                 request.dispatchStartDate(),

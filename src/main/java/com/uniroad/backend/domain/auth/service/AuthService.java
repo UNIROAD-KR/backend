@@ -91,6 +91,8 @@ public class AuthService {
                 normalizeRequired(request.nickname()),
                 request.gender(),
                 request.currentSituation(),
+                request.dispatchYear(),
+                normalizeOptional(request.dispatchSemester()),
                 request.applicationDeadline(),
                 request.departureDate(),
                 request.dispatchStartDate(),
@@ -113,6 +115,17 @@ public class AuthService {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         return value.trim();
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim();
+        if (normalized.isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        return normalized;
     }
 
     /**

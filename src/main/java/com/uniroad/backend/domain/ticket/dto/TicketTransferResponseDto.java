@@ -20,6 +20,8 @@ public class TicketTransferResponseDto {
     private String authorDispatchedCountry;
     private String authorDispatchedRegion;
     private String authorDispatchedUniversity;
+    private Integer authorDispatchYear;
+    private String authorDispatchSemester;
     private LocalDate authorDispatchStartDate;
     private TicketType ticketType;
     private String title;
@@ -44,6 +46,8 @@ public class TicketTransferResponseDto {
                 .authorDispatchedCountry(post.getAuthor().getDispatchedCountry())
                 .authorDispatchedRegion(post.getAuthor().getDispatchedRegion())
                 .authorDispatchedUniversity(post.getAuthor().getDispatchedUniversity())
+                .authorDispatchYear(post.getAuthor().getDispatchYear())
+                .authorDispatchSemester(post.getAuthor().getDispatchSemester())
                 .authorDispatchStartDate(post.getAuthor().getDispatchStartDate())
                 .ticketType(post.getTicketType())
                 .title(post.getTitle())

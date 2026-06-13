@@ -39,6 +39,12 @@ public record OnboardingRequest(
         @Schema(description = "파견 지역", example = "도쿄")
         String dispatchedRegion,
 
+        @Schema(description = "파견 연도", example = "2027")
+        Integer dispatchYear,
+
+        @Schema(description = "파견 학기", example = "1학기")
+        String dispatchSemester,
+
         @Schema(description = "지원 마감일 (지원중 상태)", example = "2026-09-30")
         LocalDate applicationDeadline,
 

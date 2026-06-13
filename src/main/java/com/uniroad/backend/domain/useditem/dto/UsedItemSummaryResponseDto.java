@@ -28,6 +28,10 @@ public class UsedItemSummaryResponseDto {
 
     private String authorName;
 
+    private Integer authorDispatchYear;
+
+    private String authorDispatchSemester;
+
     private LocalDateTime updatedAt;
 
     public static UsedItemSummaryResponseDto from(UsedItemPost post) {
@@ -40,6 +44,8 @@ public class UsedItemSummaryResponseDto {
                 .semester(post.getSemester())
                 .thumbnailImageUrl(post.getThumbnailImageUrl())
                 .authorName(post.getAuthor().getName())
+                .authorDispatchYear(post.getAuthor().getDispatchYear())
+                .authorDispatchSemester(post.getAuthor().getDispatchSemester())
                 .updatedAt(post.getUpdatedAt())
                 .build();
     }

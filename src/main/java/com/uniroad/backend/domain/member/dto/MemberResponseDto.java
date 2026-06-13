@@ -28,6 +28,8 @@ public class MemberResponseDto {
     private String dispatchedUniversity;
     private String dispatchedCountry;
     private String dispatchedRegion;
+    private Integer dispatchYear;
+    private String dispatchSemester;
     private LocalDate applicationDeadline;
     private LocalDate departureDate;
     private LocalDate dispatchStartDate;
@@ -52,6 +54,8 @@ public class MemberResponseDto {
                 .dispatchedUniversity(member.getDispatchedUniversity())
                 .dispatchedCountry(member.getDispatchedCountry())
                 .dispatchedRegion(member.getDispatchedRegion())
+                .dispatchYear(member.getDispatchYear())
+                .dispatchSemester(member.getDispatchSemester())
                 .applicationDeadline(member.getApplicationDeadline())
                 .departureDate(member.getDepartureDate())
                 .dispatchStartDate(member.getDispatchStartDate())
