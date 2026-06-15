@@ -100,6 +100,9 @@ jobs:
             S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}
             AWS_REGION=${{ secrets.AWS_REGION }}
             S3_BUCKET=${{ secrets.S3_BUCKET }}
+            FIREBASE_ENABLED=${{ secrets.FIREBASE_ENABLED || 'false' }}
+            FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+            FIREBASE_SERVICE_ACCOUNT_BASE64=${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}
             EOF
 
             docker compose down
