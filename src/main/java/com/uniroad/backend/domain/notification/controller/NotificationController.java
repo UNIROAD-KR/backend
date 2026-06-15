@@ -1,6 +1,8 @@
 package com.uniroad.backend.domain.notification.controller;
 
 import com.uniroad.backend.domain.notification.dto.FcmTokenRequest;
+import com.uniroad.backend.domain.notification.dto.FcmPushResponse;
+import com.uniroad.backend.domain.notification.dto.FcmTestPushRequest;
 import com.uniroad.backend.domain.notification.dto.NotificationResponse;
 import com.uniroad.backend.domain.notification.dto.UnreadCountResponse;
 import com.uniroad.backend.domain.notification.service.FcmService;
@@ -14,9 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,5 +89,21 @@ public class NotificationController {
         Long memberId = SecurityUtil.getCurrentMemberId();
         fcmService.registerToken(memberId, request.token());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "FCM test push send", description = "Sends a test push notification to a specific member. Admin only.")
+    @PostMapping("/test-push/{memberId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FcmPushResponse> sendTestPush(
+            @PathVariable Long memberId,
+            @Valid @RequestBody FcmTestPushRequest request
+    ) {
+        FcmPushResponse response = fcmService.sendTestToMember(
+                memberId,
+                request.title(),
+                request.body(),
+                request.data()
+        );
+        return ResponseEntity.ok(response);
     }
 }
