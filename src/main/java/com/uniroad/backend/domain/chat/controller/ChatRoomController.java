@@ -4,7 +4,6 @@ import com.uniroad.backend.domain.chat.dto.ChatMessageResponse;
 import com.uniroad.backend.domain.chat.dto.ChatReadResponse;
 import com.uniroad.backend.domain.chat.dto.ChatRoomRequest;
 import com.uniroad.backend.domain.chat.dto.ChatRoomResponse;
-import com.uniroad.backend.domain.chat.entity.ChatRoom;
 import com.uniroad.backend.domain.chat.service.ChatRoomService;
 import com.uniroad.backend.global.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +15,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Tag(name = "Chat", description = "채팅 관련 API (채팅방 생성, 목록 조회, 메시지 내역 등)")
@@ -31,13 +29,14 @@ public class ChatRoomController {
     public ResponseEntity<ChatRoomResponse> createChatRoom(@Valid @RequestBody ChatRoomRequest request) {
         Long memberId = SecurityUtil.getCurrentMemberId();
         
-        ChatRoom chatRoom = chatRoomService.getOrCreateChatRoomByMemberIds(
+        ChatRoomResponse response = chatRoomService.getOrCreateChatRoomResponse(
                 request.getReferenceType(),
                 request.getReferenceId(),
-                Arrays.asList(memberId, request.getTargetMemberId())
+                memberId,
+                request.getTargetMemberId()
         );
         
-        return ResponseEntity.ok(ChatRoomResponse.from(chatRoom));
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "내 채팅방 목록 조회", description = "로그인한 사용자가 참여 중인 모든 채팅방 목록을 조회합니다.")

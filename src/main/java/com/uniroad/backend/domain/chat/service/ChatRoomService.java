@@ -63,6 +63,13 @@ public class ChatRoomService {
         return getOrCreateChatRoom(type, referenceId, members);
     }
 
+    @Transactional
+    public ChatRoomResponse getOrCreateChatRoomResponse(ChatReferenceType type, Long referenceId, Long memberId, Long targetMemberId) {
+        ChatRoom chatRoom = getOrCreateChatRoomByMemberIds(type, referenceId, List.of(memberId, targetMemberId));
+        ChatRoomMember currentRoomMember = getActiveRoomMember(chatRoom, memberId);
+        return toRoomResponse(chatRoom, memberId, currentRoomMember);
+    }
+
     public List<ChatRoomResponse> getMyRooms(Long memberId) {
         Member member = getMember(memberId);
 

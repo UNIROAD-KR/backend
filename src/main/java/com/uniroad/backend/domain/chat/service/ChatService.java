@@ -22,7 +22,7 @@ public class ChatService {
         validateMessage(content, type);
 
         ChatRoom chatRoom = chatRoomService.findById(roomId);
-        chatRoomService.getActiveRoomMember(chatRoom, senderId);
+        chatRoomService.getActiveRoomMember(chatRoom, senderId).updateLastReadAt();
 
         ChatMessage message = ChatMessage.builder()
                 .chatRoom(chatRoom)

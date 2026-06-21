@@ -19,6 +19,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
               AND crm.chatRoom.referenceId = :referenceId
               AND crm.member.id IN :memberIds
               AND crm.leftAt IS NULL
+              AND (
+                  SELECT COUNT(activeMember.id)
+                  FROM ChatRoomMember activeMember
+                  WHERE activeMember.chatRoom = crm.chatRoom
+                    AND activeMember.leftAt IS NULL
+              ) = :memberCount
             GROUP BY crm.chatRoom
             HAVING COUNT(DISTINCT crm.member.id) = :memberCount
             """)

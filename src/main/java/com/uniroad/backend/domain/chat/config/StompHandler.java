@@ -1,6 +1,10 @@
 package com.uniroad.backend.domain.chat.config;
 
+import com.uniroad.backend.domain.chat.entity.ChatRoom;
+import com.uniroad.backend.domain.chat.service.ChatRoomService;
 import com.uniroad.backend.domain.notification.service.ChatPresenceService;
+import com.uniroad.backend.global.exception.CustomException;
+import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +16,8 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -20,6 +26,7 @@ public class StompHandler implements ChannelInterceptor {
 
     private final JwtProvider jwtProvider;
     private final ChatPresenceService chatPresenceService;
+    private final ChatRoomService chatRoomService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -59,8 +66,19 @@ public class StompHandler implements ChannelInterceptor {
     private void handleSubscribe(StompHeaderAccessor accessor) {
         Long roomId = extractRoomId(accessor.getDestination());
         if (roomId != null) {
+            validateRoomSubscription(accessor, roomId);
             chatPresenceService.subscribeRoom(accessor.getSessionId(), accessor.getSubscriptionId(), roomId);
         }
+    }
+
+    private void validateRoomSubscription(StompHeaderAccessor accessor, Long roomId) {
+        Principal principal = accessor.getUser();
+        if (principal == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        ChatRoom chatRoom = chatRoomService.findById(roomId);
+        chatRoomService.getActiveRoomMember(chatRoom, Long.parseLong(principal.getName()));
     }
 
     private Long extractRoomId(String destination) {
