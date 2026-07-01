@@ -70,6 +70,43 @@ class VerificationRepositoryTest {
         assertThat(found.get(0).getMember().getEmail()).isEqualTo("pending@test.com");
     }
 
+    @Test
+    @DisplayName("findAllByMemberIdOrderBySubmittedAtDesc returns member verifications in latest order")
+    void findAllByMemberIdOrderBySubmittedAtDesc_Success() {
+        // given
+        Member member = memberRepository.save(member("history@test.com"));
+        Member otherMember = memberRepository.save(member("other@test.com"));
+
+        Verification old = verificationRepository.save(verification(
+                member,
+                "old-image",
+                VerificationStatus.REJECTED,
+                false,
+                LocalDateTime.now().minusDays(1)
+        ));
+        Verification latest = verificationRepository.save(verification(
+                member,
+                "latest-image",
+                VerificationStatus.PENDING,
+                true,
+                LocalDateTime.now()
+        ));
+        verificationRepository.save(verification(
+                otherMember,
+                "other-image",
+                VerificationStatus.PENDING,
+                true,
+                LocalDateTime.now().plusDays(1)
+        ));
+
+        // when
+        List<Verification> found = verificationRepository.findAllByMemberIdOrderBySubmittedAtDesc(member.getId());
+
+        // then
+        assertThat(found).extracting(Verification::getId)
+                .containsExactly(latest.getId(), old.getId());
+    }
+
     private Member member(String email) {
         return Member.builder()
                 .email(email)
@@ -91,6 +128,22 @@ class VerificationRepositoryTest {
                 .imageUrl(imageUrl)
                 .status(status)
                 .submittedAt(LocalDateTime.now())
+                .isCurrent(current)
+                .build();
+    }
+
+    private Verification verification(
+            Member member,
+            String imageUrl,
+            VerificationStatus status,
+            boolean current,
+            LocalDateTime submittedAt
+    ) {
+        return Verification.builder()
+                .member(member)
+                .imageUrl(imageUrl)
+                .status(status)
+                .submittedAt(submittedAt)
                 .isCurrent(current)
                 .build();
     }

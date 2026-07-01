@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface VerificationRepository extends JpaRepository<Verification, Long> {
     Optional<Verification> findByMemberAndIsCurrentTrue(Member member);
 
+    List<Verification> findAllByMemberIdOrderBySubmittedAtDesc(Long memberId);
+
     @EntityGraph(attributePaths = {"member"})
     List<Verification> findAllByStatusAndIsCurrentTrue(VerificationStatus status);
 }

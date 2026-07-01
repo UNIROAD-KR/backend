@@ -97,6 +97,27 @@ class VerificationServiceTest {
     }
 
     @Test
+    @DisplayName("getMyVerifications returns member verification history")
+    void getMyVerifications_Success() {
+        // given
+        Member member = member(1L);
+        Verification latest = verification(2L, member, "latest-image", VerificationStatus.PENDING, true);
+        Verification old = verification(1L, member, "old-image", VerificationStatus.REJECTED, false);
+        given(verificationRepository.findAllByMemberIdOrderBySubmittedAtDesc(1L))
+                .willReturn(List.of(latest, old));
+
+        // when
+        List<VerificationResponse> responses = verificationService.getMyVerifications(1L);
+
+        // then
+        assertThat(responses).hasSize(2);
+        assertThat(responses.get(0).id()).isEqualTo(2L);
+        assertThat(responses.get(0).imageUrl()).isEqualTo("latest-image");
+        assertThat(responses.get(1).id()).isEqualTo(1L);
+        assertThat(responses.get(1).status()).isEqualTo(VerificationStatus.REJECTED);
+    }
+
+    @Test
     @DisplayName("approveVerification approves pending verification")
     void approveVerification_Success() {
         // given

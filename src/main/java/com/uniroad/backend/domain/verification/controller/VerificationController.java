@@ -35,6 +35,15 @@ public class VerificationController {
         return ResponseEntity.ok(ApiResponse.success("인증 요청이 제출되었습니다.", response));
     }
 
+    @Operation(summary = "내 인증 요청 내역 조회", description = "인증된 사용자가 제출한 인증 요청 내역을 최신순으로 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<VerificationResponse>>> getMyVerifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        List<VerificationResponse> response = verificationService.getMyVerifications(userDetails.getMemberId());
+        return ResponseEntity.ok(ApiResponse.success("내 인증 요청 내역을 조회했습니다.", response));
+    }
+
     @Operation(summary = "대기 중인 인증 목록 조회 (관리자)", description = "승인이 필요한 모든 인증 요청 목록을 조회합니다.")
     @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN')")

@@ -43,6 +43,13 @@ public class VerificationService {
                 .collect(Collectors.toList());
     }
 
+    public List<VerificationResponse> getMyVerifications(Long memberId) {
+        return verificationRepository.findAllByMemberIdOrderBySubmittedAtDesc(memberId)
+                .stream()
+                .map(VerificationResponse::from)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void approveVerification(Long verificationId) {
         Verification verification = verificationRepository.findById(verificationId)

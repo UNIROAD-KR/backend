@@ -147,6 +147,33 @@ class VerificationControllerTest {
     }
 
     @Test
+    @DisplayName("getMyVerifications returns my verification history")
+    void getMyVerifications_Success() throws Exception {
+        // given
+        VerificationResponse response = new VerificationResponse(
+                1L,
+                "my-image",
+                VerificationStatus.REJECTED,
+                "invalid image",
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        given(verificationService.getMyVerifications(1L)).willReturn(List.of(response));
+
+        // when & then
+        mockMvc.perform(get("/api/v1/verifications/me")
+                        .with(user(userDetails(1L, Role.USER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].imageUrl").value("my-image"))
+                .andExpect(jsonPath("$.data[0].status").value("REJECTED"))
+                .andExpect(jsonPath("$.data[0].rejectReason").value("invalid image"));
+
+        verify(verificationService).getMyVerifications(1L);
+    }
+
+    @Test
     @DisplayName("approveVerification calls service")
     void approveVerification_Success() throws Exception {
         // when & then
