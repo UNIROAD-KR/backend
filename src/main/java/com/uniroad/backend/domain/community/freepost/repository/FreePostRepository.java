@@ -45,6 +45,20 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
     @Query("""
             SELECT f
             FROM FreePost f
+            JOIN FreePostLike l ON l.freePost = f
+            WHERE l.member.id = :memberId
+              AND (:cursorId IS NULL OR f.id < :cursorId)
+            ORDER BY f.id DESC
+            """)
+    List<FreePost> findLikedByMemberIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT f
+            FROM FreePost f
             LEFT JOIN FreePostLike l ON l.freePost = f
             GROUP BY f
             ORDER BY COUNT(l.id) DESC, f.createdAt DESC

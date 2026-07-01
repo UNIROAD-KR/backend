@@ -60,6 +60,19 @@ public class FreePostController {
         return ResponseEntity.ok(ApiResponse.success("내 자유게시판 글 조회 성공", response));
     }
 
+    @Operation(summary = "내가 좋아요 누른 자유게시판 글 조회")
+    @GetMapping("/liked")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getMyLikedPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<FreePostSummaryResponse> response =
+                freePostService.getMyLikedPosts(userDetails.getMemberId(), cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("내가 좋아요 누른 자유게시판 글 조회 성공", response));
+    }
+
     @Operation(summary = "자유게시판 인기글 Top 3 조회", description = "좋아요 수가 많은 자유게시판 글 3개를 조회합니다.")
     @GetMapping("/popular")
     public ResponseEntity<ApiResponse<java.util.List<FreePostSummaryResponse>>> getPopularPosts() {

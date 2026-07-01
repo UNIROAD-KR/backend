@@ -57,6 +57,17 @@ public class FreePostService {
         return toCursorResponse(posts, requestSize);
     }
 
+    public CursorPageResponse<FreePostSummaryResponse> getMyLikedPosts(Long memberId, Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.findLikedByMemberIdAndCursor(
+                memberId,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
     public List<FreePostSummaryResponse> getTopLikedPosts() {
         return freePostRepository.findTopByLikeCount(PageRequest.of(0, 3))
                 .stream()
