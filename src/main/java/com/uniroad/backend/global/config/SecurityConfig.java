@@ -75,6 +75,7 @@ public class SecurityConfig {
                                                                 "/api/auth/check-email",
                                                                 "/api/auth/check-username",
                                                                 "/api/auth/reissue",
+                                                                "/api/notices/**",
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
                                                                 "/h2-console/**",

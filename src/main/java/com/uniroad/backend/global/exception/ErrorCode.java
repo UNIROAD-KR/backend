@@ -32,6 +32,7 @@ public enum ErrorCode {
     // Post
     INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "잔액이 부족합니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글입니다."),
+    NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 공지사항입니다."),
 
     // Used item
     USED_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 중고거래 게시글입니다."),
