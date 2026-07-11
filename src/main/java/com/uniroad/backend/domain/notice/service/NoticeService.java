@@ -45,6 +45,12 @@ public class NoticeService {
         return NoticeResponse.from(notice);
     }
 
+    @Transactional
+    public void deleteNotice(Long noticeId) {
+        Notice notice = findNotice(noticeId);
+        noticeRepository.delete(notice);
+    }
+
     private Notice findNotice(Long noticeId) {
         return noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTICE_NOT_FOUND));

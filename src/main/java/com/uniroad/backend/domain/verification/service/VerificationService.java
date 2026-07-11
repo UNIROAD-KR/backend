@@ -43,6 +43,20 @@ public class VerificationService {
                 .collect(Collectors.toList());
     }
 
+    public List<AdminVerificationResponse> getApprovedVerifications() {
+        return verificationRepository.findAllByStatusAndIsCurrentTrue(VerificationStatus.APPROVED)
+                .stream()
+                .map(v -> AdminVerificationResponse.of(v.getMember(), v))
+                .collect(Collectors.toList());
+    }
+
+    public List<AdminVerificationResponse> getRejectedVerifications() {
+        return verificationRepository.findAllByStatusAndIsCurrentTrue(VerificationStatus.REJECTED)
+                .stream()
+                .map(v -> AdminVerificationResponse.of(v.getMember(), v))
+                .collect(Collectors.toList());
+    }
+
     public List<VerificationResponse> getMyVerifications(Long memberId) {
         return verificationRepository.findAllByMemberIdOrderBySubmittedAtDesc(memberId)
                 .stream()

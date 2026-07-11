@@ -110,7 +110,7 @@ public class Member extends BaseTimeEntity {
     private BigDecimal balance = BigDecimal.ZERO;
     
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Verification> verifications = new ArrayList<>();
 
     public void updateName(String name) {
@@ -127,6 +127,10 @@ public class Member extends BaseTimeEntity {
 
     public void updateStatus(MemberStatus status) {
         this.status = status;
+    }
+
+    public void updateRole(Role role) {
+        this.role = role;
     }
 
     public void completeOnboarding(Integer age, University domesticUniversity, String dispatchedUniversity,

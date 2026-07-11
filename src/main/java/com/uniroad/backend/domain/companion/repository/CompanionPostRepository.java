@@ -11,6 +11,7 @@ import java.util.List;
 public interface CompanionPostRepository extends JpaRepository<CompanionPost, Long> {
     List<CompanionPost> findAllByOrderByCreatedAtDesc();
     List<CompanionPost> findAllByMemberIdOrderByCreatedAtDesc(Long memberId);
+    void deleteByMemberId(Long memberId);
 
     @Query("""
             SELECT c

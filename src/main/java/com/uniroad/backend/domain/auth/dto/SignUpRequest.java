@@ -19,12 +19,12 @@ public record SignUpRequest(
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         String email,
 
-        @Schema(description = "비밀번호 (8~20자 영문, 숫자, 특수문자 포함)", example = "Password123!")
+        @Schema(description = "비밀번호 (8~20자 영문과 숫자 조합)", example = "Password123")
         @NotBlank(message = "비밀번호는 필수입니다.")
         @Size(min = 8, max = 20, message = "비밀번호는 8~20자여야 합니다.")
         @jakarta.validation.constraints.Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,20}$",
-            message = "비밀번호는 8~20자의 영문, 숫자, 특수문자를 포함해야 합니다."
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$",
+            message = "비밀번호는 8~20자의 영문과 숫자 조합이어야 합니다."
         )
         String password,
 

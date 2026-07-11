@@ -16,4 +16,6 @@ public interface VerificationRepository extends JpaRepository<Verification, Long
 
     @EntityGraph(attributePaths = {"member"})
     List<Verification> findAllByStatusAndIsCurrentTrue(VerificationStatus status);
+
+    void deleteByMemberId(Long memberId);
 }

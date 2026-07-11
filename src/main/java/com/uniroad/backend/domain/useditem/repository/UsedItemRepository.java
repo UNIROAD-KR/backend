@@ -44,4 +44,6 @@ public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    void deleteByAuthorId(Long memberId);
 }

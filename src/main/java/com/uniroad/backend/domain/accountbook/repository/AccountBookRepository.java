@@ -21,4 +21,6 @@ public interface AccountBookRepository extends JpaRepository<AccountBook, Long> 
             @Param("memberId") Long memberId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    void deleteByMemberId(Long memberId);
 }

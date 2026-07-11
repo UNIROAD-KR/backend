@@ -64,4 +64,6 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
             ORDER BY COUNT(l.id) DESC, f.createdAt DESC
             """)
     List<FreePost> findTopByLikeCount(Pageable pageable);
+
+    void deleteByMemberId(Long memberId);
 }
