@@ -330,7 +330,13 @@ public class AuthService {
         refreshTokenRepository.save(newToken);
 
         log.debug("[Token Reissued] memberId={}", memberId);
-        return TokenResponse.of(newAccessToken, newRefreshToken, jwtProvider.getAccessTokenValiditySeconds(), member.getStatus());
+        return TokenResponse.of(
+                newAccessToken,
+                newRefreshToken,
+                jwtProvider.getAccessTokenValiditySeconds(),
+                member.getStatus(),
+                member.getRole()
+        );
     }
 
     // ── 로그아웃 ────────────────────────────────────────────────
@@ -364,6 +370,12 @@ public class AuthService {
                         .build()
         );
 
-        return TokenResponse.of(accessToken, refreshToken, jwtProvider.getAccessTokenValiditySeconds(), member.getStatus());
+        return TokenResponse.of(
+                accessToken,
+                refreshToken,
+                jwtProvider.getAccessTokenValiditySeconds(),
+                member.getStatus(),
+                member.getRole()
+        );
     }
 }

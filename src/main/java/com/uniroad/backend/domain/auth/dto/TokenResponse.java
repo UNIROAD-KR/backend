@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.auth.dto;
 
 import com.uniroad.backend.domain.member.entity.MemberStatus;
+import com.uniroad.backend.domain.member.entity.Role;
 
 /**
  * Access Token / Refresh Token 응답 DTO
@@ -12,9 +13,10 @@ public record TokenResponse(
         String refreshToken,
         String tokenType,
         long accessTokenExpiresIn,  // 초(seconds) 단위
-        MemberStatus status
+        MemberStatus status,
+        Role role
 ) {
-    public static TokenResponse of(String accessToken, String refreshToken, long expiresIn, MemberStatus status) {
-        return new TokenResponse(accessToken, refreshToken, "Bearer", expiresIn, status);
+    public static TokenResponse of(String accessToken, String refreshToken, long expiresIn, MemberStatus status, Role role) {
+        return new TokenResponse(accessToken, refreshToken, "Bearer", expiresIn, status, role);
     }
 }
