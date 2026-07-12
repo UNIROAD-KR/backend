@@ -31,15 +31,6 @@ public class MemberService {
     @Transactional
     public void updatePassword(PasswordUpdateRequest request) {
         Member member = getCurrentMember();
-
-        if (member.getPassword() == null || member.getPassword().isBlank()) {
-            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
-        }
-
-        if (!passwordEncoder.matches(request.currentPassword(), member.getPassword())) {
-            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
-        }
-
         member.updatePassword(passwordEncoder.encode(request.newPassword()));
     }
 
