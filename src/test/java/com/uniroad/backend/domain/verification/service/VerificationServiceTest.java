@@ -130,6 +130,7 @@ class VerificationServiceTest {
         // then
         assertThat(verification.getStatus()).isEqualTo(VerificationStatus.APPROVED);
         assertThat(verification.getReviewedAt()).isNotNull();
+        assertThat(verification.getMember().getRole()).isEqualTo(Role.VERIFIED);
     }
 
     @Test

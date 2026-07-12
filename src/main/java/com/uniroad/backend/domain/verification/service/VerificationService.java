@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.verification.service;
 
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.verification.dto.AdminVerificationResponse;
 import com.uniroad.backend.domain.verification.dto.VerificationResponse;
 import com.uniroad.backend.domain.verification.entity.Verification;
@@ -68,12 +69,17 @@ public class VerificationService {
     public void approveVerification(Long verificationId) {
         Verification verification = verificationRepository.findById(verificationId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 인증 요청입니다."));
-        
+
         if (verification.getStatus() != VerificationStatus.PENDING) {
             throw new IllegalStateException("대기 중인 요청만 승인할 수 있습니다.");
         }
 
         verification.approve();
+
+        Member member = verification.getMember();
+        if (member.getRole() == Role.USER) {
+            member.updateRole(Role.VERIFIED);
+        }
     }
 
     @Transactional
