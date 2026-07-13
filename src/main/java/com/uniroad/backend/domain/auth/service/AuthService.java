@@ -315,7 +315,6 @@ public class AuthService {
         String newRefreshToken = jwtProvider.createRefreshToken(memberId);
         Long ttl = jwtProvider.getRefreshTokenValiditySeconds();
 
-        // Redis에서는 ID(token)가 변경되면 새 엔티티가 되므로 기존 것을 삭제하고 새로 저장
         refreshTokenRepository.delete(savedToken);
         
         RefreshToken newToken = RefreshToken.builder()
@@ -324,7 +323,6 @@ public class AuthService {
                 .expiresAt(LocalDateTime.now().plusSeconds(ttl))
                 .lastUsedIp(clientIp)
                 .createdAt(LocalDateTime.now())
-                .ttl(ttl)
                 .build();
         
         refreshTokenRepository.save(newToken);
@@ -366,7 +364,6 @@ public class AuthService {
                         .token(refreshToken)
                         .expiresAt(expiresAt)
                         .createdAt(LocalDateTime.now())
-                        .ttl(jwtProvider.getRefreshTokenValiditySeconds())
                         .build()
         );
 

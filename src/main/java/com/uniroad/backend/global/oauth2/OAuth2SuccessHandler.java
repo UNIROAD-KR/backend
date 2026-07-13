@@ -54,7 +54,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken  = jwtProvider.createAccessToken(memberId, role);
         String refreshToken = jwtProvider.createRefreshToken(memberId);
 
-        // Refresh Token Redis 저장 (기존 토큰 있으면 삭제 후 교체)
+        // Refresh Token DB 저장 (기존 토큰 있으면 삭제 후 교체)
         refreshTokenRepository.findByMemberId(memberId)
                 .ifPresent(refreshTokenRepository::delete);
 
@@ -66,7 +66,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                         .expiresAt(LocalDateTime.now().plusSeconds(ttl))
                         .lastUsedIp(getClientIp(request))
                         .createdAt(LocalDateTime.now())
-                        .ttl(ttl)
                         .build()
         );
 

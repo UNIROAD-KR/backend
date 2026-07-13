@@ -1,38 +1,38 @@
 package com.uniroad.backend.domain.auth.entity;
 
-import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.index.Indexed;
-import org.springframework.data.redis.core.TimeToLive;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Refresh Token 저장 엔티티 (Redis 기반)
- * - Redis를 활용하여 캐시에 저장하고 TTL을 통해 자동 만료 관리
- */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@RedisHash(value = "refreshToken")
+@Entity
+@Table(name = "refresh_token")
 public class RefreshToken {
 
     @Id
+    @Column(length = 500)
     private String token;
 
-    @Indexed
+    @Column(nullable = false, unique = true)
     private Long memberId;
 
+    @Column(nullable = false)
     private LocalDateTime expiresAt;
 
     private String lastUsedIp;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @TimeToLive
-    private Long ttl;
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.expiresAt);

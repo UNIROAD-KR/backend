@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,13 +28,25 @@ public class UsedItemResponseDto {
 
     private String semester;
 
+    private String country;
+
     private Long memberId;
 
     private String authorName;
 
+    private String authorNickname;
+
+    private String authorDispatchedCountry;
+
+    private String authorDispatchedRegion;
+
+    private String authorDispatchedUniversity;
+
     private Integer authorDispatchYear;
 
     private String authorDispatchSemester;
+
+    private LocalDate authorDispatchStartDate;
 
     private String thumbnailImageUrl;
 
@@ -54,10 +67,16 @@ public class UsedItemResponseDto {
                 .price(usedItemPost.getPrice())
                 .region(usedItemPost.getRegion())
                 .semester(usedItemPost.getSemester())
+                .country(usedItemPost.getCountry())
                 .memberId(usedItemPost.getAuthor().getId())
                 .authorName(usedItemPost.getAuthor().getName())
+                .authorNickname(usedItemPost.getAuthor().getNickname())
+                .authorDispatchedCountry(usedItemPost.getAuthor().getDispatchedCountry())
+                .authorDispatchedRegion(usedItemPost.getAuthor().getDispatchedRegion())
+                .authorDispatchedUniversity(usedItemPost.getAuthor().getDispatchedUniversity())
                 .authorDispatchYear(usedItemPost.getAuthor().getDispatchYear())
                 .authorDispatchSemester(usedItemPost.getAuthor().getDispatchSemester())
+                .authorDispatchStartDate(usedItemPost.getAuthor().getDispatchStartDate())
                 .thumbnailImageUrl(usedItemPost.getThumbnailImageUrl())
 
                 .items(

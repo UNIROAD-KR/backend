@@ -34,6 +34,8 @@ public class UsedItemPost extends BaseTimeEntity {
     @Column(nullable = false)
     private String semester;
 
+    private String country;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member author;
@@ -48,12 +50,13 @@ public class UsedItemPost extends BaseTimeEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TradeItem> items = new ArrayList<>();
 
-    public void update(String title, String content, Long price, String region, String semester, String thumbnailImageUrl) {
+    public void update(String title, String content, Long price, String region, String semester, String country, String thumbnailImageUrl) {
         this.title = title;
         this.content = content;
         this.price = price;
         this.region = region;
         this.semester = semester;
+        this.country = country;
         this.thumbnailImageUrl = thumbnailImageUrl;
     }
 

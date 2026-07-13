@@ -30,6 +30,9 @@ public class UsedItemRequestDto {
     @NotBlank(message = "거래 학기는 필수입니다.")
     private String semester;
 
+    @NotBlank(message = "국가는 필수입니다.")
+    private String country;
+
     @NotBlank(message = "대표 이미지는 필수입니다.")
     private String thumbnailImageUrl;
 

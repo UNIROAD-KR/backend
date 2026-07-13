@@ -1,12 +1,11 @@
 package com.uniroad.backend.domain.auth.repository;
 
-import org.springframework.data.repository.CrudRepository;
-
 import com.uniroad.backend.domain.auth.entity.RefreshToken;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface RefreshTokenRepository extends CrudRepository<RefreshToken, String> {
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
 
     Optional<RefreshToken> findByToken(String token);
 

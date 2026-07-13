@@ -40,6 +40,7 @@ public class UsedItemService {
                 .price(requestDto.getPrice())
                 .region(requestDto.getRegion())
                 .semester(requestDto.getSemester())
+                .country(requestDto.getCountry())
                 .thumbnailImageUrl(requestDto.getThumbnailImageUrl())
                 .author(author)
                 .build();

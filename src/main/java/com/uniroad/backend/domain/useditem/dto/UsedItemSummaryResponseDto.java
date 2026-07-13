@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -24,13 +25,25 @@ public class UsedItemSummaryResponseDto {
 
     private String semester;
 
+    private String country;
+
     private String thumbnailImageUrl;
 
     private String authorName;
 
+    private String authorNickname;
+
+    private String authorDispatchedCountry;
+
+    private String authorDispatchedRegion;
+
+    private String authorDispatchedUniversity;
+
     private Integer authorDispatchYear;
 
     private String authorDispatchSemester;
+
+    private LocalDate authorDispatchStartDate;
 
     private LocalDateTime updatedAt;
 
@@ -42,10 +55,16 @@ public class UsedItemSummaryResponseDto {
                 .price(post.getPrice())
                 .region(post.getRegion())
                 .semester(post.getSemester())
+                .country(post.getCountry())
                 .thumbnailImageUrl(post.getThumbnailImageUrl())
                 .authorName(post.getAuthor().getName())
+                .authorNickname(post.getAuthor().getNickname())
+                .authorDispatchedCountry(post.getAuthor().getDispatchedCountry())
+                .authorDispatchedRegion(post.getAuthor().getDispatchedRegion())
+                .authorDispatchedUniversity(post.getAuthor().getDispatchedUniversity())
                 .authorDispatchYear(post.getAuthor().getDispatchYear())
                 .authorDispatchSemester(post.getAuthor().getDispatchSemester())
+                .authorDispatchStartDate(post.getAuthor().getDispatchStartDate())
                 .updatedAt(post.getUpdatedAt())
                 .build();
     }
