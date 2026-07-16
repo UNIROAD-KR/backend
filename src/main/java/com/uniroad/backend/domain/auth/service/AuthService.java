@@ -315,17 +315,7 @@ public class AuthService {
         String newRefreshToken = jwtProvider.createRefreshToken(memberId);
         Long ttl = jwtProvider.getRefreshTokenValiditySeconds();
 
-        refreshTokenRepository.delete(savedToken);
-        
-        RefreshToken newToken = RefreshToken.builder()
-                .memberId(memberId)
-                .token(newRefreshToken)
-                .expiresAt(LocalDateTime.now().plusSeconds(ttl))
-                .lastUsedIp(clientIp)
-                .createdAt(LocalDateTime.now())
-                .build();
-        
-        refreshTokenRepository.save(newToken);
+        upsertRefreshToken(memberId, newRefreshToken, clientIp, ttl);
 
         log.debug("[Token Reissued] memberId={}", memberId);
         return TokenResponse.of(
@@ -350,21 +340,11 @@ public class AuthService {
     private TokenResponse issueTokens(Member member) {
         String accessToken  = jwtProvider.createAccessToken(member.getId(), member.getRole().getKey());
         String refreshToken = jwtProvider.createRefreshToken(member.getId());
-
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plusSeconds(jwtProvider.getRefreshTokenValiditySeconds());
-
-        // Refresh Token 저장 (기존 토큰 있으면 삭제 후 교체)
-        refreshTokenRepository.findByMemberId(member.getId())
-                .ifPresent(refreshTokenRepository::delete);
-
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .memberId(member.getId())
-                        .token(refreshToken)
-                        .expiresAt(expiresAt)
-                        .createdAt(LocalDateTime.now())
-                        .build()
+        upsertRefreshToken(
+                member.getId(),
+                refreshToken,
+                null,
+                jwtProvider.getRefreshTokenValiditySeconds()
         );
 
         return TokenResponse.of(
@@ -374,5 +354,23 @@ public class AuthService {
                 member.getStatus(),
                 member.getRole()
         );
+    }
+
+    private void upsertRefreshToken(Long memberId, String refreshToken, String clientIp, long ttlSeconds) {
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(ttlSeconds);
+
+        refreshTokenRepository.findByMemberId(memberId)
+                .ifPresentOrElse(
+                        existing -> existing.updateToken(refreshToken, expiresAt, clientIp),
+                        () -> refreshTokenRepository.save(
+                                RefreshToken.builder()
+                                        .memberId(memberId)
+                                        .token(refreshToken)
+                                        .expiresAt(expiresAt)
+                                        .lastUsedIp(clientIp)
+                                        .createdAt(LocalDateTime.now())
+                                        .build()
+                        )
+                );
     }
 }

@@ -54,20 +54,24 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken  = jwtProvider.createAccessToken(memberId, role);
         String refreshToken = jwtProvider.createRefreshToken(memberId);
 
-        // Refresh Token DB 저장 (기존 토큰 있으면 삭제 후 교체)
-        refreshTokenRepository.findByMemberId(memberId)
-                .ifPresent(refreshTokenRepository::delete);
-
         Long ttl = jwtProvider.getRefreshTokenValiditySeconds();
-        refreshTokenRepository.save(
-                RefreshToken.builder()
-                        .memberId(memberId)
-                        .token(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusSeconds(ttl))
-                        .lastUsedIp(getClientIp(request))
-                        .createdAt(LocalDateTime.now())
-                        .build()
-        );
+        refreshTokenRepository.findByMemberId(memberId)
+                .ifPresentOrElse(
+                        existing -> existing.updateToken(
+                                refreshToken,
+                                LocalDateTime.now().plusSeconds(ttl),
+                                getClientIp(request)
+                        ),
+                        () -> refreshTokenRepository.save(
+                                RefreshToken.builder()
+                                        .memberId(memberId)
+                                        .token(refreshToken)
+                                        .expiresAt(LocalDateTime.now().plusSeconds(ttl))
+                                        .lastUsedIp(getClientIp(request))
+                                        .createdAt(LocalDateTime.now())
+                                        .build()
+                        )
+                );
 
         log.info("[OAuth2 Success] memberId={}", memberId);
 
