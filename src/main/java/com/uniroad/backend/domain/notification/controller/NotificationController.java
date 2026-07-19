@@ -38,10 +38,17 @@ public class NotificationController {
             summary = "읽지 않은 알림 목록 조회",
             description = "현재 로그인 사용자의 읽지 않은 알림을 최신순으로 페이징 조회합니다. CHAT 알림의 referenceId와 roomId는 채팅방 ID입니다."
     )
-    @GetMapping
+    @GetMapping({"/unread", ""})
     public ResponseEntity<Page<NotificationResponse>> getNotifications(@PageableDefault(size = 20) Pageable pageable) {
         Long memberId = SecurityUtil.getCurrentMemberId();
         return ResponseEntity.ok(notificationService.getUnreadNotifications(memberId, pageable));
+    }
+
+    @Operation(summary = "전체 알림 목록 조회", description = "현재 로그인 사용자의 전체 알림을 최신순으로 페이징 조회합니다.")
+    @GetMapping("/all")
+    public ResponseEntity<Page<NotificationResponse>> getAllNotifications(@PageableDefault(size = 20) Pageable pageable) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        return ResponseEntity.ok(notificationService.getNotifications(memberId, pageable));
     }
 
     @Operation(summary = "읽지 않은 알림 개수 조회", description = "프론트 상단 알림 아이콘 뱃지 표시용 개수를 반환합니다. 예: {\"count\":3}")

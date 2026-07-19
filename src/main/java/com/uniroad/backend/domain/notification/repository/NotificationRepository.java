@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     Page<Notification> findByUserAndReadFalseOrderByCreatedAtDesc(Member user, Pageable pageable);
+    Page<Notification> findByUserOrderByCreatedAtDesc(Member user, Pageable pageable);
     long countByUserAndReadFalse(Member user);
 
     @Modifying

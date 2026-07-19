@@ -4,6 +4,7 @@ import com.uniroad.backend.domain.notice.dto.NoticeRequest;
 import com.uniroad.backend.domain.notice.dto.NoticeResponse;
 import com.uniroad.backend.domain.notice.entity.Notice;
 import com.uniroad.backend.domain.notice.repository.NoticeRepository;
+import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
+    private final NotificationService notificationService;
 
     public List<NoticeResponse> getNotices() {
         return noticeRepository.findAll().stream()
@@ -35,7 +37,13 @@ public class NoticeService {
                 .title(request.title().trim())
                 .content(request.content().trim())
                 .build();
-        return NoticeResponse.from(noticeRepository.save(notice));
+        Notice saved = noticeRepository.save(notice);
+        notificationService.notifyNotice(
+                saved.getId(),
+                saved.getTitle(),
+                saved.getContent()
+        );
+        return NoticeResponse.from(saved);
     }
 
     @Transactional

@@ -4,6 +4,7 @@ import com.uniroad.backend.domain.chat.entity.ChatMessage;
 import com.uniroad.backend.domain.chat.entity.ChatRoom;
 import com.uniroad.backend.domain.chat.entity.MessageType;
 import com.uniroad.backend.domain.chat.repository.ChatMessageRepository;
+import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomService chatRoomService;
+    private final NotificationService notificationService;
 
     @Transactional
     public ChatMessage saveMessage(Long roomId, Long senderId, String content, MessageType type) {
@@ -30,7 +32,9 @@ public class ChatService {
                 .message(content.trim())
                 .type(type)
                 .build();
-        return chatMessageRepository.save(message);
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+        notificationService.notifyChatMessage(savedMessage);
+        return savedMessage;
     }
 
     private void validateMessage(String content, MessageType type) {

@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -33,6 +34,12 @@ public class NotificationService {
     public Page<NotificationResponse> getUnreadNotifications(Long memberId, Pageable pageable) {
         Member member = getMember(memberId);
         return notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(member, pageable)
+                .map(NotificationResponse::from);
+    }
+
+    public Page<NotificationResponse> getNotifications(Long memberId, Pageable pageable) {
+        Member member = getMember(memberId);
+        return notificationRepository.findByUserOrderByCreatedAtDesc(member, pageable)
                 .map(NotificationResponse::from);
     }
 
@@ -76,6 +83,18 @@ public class NotificationService {
                 .forEach(receiver -> createChatNotification(receiver, message));
     }
 
+    @Transactional
+    public void notifyNotice(Long noticeId, String title, String content) {
+        List<Member> members = memberRepository.findAll();
+        members.forEach(member -> createNotification(
+                member,
+                NotificationType.NOTICE,
+                title,
+                content,
+                noticeId
+        ));
+    }
+
     private boolean shouldNotifyChat(Long receiverId, Long roomId) {
         return !chatPresenceService.isAppActive(receiverId)
                 || !chatPresenceService.isViewingRoom(receiverId, roomId);
@@ -86,13 +105,13 @@ public class NotificationService {
         String title = "새 채팅 메시지";
         String content = message.getMessage();
 
-        Notification notification = notificationRepository.save(Notification.builder()
-                .user(receiver)
-                .type(NotificationType.CHAT)
-                .title(title)
-                .content(content)
-                .referenceId(roomId)
-                .build());
+        Notification notification = createNotification(
+                receiver,
+                NotificationType.CHAT,
+                title,
+                content,
+                roomId
+        );
 
         fcmService.sendToMember(receiver, title, content, Map.of(
                 "type", NotificationType.CHAT.name(),
@@ -100,6 +119,16 @@ public class NotificationService {
                 "referenceId", String.valueOf(roomId),
                 "notificationId", String.valueOf(notification.getId())
         ));
+    }
+
+    private Notification createNotification(Member receiver, NotificationType type, String title, String content, Long referenceId) {
+        return notificationRepository.save(Notification.builder()
+                .user(receiver)
+                .type(type)
+                .title(title)
+                .content(content)
+                .referenceId(referenceId)
+                .build());
     }
 
     private Notification getOwnedNotification(Long memberId, Long notificationId) {

@@ -18,6 +18,9 @@ public class NotificationResponse {
     @Schema(description = "알림 타입", example = "CHAT")
     private NotificationType type;
 
+    @Schema(description = "읽음 여부", example = "false")
+    private boolean read;
+
     @Schema(description = "알림 제목", example = "새 채팅 메시지")
     private String title;
 
@@ -38,6 +41,7 @@ public class NotificationResponse {
         return NotificationResponse.builder()
                 .notificationId(notification.getId())
                 .type(notification.getType())
+                .read(notification.isRead())
                 .title(notification.getTitle())
                 .content(notification.getContent())
                 .referenceId(notification.getReferenceId())
