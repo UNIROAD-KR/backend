@@ -33,4 +33,6 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    void deleteByAuthorId(Long memberId);
 }

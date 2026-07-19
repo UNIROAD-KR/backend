@@ -6,6 +6,7 @@ import com.uniroad.backend.domain.useditem.dto.*;
 import com.uniroad.backend.domain.useditem.entity.TradeCategoryImage;
 import com.uniroad.backend.domain.useditem.entity.TradeItem;
 import com.uniroad.backend.domain.useditem.entity.UsedItemPost;
+import com.uniroad.backend.domain.useditem.entity.UsedItemStatus;
 import com.uniroad.backend.domain.useditem.repository.UsedItemRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
@@ -42,6 +43,7 @@ public class UsedItemService {
                 .semester(requestDto.getSemester())
                 .country(requestDto.getCountry())
                 .thumbnailImageUrl(requestDto.getThumbnailImageUrl())
+                .status(parseStatus(requestDto.getStatus()))
                 .author(author)
                 .build();
 
@@ -75,6 +77,50 @@ public class UsedItemService {
         }
 
         return usedItemRepository.save(usedItemPost).getId();
+    }
+
+    @Transactional
+    public void updateUsedItem(Long id, UsedItemRequestDto requestDto) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        UsedItemPost usedItemPost = usedItemRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.USED_ITEM_NOT_FOUND));
+
+        if (!usedItemPost.getAuthor().getId().equals(memberId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        usedItemPost.update(
+                requestDto.getTitle(),
+                requestDto.getContent(),
+                requestDto.getPrice(),
+                requestDto.getRegion(),
+                requestDto.getSemester(),
+                requestDto.getCountry(),
+                requestDto.getThumbnailImageUrl()
+        );
+    }
+
+    @Transactional
+    public void completeUsedItem(Long id) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        UsedItemPost usedItemPost = usedItemRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.USED_ITEM_NOT_FOUND));
+
+        if (!usedItemPost.getAuthor().getId().equals(memberId) && !member.getRole().equals(com.uniroad.backend.domain.member.entity.Role.ADMIN)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        if (usedItemPost.getStatus() == UsedItemStatus.SOLD) {
+            throw new CustomException(ErrorCode.USED_ITEM_ALREADY_COMPLETED);
+        }
+
+        usedItemPost.markSold();
     }
 
     public UsedItemResponseDto getUsedItem(Long id) {
@@ -138,5 +184,12 @@ public class UsedItemService {
             return 10;
         }
         return Math.min(size, 50);
+    }
+
+    private UsedItemStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return UsedItemStatus.SELLING;
+        }
+        return UsedItemStatus.valueOf(status.trim().toUpperCase());
     }
 }

@@ -39,4 +39,8 @@ public class FreePostComment extends BaseTimeEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

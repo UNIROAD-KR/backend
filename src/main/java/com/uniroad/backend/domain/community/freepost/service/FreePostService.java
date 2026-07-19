@@ -195,6 +195,20 @@ public class FreePostService {
         freePostCommentRepository.delete(comment);
     }
 
+    @Transactional
+    public FreePostCommentResponse updateComment(Long memberId, Long postId, Long commentId, FreePostCommentRequest request) {
+        FreePostComment comment = freePostCommentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+
+        if (!comment.getFreePost().getId().equals(postId)) {
+            throw new CustomException(ErrorCode.NOT_FOUND);
+        }
+        validateOwner(comment.getMember().getId(), memberId);
+
+        comment.updateContent(request.content().trim());
+        return FreePostCommentResponse.from(comment, memberId);
+    }
+
     private FreePost getPostEntity(Long postId) {
         return freePostRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));

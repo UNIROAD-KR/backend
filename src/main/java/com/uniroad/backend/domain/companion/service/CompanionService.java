@@ -83,6 +83,18 @@ public class CompanionService {
         companionPostRepository.delete(post);
     }
 
+    @Transactional
+    public void completePost(Long memberId, Long postId) {
+        CompanionPost post = companionPostRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if (!post.getMember().getId().equals(memberId)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        post.markCompleted();
+    }
+
     @Transactional(readOnly = true)
     public CursorPageResponse<CompanionPostResponse> getPosts(Long cursorId, int size) {
         int requestSize = normalizeSize(size);

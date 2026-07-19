@@ -36,6 +36,11 @@ public class UsedItemPost extends BaseTimeEntity {
 
     private String country;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private UsedItemStatus status = UsedItemStatus.SELLING;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member author;
@@ -58,6 +63,10 @@ public class UsedItemPost extends BaseTimeEntity {
         this.semester = semester;
         this.country = country;
         this.thumbnailImageUrl = thumbnailImageUrl;
+    }
+
+    public void markSold() {
+        this.status = UsedItemStatus.SOLD;
     }
 
     public void addImage(TradeCategoryImage image) {

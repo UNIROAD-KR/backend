@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 @Tag(name = "FreePost", description = "자유게시판 API")
 @RestController
@@ -153,5 +154,17 @@ public class FreePostController {
     ) {
         freePostService.deleteComment(userDetails.getMemberId(), postId, commentId);
         return ResponseEntity.ok(ApiResponse.success("자유게시판 댓글 삭제 성공", null));
+    }
+
+    @Operation(summary = "자유게시판 댓글 수정")
+    @PatchMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<FreePostCommentResponse>> updateComment(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody FreePostCommentRequest request
+    ) {
+        FreePostCommentResponse response = freePostService.updateComment(userDetails.getMemberId(), postId, commentId, request);
+        return ResponseEntity.ok(ApiResponse.success("자유게시판 댓글 수정 성공", response));
     }
 }

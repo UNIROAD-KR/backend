@@ -33,9 +33,12 @@ public enum ErrorCode {
     INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "잔액이 부족합니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글입니다."),
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 공지사항입니다."),
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 신고입니다."),
+    INVALID_REPORT_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 신고 상태입니다."),
 
     // Used item
     USED_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 중고거래 게시글입니다."),
+    USED_ITEM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "이미 판매 완료된 게시글입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 리소스입니다."),
     STOP_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 정류장 정보를 찾을 수 없습니다."),
     RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "기록을 찾을 수 없습니다."),

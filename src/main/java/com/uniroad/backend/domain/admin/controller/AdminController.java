@@ -1,8 +1,12 @@
 package com.uniroad.backend.domain.admin.controller;
 
 import com.uniroad.backend.domain.admin.service.AdminService;
+import com.uniroad.backend.domain.admin.dto.AdminDashboardResponse;
 import com.uniroad.backend.domain.member.dto.MemberResponseDto;
 import com.uniroad.backend.domain.member.dto.MemberRoleUpdateRequest;
+import com.uniroad.backend.domain.report.dto.AdminReportUpdateRequest;
+import com.uniroad.backend.domain.report.dto.ReportResponse;
+import com.uniroad.backend.domain.report.service.ReportService;
 import com.uniroad.backend.domain.verification.dto.AdminVerificationResponse;
 import com.uniroad.backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +28,7 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final ReportService reportService;
 
     @Operation(summary = "공지사항 삭제", description = "관리자가 공지사항을 삭제합니다.")
     @DeleteMapping("/notices/{noticeId}")
@@ -65,5 +70,26 @@ public class AdminController {
     @GetMapping("/verifications/rejected")
     public ResponseEntity<ApiResponse<List<AdminVerificationResponse>>> getRejectedVerifications() {
         return ResponseEntity.ok(ApiResponse.success(adminService.getRejectedVerifications()));
+    }
+
+    @Operation(summary = "신고 목록 조회", description = "관리자가 모든 신고 목록을 조회합니다.")
+    @GetMapping("/reports")
+    public ResponseEntity<ApiResponse<List<ReportResponse>>> getReports() {
+        return ResponseEntity.ok(ApiResponse.success(reportService.getAllReports()));
+    }
+
+    @Operation(summary = "신고 상태 변경", description = "관리자가 신고 상태를 변경합니다.")
+    @PatchMapping("/reports/{id}")
+    public ResponseEntity<ApiResponse<ReportResponse>> updateReportStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminReportUpdateRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success("신고 상태가 변경되었습니다.", reportService.updateReportStatus(id, request)));
+    }
+
+    @Operation(summary = "관리자 대시보드 조회", description = "회원 수, 게시글 수, 신고 수를 조회합니다.")
+    @GetMapping("/dashboard")
+    public ResponseEntity<ApiResponse<AdminDashboardResponse>> getDashboard() {
+        return ResponseEntity.ok(ApiResponse.success(adminService.getDashboard()));
     }
 }

@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +39,23 @@ public class UsedItemController {
         Long usedItemId = usedItemService.createUsedItem(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "중고거래 게시글 등록 성공", usedItemId));
+    }
+
+    @Operation(summary = "중고거래 게시글 수정", description = "작성자만 수정할 수 있습니다.")
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> updateUsedItem(
+            @PathVariable Long id,
+            @Valid @RequestBody UsedItemRequestDto requestDto
+    ) {
+        usedItemService.updateUsedItem(id, requestDto);
+        return ResponseEntity.ok(ApiResponse.success("중고거래 게시글 수정 성공", null));
+    }
+
+    @Operation(summary = "중고거래 판매 완료", description = "작성자 또는 관리자만 판매 완료 처리할 수 있습니다.")
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<ApiResponse<Void>> completeUsedItem(@PathVariable Long id) {
+        usedItemService.completeUsedItem(id);
+        return ResponseEntity.ok(ApiResponse.success("중고거래 판매 완료 처리 성공", null));
     }
 
     @Operation(summary = "중고거래 게시글 목록 조회")

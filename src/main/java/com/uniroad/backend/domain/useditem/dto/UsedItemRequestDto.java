@@ -36,6 +36,8 @@ public class UsedItemRequestDto {
     @NotBlank(message = "대표 이미지는 필수입니다.")
     private String thumbnailImageUrl;
 
+    private String status;
+
     private List<TradeItemRequestDto> items;
 
     private List<TradeCategoryImageRequestDto> categoryImages;

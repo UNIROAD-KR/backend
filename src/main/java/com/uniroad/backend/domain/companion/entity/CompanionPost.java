@@ -57,6 +57,10 @@ public class CompanionPost extends BaseTimeEntity {
     @Column
     private String genderRatio;
 
+    public void markCompleted() {
+        this.status = RecruitmentStatus.COMPLETED;
+    }
+
     public void update(String title, String content, LocalDate startDate, LocalDate endDate,
                        String country, String region, String chatLink,
                        RecruitmentStatus status, Integer capacity, Integer currentParticipants, String genderRatio) {

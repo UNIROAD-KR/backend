@@ -9,7 +9,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,13 @@ public class MemberController {
     public ApiResponse<MemberResponseDto> getMyInfo() {
         MemberResponseDto response = memberService.getMyInfo();
         return ApiResponse.success(response);
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 계정과 연관 데이터를 삭제합니다.")
+    @DeleteMapping("/me")
+    public ApiResponse<Void> deleteMyAccount() {
+        memberService.deleteMyAccount();
+        return ApiResponse.success("회원 탈퇴가 완료되었습니다.", null);
     }
 
     @Operation(summary = "내 비밀번호 수정", description = "현재 로그인한 사용자의 비밀번호를 변경합니다.")

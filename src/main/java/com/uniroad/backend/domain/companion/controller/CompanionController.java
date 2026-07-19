@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,6 +87,17 @@ public class CompanionController {
     ) {
         companionService.updatePost(userDetails.getMemberId(), postId, request);
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 게시글 수정 성공", null));
+    }
+
+    @Operation(summary = "동행 구하기 모집 완료", description = "작성자만 모집 완료로 변경할 수 있습니다.")
+    @PatchMapping("/{postId}/complete")
+    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> completePost(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long postId
+    ) {
+        companionService.completePost(userDetails.getMemberId(), postId);
+        return ResponseEntity.ok(ApiResponse.success("동행 구하기 모집 완료 처리 성공", null));
     }
 
     @Operation(summary = "동행 구하기 게시글 삭제")

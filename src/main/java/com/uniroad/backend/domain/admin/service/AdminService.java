@@ -7,6 +7,7 @@ import com.uniroad.backend.domain.community.freepost.repository.FreePostCommentR
 import com.uniroad.backend.domain.community.freepost.repository.FreePostLikeRepository;
 import com.uniroad.backend.domain.community.freepost.repository.FreePostRepository;
 import com.uniroad.backend.domain.companion.repository.CompanionPostRepository;
+import com.uniroad.backend.domain.admin.dto.AdminDashboardResponse;
 import com.uniroad.backend.domain.info.repository.FavoritePartnerUniversityRepository;
 import com.uniroad.backend.domain.info.repository.ReviewCommentRepository;
 import com.uniroad.backend.domain.info.repository.ReviewLikeRepository;
@@ -20,6 +21,7 @@ import com.uniroad.backend.domain.member.repository.MemberSocialAccountRepositor
 import com.uniroad.backend.domain.notification.repository.FcmTokenRepository;
 import com.uniroad.backend.domain.notification.repository.NotificationRepository;
 import com.uniroad.backend.domain.notice.repository.NoticeRepository;
+import com.uniroad.backend.domain.report.service.ReportService;
 import com.uniroad.backend.domain.useditem.repository.UsedItemRepository;
 import com.uniroad.backend.domain.verification.dto.AdminVerificationResponse;
 import com.uniroad.backend.domain.verification.repository.VerificationRepository;
@@ -30,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -51,12 +54,14 @@ public class AdminService {
     private final FreePostLikeRepository freePostLikeRepository;
     private final CompanionPostRepository companionPostRepository;
     private final UsedItemRepository usedItemRepository;
+    private final com.uniroad.backend.domain.ticket.repository.TicketTransferRepository ticketTransferRepository;
     private final AccountBookRepository accountBookRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewCommentRepository reviewCommentRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final UniversityExchangeDocumentCheckRepository universityExchangeDocumentCheckRepository;
     private final FavoritePartnerUniversityRepository favoritePartnerUniversityRepository;
+    private final ReportService reportService;
 
     public List<MemberResponseDto> getMembers() {
         return memberRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -102,6 +107,28 @@ public class AdminService {
 
     public List<AdminVerificationResponse> getRejectedVerifications() {
         return verificationService.getRejectedVerifications();
+    }
+
+    public AdminDashboardResponse getDashboard() {
+        LocalDate today = LocalDate.now();
+        long todaySignups = memberRepository.findAll().stream()
+                .filter(member -> member.getCreatedAt() != null && member.getCreatedAt().toLocalDate().equals(today))
+                .count();
+
+        long totalPosts = freePostRepository.count()
+                + usedItemRepository.count()
+                + companionPostRepository.count()
+                + ticketTransferRepository.count();
+
+        return AdminDashboardResponse.builder()
+                .totalMembers(memberRepository.count())
+                .todaySignups(todaySignups)
+                .totalPosts(totalPosts)
+                .pendingVerifications(verificationRepository.countByStatusAndIsCurrentTrue(com.uniroad.backend.domain.verification.entity.VerificationStatus.PENDING))
+                .reportCount(reportService.countAll())
+                .resolvedReportCount(reportService.countResolved())
+                .pendingReportCount(reportService.countPending())
+                .build();
     }
 
     @Transactional
