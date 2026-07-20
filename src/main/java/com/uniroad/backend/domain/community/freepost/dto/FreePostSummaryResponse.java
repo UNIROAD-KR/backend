@@ -13,6 +13,7 @@ public record FreePostSummaryResponse(
         String status,
         String authorName,
         long likeCount,
+        long scrapCount,
         long commentCount,
         String thumbnailImageUrl,
         LocalDateTime createdAt,
@@ -20,7 +21,7 @@ public record FreePostSummaryResponse(
 ) {
     private static final int PREVIEW_LENGTH = 80;
 
-    public static FreePostSummaryResponse from(FreePost post, long likeCount, long commentCount) {
+    public static FreePostSummaryResponse from(FreePost post, long likeCount, long scrapCount, long commentCount) {
         return new FreePostSummaryResponse(
                 post.getId(),
                 post.getTitle(),
@@ -29,6 +30,7 @@ public record FreePostSummaryResponse(
                 post.getStatus(),
                 "익명",
                 likeCount,
+                scrapCount,
                 commentCount,
                 firstImageUrl(post.getImageUrls()),
                 post.getCreatedAt(),

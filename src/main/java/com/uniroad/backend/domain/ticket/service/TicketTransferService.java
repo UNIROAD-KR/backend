@@ -7,6 +7,8 @@ import com.uniroad.backend.domain.ticket.dto.TicketTransferRequestDto;
 import com.uniroad.backend.domain.ticket.dto.TicketTransferResponseDto;
 import com.uniroad.backend.domain.ticket.entity.TicketTransferPost;
 import com.uniroad.backend.domain.ticket.repository.TicketTransferRepository;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
@@ -24,6 +26,7 @@ import java.util.List;
 public class TicketTransferService {
 
     private final TicketTransferRepository ticketTransferRepository;
+    private final ScrapRepository scrapRepository;
     private final MemberRepository memberRepository;
 
     @Transactional
@@ -50,7 +53,7 @@ public class TicketTransferService {
 
     public TicketTransferResponseDto getDetail(Long id) {
         TicketTransferPost post = getPost(id);
-        return TicketTransferResponseDto.from(post);
+        return TicketTransferResponseDto.from(post, scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.TICKET_TRANSFER, id));
     }
 
     public CursorPageResponse<TicketTransferResponseDto> getTickets(Long cursorId, int size) {
@@ -72,6 +75,18 @@ public class TicketTransferService {
                 PageRequest.of(0, requestSize + 1)
         );
 
+        return toCursorResponse(posts, requestSize);
+    }
+
+    public CursorPageResponse<TicketTransferResponseDto> getMyScrappedTickets(Long cursorId, int size) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        int requestSize = normalizeSize(size);
+        List<TicketTransferPost> posts = ticketTransferRepository.findScrappedByMemberIdAndCursor(
+                memberId,
+                ScrapTargetType.TICKET_TRANSFER,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
         return toCursorResponse(posts, requestSize);
     }
 
@@ -104,6 +119,7 @@ public class TicketTransferService {
 
         validateOwnership(member, post);
 
+        scrapRepository.deleteAllByTargetTypeAndTargetId(ScrapTargetType.TICKET_TRANSFER, id);
         ticketTransferRepository.delete(post);
     }
 
@@ -149,7 +165,10 @@ public class TicketTransferService {
         boolean hasNext = posts.size() > requestSize;
         List<TicketTransferPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
         List<TicketTransferResponseDto> items = pagePosts.stream()
-                .map(TicketTransferResponseDto::from)
+                .map(post -> TicketTransferResponseDto.from(
+                        post,
+                        scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.TICKET_TRANSFER, post.getId())
+                ))
                 .toList();
 
         Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;

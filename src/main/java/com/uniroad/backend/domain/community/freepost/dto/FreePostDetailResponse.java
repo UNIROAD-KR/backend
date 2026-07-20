@@ -14,6 +14,7 @@ public record FreePostDetailResponse(
         String authorName,
         List<String> imageUrls,
         long likeCount,
+        long scrapCount,
         long commentCount,
         boolean liked,
         boolean mine,
@@ -24,6 +25,7 @@ public record FreePostDetailResponse(
     public static FreePostDetailResponse from(
             FreePost post,
             long likeCount,
+            long scrapCount,
             long commentCount,
             boolean liked,
             Long memberId,
@@ -38,6 +40,7 @@ public record FreePostDetailResponse(
                 "익명",
                 post.getImageUrls() == null ? List.of() : post.getImageUrls(),
                 likeCount,
+                scrapCount,
                 commentCount,
                 liked,
                 post.getMember().getId().equals(memberId),

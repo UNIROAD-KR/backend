@@ -7,6 +7,8 @@ import com.uniroad.backend.domain.community.freepost.dto.FreePostLikeResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostRequest;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostSummaryResponse;
 import com.uniroad.backend.domain.community.freepost.service.FreePostService;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.service.ScrapService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.security.CustomUserDetails;
@@ -34,6 +36,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 public class FreePostController {
 
     private final FreePostService freePostService;
+    private final ScrapService scrapService;
 
     @Operation(summary = "자유게시판 목록 조회")
     @GetMapping
@@ -72,6 +75,18 @@ public class FreePostController {
                 freePostService.getMyLikedPosts(userDetails.getMemberId(), cursorId, size);
 
         return ResponseEntity.ok(ApiResponse.success("내가 좋아요 누른 자유게시판 글 조회 성공", response));
+    }
+
+    @Operation(summary = "내가 스크랩한 자유게시판 글 조회")
+    @GetMapping("/scraps")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getMyScrappedPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<FreePostSummaryResponse> response =
+                freePostService.getMyScrappedPosts(userDetails.getMemberId(), cursorId, size);
+        return ResponseEntity.ok(ApiResponse.success("내가 스크랩한 자유게시판 글 조회 성공", response));
     }
 
     @Operation(summary = "자유게시판 인기글 Top 3 조회", description = "좋아요 수가 많은 자유게시판 글 3개를 조회합니다.")
@@ -132,6 +147,16 @@ public class FreePostController {
     ) {
         FreePostLikeResponse response = freePostService.toggleLike(userDetails.getMemberId(), postId);
         return ResponseEntity.ok(ApiResponse.success("자유게시판 좋아요 토글 성공", response));
+    }
+
+    @Operation(summary = "자유게시판 스크랩 토글")
+    @PostMapping("/{postId}/scrap")
+    public ResponseEntity<ApiResponse<Boolean>> toggleScrap(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long postId
+    ) {
+        boolean scrapped = scrapService.toggle(ScrapTargetType.FREE_POST, postId);
+        return ResponseEntity.ok(ApiResponse.success("자유게시판 스크랩 토글 성공", scrapped));
     }
 
     @Operation(summary = "자유게시판 댓글 작성")

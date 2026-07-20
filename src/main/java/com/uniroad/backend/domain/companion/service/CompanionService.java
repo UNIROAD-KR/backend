@@ -6,6 +6,8 @@ import com.uniroad.backend.domain.companion.entity.CompanionPost;
 import com.uniroad.backend.domain.companion.repository.CompanionPostRepository;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
@@ -23,6 +25,7 @@ public class CompanionService {
 
     private final CompanionPostRepository companionPostRepository;
     private final MemberRepository memberRepository;
+    private final ScrapRepository scrapRepository;
 
     @Transactional
     public Long createPost(Long memberId, CompanionPostRequest request) {
@@ -80,6 +83,7 @@ public class CompanionService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        scrapRepository.deleteAllByTargetTypeAndTargetId(ScrapTargetType.COMPANION_POST, postId);
         companionPostRepository.delete(post);
     }
 
@@ -118,11 +122,27 @@ public class CompanionService {
         return toCursorResponse(posts, requestSize);
     }
 
+    @Transactional(readOnly = true)
+    public CursorPageResponse<CompanionPostResponse> getMyScrappedPosts(Long memberId, Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<CompanionPost> posts = companionPostRepository.findScrappedByMemberIdAndCursor(
+                memberId,
+                ScrapTargetType.COMPANION_POST,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
     private CursorPageResponse<CompanionPostResponse> toCursorResponse(List<CompanionPost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<CompanionPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
         List<CompanionPostResponse> items = pagePosts.stream()
-                .map(CompanionPostResponse::from)
+                .map(post -> CompanionPostResponse.from(
+                        post,
+                        scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.COMPANION_POST, post.getId())
+                ))
                 .collect(Collectors.toList());
 
         Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;
@@ -133,7 +153,10 @@ public class CompanionService {
     public CompanionPostResponse getPostDetail(Long postId) {
         CompanionPost post = companionPostRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        return CompanionPostResponse.from(post);
+        return CompanionPostResponse.from(
+                post,
+                scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.COMPANION_POST, postId)
+        );
     }
 
     private int normalizeSize(int size) {

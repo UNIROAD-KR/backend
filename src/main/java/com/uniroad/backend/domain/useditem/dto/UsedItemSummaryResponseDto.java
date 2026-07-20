@@ -26,6 +26,7 @@ public class UsedItemSummaryResponseDto {
     private String semester;
 
     private String country;
+    private long scrapCount;
 
     private String thumbnailImageUrl;
 
@@ -47,7 +48,7 @@ public class UsedItemSummaryResponseDto {
 
     private LocalDateTime updatedAt;
 
-    public static UsedItemSummaryResponseDto from(UsedItemPost post) {
+    public static UsedItemSummaryResponseDto from(UsedItemPost post, long scrapCount) {
 
         return UsedItemSummaryResponseDto.builder()
                 .id(post.getId())
@@ -56,6 +57,7 @@ public class UsedItemSummaryResponseDto {
                 .region(post.getRegion())
                 .semester(post.getSemester())
                 .country(post.getCountry())
+                .scrapCount(scrapCount)
                 .thumbnailImageUrl(post.getThumbnailImageUrl())
                 .authorName(post.getAuthor().getName())
                 .authorNickname(post.getAuthor().getNickname())

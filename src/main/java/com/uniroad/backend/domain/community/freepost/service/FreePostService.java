@@ -14,6 +14,8 @@ import com.uniroad.backend.domain.community.freepost.repository.FreePostLikeRepo
 import com.uniroad.backend.domain.community.freepost.repository.FreePostRepository;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
@@ -33,6 +35,7 @@ public class FreePostService {
     private final FreePostRepository freePostRepository;
     private final FreePostCommentRepository freePostCommentRepository;
     private final FreePostLikeRepository freePostLikeRepository;
+    private final ScrapRepository scrapRepository;
     private final MemberRepository memberRepository;
 
     public CursorPageResponse<FreePostSummaryResponse> getPosts(Long cursorId, String keyword, int size) {
@@ -68,12 +71,25 @@ public class FreePostService {
         return toCursorResponse(posts, requestSize);
     }
 
+    public CursorPageResponse<FreePostSummaryResponse> getMyScrappedPosts(Long memberId, Long cursorId, int size) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.findScrappedByMemberIdAndCursor(
+                memberId,
+                ScrapTargetType.FREE_POST,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+
+        return toCursorResponse(posts, requestSize);
+    }
+
     public List<FreePostSummaryResponse> getTopLikedPosts() {
         return freePostRepository.findTopByLikeCount(PageRequest.of(0, 3))
                 .stream()
                 .map(post -> FreePostSummaryResponse.from(
                         post,
                         freePostLikeRepository.countByFreePostId(post.getId()),
+                        scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, post.getId()),
                         freePostCommentRepository.countByFreePostId(post.getId())
                 ))
                 .toList();
@@ -86,6 +102,7 @@ public class FreePostService {
                 .map(post -> FreePostSummaryResponse.from(
                         post,
                         freePostLikeRepository.countByFreePostId(post.getId()),
+                        scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, post.getId()),
                         freePostCommentRepository.countByFreePostId(post.getId())
                 ))
                 .toList();
@@ -104,6 +121,7 @@ public class FreePostService {
         return FreePostDetailResponse.from(
                 post,
                 freePostLikeRepository.countByFreePostId(postId),
+                scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, postId),
                 comments.size(),
                 freePostLikeRepository.existsByFreePostIdAndMemberId(postId, memberId),
                 memberId,
@@ -146,6 +164,7 @@ public class FreePostService {
         validateOwner(post.getMember().getId(), memberId);
         freePostCommentRepository.deleteAllByFreePostId(postId);
         freePostLikeRepository.deleteAllByFreePostId(postId);
+        scrapRepository.deleteAllByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, postId);
         freePostRepository.delete(post);
     }
 

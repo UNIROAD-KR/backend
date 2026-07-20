@@ -27,6 +27,7 @@ public class TicketTransferResponseDto {
     private String title;
     private String content;
     private String country;
+    private long scrapCount;
     private String eventDate;
     private String eventEndDate;
     private String eventTime;
@@ -38,7 +39,7 @@ public class TicketTransferResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static TicketTransferResponseDto from(TicketTransferPost post) {
+    public static TicketTransferResponseDto from(TicketTransferPost post, long scrapCount) {
         return TicketTransferResponseDto.builder()
                 .id(post.getId())
                 .authorName(post.getAuthor().getName())
@@ -53,6 +54,7 @@ public class TicketTransferResponseDto {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .country(post.getCountry())
+                .scrapCount(scrapCount)
                 .eventDate(post.getEventDate())
                 .eventEndDate(post.getEventEndDate())
                 .eventTime(post.getEventTime())

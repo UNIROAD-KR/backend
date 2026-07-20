@@ -6,6 +6,8 @@ import com.uniroad.backend.domain.companion.service.CompanionService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.security.CustomUserDetails;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.service.ScrapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CompanionController {
 
     private final CompanionService companionService;
+    private final ScrapService scrapService;
 
     @Operation(summary = "동행 구하기 게시글 작성", description = "인증 회원 또는 관리자만 작성할 수 있습니다.")
     @PostMapping
@@ -67,6 +70,19 @@ public class CompanionController {
         return ResponseEntity.ok(ApiResponse.success("내 동행 구하기 글 조회 성공", posts));
     }
 
+    @Operation(summary = "내가 스크랩한 동행 구하기 글 조회")
+    @GetMapping("/scraps")
+    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> getMyScrappedPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<CompanionPostResponse> posts =
+                companionService.getMyScrappedPosts(userDetails.getMemberId(), cursorId, size);
+        return ResponseEntity.ok(ApiResponse.success("내가 스크랩한 동행 구하기 글 조회 성공", posts));
+    }
+
     @Operation(summary = "동행 구하기 상세 조회")
     @GetMapping("/{postId}")
     @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
@@ -75,6 +91,13 @@ public class CompanionController {
     ) {
         CompanionPostResponse post = companionService.getPostDetail(postId);
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 상세 조회 성공", post));
+    }
+
+    @Operation(summary = "동행 구하기 스크랩 토글")
+    @PostMapping("/{postId}/scrap")
+    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Boolean>> toggleScrap(@PathVariable Long postId) {
+        return ResponseEntity.ok(ApiResponse.success("동행 구하기 스크랩 토글 성공", scrapService.toggle(ScrapTargetType.COMPANION_POST, postId)));
     }
 
     @Operation(summary = "동행 구하기 게시글 수정")

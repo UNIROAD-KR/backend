@@ -20,6 +20,7 @@ public record CompanionPostResponse(
     String chatLink,
     RecruitmentStatus status,
     String statusDescription,
+    long scrapCount,
     Integer capacity,
     Integer currentParticipants,
     String genderRatio,
@@ -27,6 +28,10 @@ public record CompanionPostResponse(
     LocalDateTime updatedAt
 ) {
     public static CompanionPostResponse from(CompanionPost post) {
+        return from(post, 0L);
+    }
+
+    public static CompanionPostResponse from(CompanionPost post, long scrapCount) {
         return new CompanionPostResponse(
             post.getId(),
             post.getMember().getName(),
@@ -39,6 +44,7 @@ public record CompanionPostResponse(
             post.getChatLink(),
             post.getStatus(),
             post.getStatus().getDescription(),
+            scrapCount,
             post.getCapacity(),
             post.getCurrentParticipants(),
             post.getGenderRatio(),

@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.useditem.repository;
 
 import com.uniroad.backend.domain.useditem.entity.UsedItemPost;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,6 +42,22 @@ public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
     """)
     List<UsedItemPost> findByAuthorIdAndCursor(
             @Param("memberId") Long memberId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT u
+        FROM UsedItemPost u
+        JOIN Scrap s ON s.targetId = u.id
+        WHERE s.member.id = :memberId
+          AND s.targetType = :targetType
+          AND (:cursorId IS NULL OR u.id < :cursorId)
+        ORDER BY s.createdAt DESC, u.id DESC
+    """)
+    List<UsedItemPost> findScrappedByMemberIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("targetType") ScrapTargetType targetType,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );

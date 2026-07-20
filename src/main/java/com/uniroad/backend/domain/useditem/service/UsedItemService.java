@@ -8,6 +8,8 @@ import com.uniroad.backend.domain.useditem.entity.TradeItem;
 import com.uniroad.backend.domain.useditem.entity.UsedItemPost;
 import com.uniroad.backend.domain.useditem.entity.UsedItemStatus;
 import com.uniroad.backend.domain.useditem.repository.UsedItemRepository;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
@@ -25,6 +27,7 @@ import java.util.List;
 public class UsedItemService {
 
     private final UsedItemRepository usedItemRepository;
+    private final ScrapRepository scrapRepository;
     private final MemberRepository memberRepository;
 
     @Transactional
@@ -123,10 +126,26 @@ public class UsedItemService {
         usedItemPost.markSold();
     }
 
+    @Transactional
+    public void reopenUsedItem(Long id) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        UsedItemPost usedItemPost = usedItemRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.USED_ITEM_NOT_FOUND));
+
+        if (!usedItemPost.getAuthor().getId().equals(memberId) && !member.getRole().equals(com.uniroad.backend.domain.member.entity.Role.ADMIN)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+
+        usedItemPost.markSelling();
+    }
+
     public UsedItemResponseDto getUsedItem(Long id) {
         UsedItemPost usedItemPost = usedItemRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.USED_ITEM_NOT_FOUND));
-        return UsedItemResponseDto.from(usedItemPost);
+        return UsedItemResponseDto.from(usedItemPost, scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.USED_ITEM, id));
     }
 
     @Transactional
@@ -143,6 +162,7 @@ public class UsedItemService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
 
+        scrapRepository.deleteAllByTargetTypeAndTargetId(ScrapTargetType.USED_ITEM, id);
         usedItemRepository.delete(usedItemPost);
     }
 
@@ -168,11 +188,26 @@ public class UsedItemService {
         return toCursorResponse(posts, requestSize);
     }
 
+    public CursorPageResponse<UsedItemSummaryResponseDto> getMyScrappedUsedItems(Long cursorId, int size) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        int requestSize = normalizeSize(size);
+        List<UsedItemPost> posts = usedItemRepository.findScrappedByMemberIdAndCursor(
+                memberId,
+                ScrapTargetType.USED_ITEM,
+                cursorId,
+                PageRequest.of(0, requestSize + 1)
+        );
+        return toCursorResponse(posts, requestSize);
+    }
+
     private CursorPageResponse<UsedItemSummaryResponseDto> toCursorResponse(List<UsedItemPost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<UsedItemPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
         List<UsedItemSummaryResponseDto> items = pagePosts.stream()
-                .map(UsedItemSummaryResponseDto::from)
+                .map(post -> UsedItemSummaryResponseDto.from(
+                        post,
+                        scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.USED_ITEM, post.getId())
+                ))
                 .toList();
 
         Long nextCursorId = hasNext ? pagePosts.get(pagePosts.size() - 1).getId() : null;

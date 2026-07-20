@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.community.freepost.repository;
 
 import com.uniroad.backend.domain.community.freepost.entity.FreePost;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -64,6 +65,22 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
             ORDER BY COUNT(l.id) DESC, f.createdAt DESC
             """)
     List<FreePost> findTopByLikeCount(Pageable pageable);
+
+    @Query("""
+            SELECT f
+            FROM FreePost f
+            JOIN Scrap s ON s.targetId = f.id
+            WHERE s.member.id = :memberId
+              AND s.targetType = :targetType
+              AND (:cursorId IS NULL OR f.id < :cursorId)
+            ORDER BY s.createdAt DESC, f.id DESC
+            """)
+    List<FreePost> findScrappedByMemberIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("targetType") ScrapTargetType targetType,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 
     void deleteByMemberId(Long memberId);
 }

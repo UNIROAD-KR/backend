@@ -29,6 +29,7 @@ public class UsedItemResponseDto {
     private String semester;
 
     private String country;
+    private long scrapCount;
 
     private Long memberId;
 
@@ -58,7 +59,7 @@ public class UsedItemResponseDto {
 
     private LocalDateTime updatedAt;
 
-    public static UsedItemResponseDto from(UsedItemPost usedItemPost) {
+    public static UsedItemResponseDto from(UsedItemPost usedItemPost, long scrapCount) {
 
         return UsedItemResponseDto.builder()
                 .id(usedItemPost.getId())
@@ -68,6 +69,7 @@ public class UsedItemResponseDto {
                 .region(usedItemPost.getRegion())
                 .semester(usedItemPost.getSemester())
                 .country(usedItemPost.getCountry())
+                .scrapCount(scrapCount)
                 .memberId(usedItemPost.getAuthor().getId())
                 .authorName(usedItemPost.getAuthor().getName())
                 .authorNickname(usedItemPost.getAuthor().getNickname())

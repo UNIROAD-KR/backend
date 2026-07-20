@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.ticket.repository;
 
 import com.uniroad.backend.domain.ticket.entity.TicketTransferPost;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,6 +31,22 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
             """)
     List<TicketTransferPost> findByAuthorIdAndCursor(
             @Param("memberId") Long memberId,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT t
+            FROM TicketTransferPost t
+            JOIN Scrap s ON s.targetId = t.id
+            WHERE s.member.id = :memberId
+              AND s.targetType = :targetType
+              AND (:cursorId IS NULL OR t.id < :cursorId)
+            ORDER BY s.createdAt DESC, t.id DESC
+            """)
+    List<TicketTransferPost> findScrappedByMemberIdAndCursor(
+            @Param("memberId") Long memberId,
+            @Param("targetType") ScrapTargetType targetType,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );

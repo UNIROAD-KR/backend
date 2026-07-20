@@ -5,6 +5,8 @@ import com.uniroad.backend.domain.ticket.dto.TicketTransferResponseDto;
 import com.uniroad.backend.domain.ticket.service.TicketTransferService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.service.ScrapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TicketTransferController {
 
     private final TicketTransferService ticketTransferService;
+    private final ScrapService scrapService;
 
     @Operation(summary = "티켓 양도 글 작성")
     @PostMapping
@@ -73,6 +76,20 @@ public class TicketTransferController {
         );
     }
 
+    @Operation(summary = "내가 스크랩한 티켓 양도 글 조회")
+    @GetMapping("/scraps")
+    public ResponseEntity<ApiResponse<CursorPageResponse<TicketTransferResponseDto>>> getMyScrappedTickets(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "내가 스크랩한 티켓 양도 글 조회 성공",
+                        ticketTransferService.getMyScrappedTickets(cursorId, size)
+                )
+        );
+    }
+
     @Operation(summary = "티켓 양도 글 상세 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TicketTransferResponseDto>> getDetail(
@@ -83,6 +100,14 @@ public class TicketTransferController {
                         "티켓 양도 글 상세 조회 성공",
                         ticketTransferService.getDetail(id)
                 )
+        );
+    }
+
+    @Operation(summary = "티켓 양도 스크랩 토글")
+    @PostMapping("/{id}/scrap")
+    public ResponseEntity<ApiResponse<Boolean>> toggleScrap(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                ApiResponse.success("티켓 양도 스크랩 토글 성공", scrapService.toggle(ScrapTargetType.TICKET_TRANSFER, id))
         );
     }
 

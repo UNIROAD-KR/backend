@@ -4,6 +4,8 @@ import com.uniroad.backend.domain.useditem.dto.UsedItemRequestDto;
 import com.uniroad.backend.domain.useditem.dto.UsedItemResponseDto;
 import com.uniroad.backend.domain.useditem.dto.UsedItemSummaryResponseDto;
 import com.uniroad.backend.domain.useditem.service.UsedItemService;
+import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
+import com.uniroad.backend.domain.scrap.service.ScrapService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsedItemController {
 
     private final UsedItemService usedItemService;
+    private final ScrapService scrapService;
 
     @Operation(summary = "중고거래 게시글 작성", description = "인증 회원 또는 관리자만 작성할 수 있습니다.")
     @PostMapping
@@ -56,6 +59,13 @@ public class UsedItemController {
     public ResponseEntity<ApiResponse<Void>> completeUsedItem(@PathVariable Long id) {
         usedItemService.completeUsedItem(id);
         return ResponseEntity.ok(ApiResponse.success("중고거래 판매 완료 처리 성공", null));
+    }
+
+    @Operation(summary = "중고거래 판매중 복귀", description = "작성자 또는 관리자만 판매중으로 되돌릴 수 있습니다.")
+    @PatchMapping("/{id}/reopen")
+    public ResponseEntity<ApiResponse<Void>> reopenUsedItem(@PathVariable Long id) {
+        usedItemService.reopenUsedItem(id);
+        return ResponseEntity.ok(ApiResponse.success("중고거래 판매중 복귀 성공", null));
     }
 
     @Operation(summary = "중고거래 게시글 목록 조회")
@@ -86,11 +96,33 @@ public class UsedItemController {
         );
     }
 
+    @Operation(summary = "내가 스크랩한 중고거래 글 조회")
+    @GetMapping("/scraps")
+    public ResponseEntity<ApiResponse<CursorPageResponse<UsedItemSummaryResponseDto>>> getMyScrappedUsedItems(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "내가 스크랩한 중고거래 글 조회 성공",
+                        usedItemService.getMyScrappedUsedItems(cursorId, size)
+                )
+        );
+    }
+
     @Operation(summary = "중고거래 게시글 상세 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UsedItemResponseDto>> getUsedItem(@PathVariable Long id) {
         UsedItemResponseDto response = usedItemService.getUsedItem(id);
         return ResponseEntity.ok(ApiResponse.success("중고거래 게시글 상세 조회 성공", response));
+    }
+
+    @Operation(summary = "중고거래 스크랩 토글")
+    @PostMapping("/{id}/scrap")
+    public ResponseEntity<ApiResponse<Boolean>> toggleScrap(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                ApiResponse.success("중고거래 스크랩 토글 성공", scrapService.toggle(ScrapTargetType.USED_ITEM, id))
+        );
     }
 
     @Operation(summary = "중고거래 게시글 삭제", description = "작성자 본인 또는 관리자만 삭제할 수 있습니다.")

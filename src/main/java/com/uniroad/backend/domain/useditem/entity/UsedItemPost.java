@@ -69,6 +69,10 @@ public class UsedItemPost extends BaseTimeEntity {
         this.status = UsedItemStatus.SOLD;
     }
 
+    public void markSelling() {
+        this.status = UsedItemStatus.SELLING;
+    }
+
     public void addImage(TradeCategoryImage image) {
         images.add(image);
         image.setUsedItemPost(this);
