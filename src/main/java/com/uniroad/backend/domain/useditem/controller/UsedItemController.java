@@ -2,6 +2,7 @@ package com.uniroad.backend.domain.useditem.controller;
 
 import com.uniroad.backend.domain.useditem.dto.UsedItemRequestDto;
 import com.uniroad.backend.domain.useditem.dto.UsedItemResponseDto;
+import com.uniroad.backend.domain.useditem.dto.UsedItemSearchRequest;
 import com.uniroad.backend.domain.useditem.dto.UsedItemSummaryResponseDto;
 import com.uniroad.backend.domain.useditem.service.UsedItemService;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
@@ -82,6 +83,29 @@ public class UsedItemController {
         );
     }
 
+    @Operation(summary = "중고거래 게시글 검색")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<CursorPageResponse<UsedItemSummaryResponseDto>>> searchUsedItems(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        UsedItemSearchRequest request = new UsedItemSearchRequest(
+                title,
+                country,
+                region,
+                content,
+                parseStatus(status)
+        );
+        CursorPageResponse<UsedItemSummaryResponseDto> response =
+                usedItemService.getUsedItems(cursorId, size, request);
+        return ResponseEntity.ok(ApiResponse.success("중고거래 게시글 검색 성공", response));
+    }
+
     @Operation(summary = "내 중고거래 글 조회")
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<CursorPageResponse<UsedItemSummaryResponseDto>>> getMyUsedItems(
@@ -130,5 +154,12 @@ public class UsedItemController {
     public ResponseEntity<ApiResponse<Void>> deleteUsedItem(@PathVariable Long id) {
         usedItemService.deleteUsedItem(id);
         return ResponseEntity.ok(ApiResponse.success("중고거래 게시글 삭제 성공", null));
+    }
+
+    private com.uniroad.backend.domain.useditem.entity.UsedItemStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return com.uniroad.backend.domain.useditem.entity.UsedItemStatus.valueOf(status.trim().toUpperCase());
     }
 }

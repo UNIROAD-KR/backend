@@ -2,6 +2,7 @@ package com.uniroad.backend.domain.companion.controller;
 
 import com.uniroad.backend.domain.companion.dto.CompanionPostRequest;
 import com.uniroad.backend.domain.companion.dto.CompanionPostResponse;
+import com.uniroad.backend.domain.companion.dto.CompanionSearchRequest;
 import com.uniroad.backend.domain.companion.service.CompanionService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
@@ -55,6 +56,33 @@ public class CompanionController {
     ) {
         CursorPageResponse<CompanionPostResponse> posts = companionService.getPosts(cursorId, size);
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 목록 조회 성공", posts));
+    }
+
+    @Operation(summary = "동행 구하기 검색")
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> searchPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) java.time.LocalDate startDateFrom,
+            @RequestParam(required = false) java.time.LocalDate startDateTo,
+            @RequestParam(required = false) java.time.LocalDate endDateFrom,
+            @RequestParam(required = false) java.time.LocalDate endDateTo,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CompanionSearchRequest request = new CompanionSearchRequest(
+                parseStatus(status),
+                country,
+                region,
+                startDateFrom,
+                startDateTo,
+                endDateFrom,
+                endDateTo
+        );
+        CursorPageResponse<CompanionPostResponse> posts = companionService.searchPosts(cursorId, size, request);
+        return ResponseEntity.ok(ApiResponse.success("동행 구하기 검색 성공", posts));
     }
 
     @Operation(summary = "내 동행 구하기 글 조회")
@@ -132,5 +160,12 @@ public class CompanionController {
     ) {
         companionService.deletePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 게시글 삭제 성공", null));
+    }
+
+    private com.uniroad.backend.domain.companion.entity.RecruitmentStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return com.uniroad.backend.domain.companion.entity.RecruitmentStatus.valueOf(status.trim().toUpperCase());
     }
 }

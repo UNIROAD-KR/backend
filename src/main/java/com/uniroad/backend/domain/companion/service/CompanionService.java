@@ -2,6 +2,7 @@ package com.uniroad.backend.domain.companion.service;
 
 import com.uniroad.backend.domain.companion.dto.CompanionPostRequest;
 import com.uniroad.backend.domain.companion.dto.CompanionPostResponse;
+import com.uniroad.backend.domain.companion.dto.CompanionSearchRequest;
 import com.uniroad.backend.domain.companion.entity.CompanionPost;
 import com.uniroad.backend.domain.companion.repository.CompanionPostRepository;
 import com.uniroad.backend.domain.member.entity.Member;
@@ -135,6 +136,23 @@ public class CompanionService {
         return toCursorResponse(posts, requestSize);
     }
 
+    @Transactional(readOnly = true)
+    public CursorPageResponse<CompanionPostResponse> searchPosts(Long cursorId, int size, CompanionSearchRequest request) {
+        int requestSize = normalizeSize(size);
+        List<CompanionPost> posts = companionPostRepository.searchByCursor(
+                cursorId,
+                request.status(),
+                normalizeText(request.country()),
+                normalizeText(request.region()),
+                request.startDateFrom(),
+                request.startDateTo(),
+                request.endDateFrom(),
+                request.endDateTo(),
+                PageRequest.of(0, requestSize + 1)
+        );
+        return toCursorResponse(posts, requestSize);
+    }
+
     private CursorPageResponse<CompanionPostResponse> toCursorResponse(List<CompanionPost> posts, int requestSize) {
         boolean hasNext = posts.size() > requestSize;
         List<CompanionPost> pagePosts = hasNext ? posts.subList(0, requestSize) : posts;
@@ -164,5 +182,12 @@ public class CompanionService {
             return 10;
         }
         return Math.min(size, 50);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

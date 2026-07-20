@@ -41,6 +41,31 @@ public interface CompanionPostRepository extends JpaRepository<CompanionPost, Lo
     @Query("""
             SELECT c
             FROM CompanionPost c
+            WHERE (:cursorId IS NULL OR c.id < :cursorId)
+              AND (:status IS NULL OR c.status = :status)
+              AND (:country IS NULL OR LOWER(c.country) LIKE LOWER(CONCAT('%', :country, '%')))
+              AND (:region IS NULL OR LOWER(c.region) LIKE LOWER(CONCAT('%', :region, '%')))
+              AND (:startDateFrom IS NULL OR c.startDate >= :startDateFrom)
+              AND (:startDateTo IS NULL OR c.startDate <= :startDateTo)
+              AND (:endDateFrom IS NULL OR c.endDate >= :endDateFrom)
+              AND (:endDateTo IS NULL OR c.endDate <= :endDateTo)
+            ORDER BY c.id DESC
+            """)
+    List<CompanionPost> searchByCursor(
+            @Param("cursorId") Long cursorId,
+            @Param("status") com.uniroad.backend.domain.companion.entity.RecruitmentStatus status,
+            @Param("country") String country,
+            @Param("region") String region,
+            @Param("startDateFrom") java.time.LocalDate startDateFrom,
+            @Param("startDateTo") java.time.LocalDate startDateTo,
+            @Param("endDateFrom") java.time.LocalDate endDateFrom,
+            @Param("endDateTo") java.time.LocalDate endDateTo,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT c
+            FROM CompanionPost c
             JOIN Scrap s ON s.targetId = c.id
             WHERE s.member.id = :memberId
               AND s.targetType = :targetType

@@ -51,6 +51,18 @@ public class FreePostController {
         ));
     }
 
+    @Operation(summary = "자유게시판 검색")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<FreePostSummaryResponse> response =
+                freePostService.getPosts(cursorId, keyword, size);
+        return ResponseEntity.ok(ApiResponse.success("자유게시판 검색 성공", response));
+    }
+
     @Operation(summary = "내 자유게시판 글 조회")
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getMyPosts(

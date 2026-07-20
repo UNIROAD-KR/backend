@@ -38,6 +38,27 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
     @Query("""
             SELECT t
             FROM TicketTransferPost t
+            WHERE (:cursorId IS NULL OR t.id < :cursorId)
+              AND (:title IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :title, '%')))
+              AND (:country IS NULL OR LOWER(t.country) LIKE LOWER(CONCAT('%', :country, '%')))
+              AND (:location IS NULL OR LOWER(t.location) LIKE LOWER(CONCAT('%', :location, '%')))
+              AND (:content IS NULL OR LOWER(t.content) LIKE LOWER(CONCAT('%', :content, '%')))
+              AND (:status IS NULL OR t.status = :status)
+            ORDER BY t.id DESC
+            """)
+    List<TicketTransferPost> searchByCursor(
+            @Param("cursorId") Long cursorId,
+            @Param("title") String title,
+            @Param("country") String country,
+            @Param("location") String location,
+            @Param("content") String content,
+            @Param("status") com.uniroad.backend.domain.ticket.entity.TicketTransferStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT t
+            FROM TicketTransferPost t
             JOIN Scrap s ON s.targetId = t.id
             WHERE s.member.id = :memberId
               AND s.targetType = :targetType

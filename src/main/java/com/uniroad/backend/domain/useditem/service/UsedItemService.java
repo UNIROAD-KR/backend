@@ -10,6 +10,7 @@ import com.uniroad.backend.domain.useditem.entity.UsedItemStatus;
 import com.uniroad.backend.domain.useditem.repository.UsedItemRepository;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
+import com.uniroad.backend.domain.useditem.dto.UsedItemSearchRequest;
 import com.uniroad.backend.global.common.CursorPageResponse;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
@@ -167,12 +168,28 @@ public class UsedItemService {
     }
 
     public CursorPageResponse<UsedItemSummaryResponseDto> getUsedItems(Long cursorId, int size) {
+        return getUsedItems(cursorId, size, null);
+    }
+
+    public CursorPageResponse<UsedItemSummaryResponseDto> getUsedItems(Long cursorId, int size, UsedItemSearchRequest request) {
         int requestSize = normalizeSize(size);
-        List<UsedItemPost> posts = usedItemRepository.findByCursor(
+        if (request == null) {
+            List<UsedItemPost> posts = usedItemRepository.findByCursor(
+                    cursorId,
+                    PageRequest.of(0, requestSize + 1)
+            );
+            return toCursorResponse(posts, requestSize);
+        }
+
+        List<UsedItemPost> posts = usedItemRepository.searchByCursor(
                 cursorId,
+                normalizeText(request.title()),
+                normalizeText(request.country()),
+                normalizeText(request.region()),
+                normalizeText(request.content()),
+                request.status(),
                 PageRequest.of(0, requestSize + 1)
         );
-
         return toCursorResponse(posts, requestSize);
     }
 
@@ -219,6 +236,13 @@ public class UsedItemService {
             return 10;
         }
         return Math.min(size, 50);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private UsedItemStatus parseStatus(String status) {

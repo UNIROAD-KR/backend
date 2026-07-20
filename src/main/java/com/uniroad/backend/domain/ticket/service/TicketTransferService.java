@@ -5,6 +5,7 @@ import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.domain.ticket.dto.TicketTransferRequestDto;
 import com.uniroad.backend.domain.ticket.dto.TicketTransferResponseDto;
+import com.uniroad.backend.domain.ticket.dto.TicketTransferSearchRequest;
 import com.uniroad.backend.domain.ticket.entity.TicketTransferPost;
 import com.uniroad.backend.domain.ticket.repository.TicketTransferRepository;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
@@ -57,12 +58,28 @@ public class TicketTransferService {
     }
 
     public CursorPageResponse<TicketTransferResponseDto> getTickets(Long cursorId, int size) {
+        return getTickets(cursorId, size, null);
+    }
+
+    public CursorPageResponse<TicketTransferResponseDto> getTickets(Long cursorId, int size, TicketTransferSearchRequest request) {
         int requestSize = normalizeSize(size);
-        List<TicketTransferPost> posts = ticketTransferRepository.findByCursor(
+        if (request == null) {
+            List<TicketTransferPost> posts = ticketTransferRepository.findByCursor(
+                    cursorId,
+                    PageRequest.of(0, requestSize + 1)
+            );
+            return toCursorResponse(posts, requestSize);
+        }
+
+        List<TicketTransferPost> posts = ticketTransferRepository.searchByCursor(
                 cursorId,
+                normalizeText(request.title()),
+                normalizeText(request.country()),
+                normalizeText(request.location()),
+                normalizeText(request.content()),
+                request.status(),
                 PageRequest.of(0, requestSize + 1)
         );
-
         return toCursorResponse(posts, requestSize);
     }
 
@@ -180,5 +197,12 @@ public class TicketTransferService {
             return 10;
         }
         return Math.min(size, 50);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

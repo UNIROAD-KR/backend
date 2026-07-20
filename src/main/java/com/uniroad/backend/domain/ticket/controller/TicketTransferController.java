@@ -2,6 +2,7 @@ package com.uniroad.backend.domain.ticket.controller;
 
 import com.uniroad.backend.domain.ticket.dto.TicketTransferRequestDto;
 import com.uniroad.backend.domain.ticket.dto.TicketTransferResponseDto;
+import com.uniroad.backend.domain.ticket.dto.TicketTransferSearchRequest;
 import com.uniroad.backend.domain.ticket.service.TicketTransferService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
@@ -57,7 +58,33 @@ public class TicketTransferController {
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "티켓 양도 글 목록 조회 성공",
-                        ticketTransferService.getTickets(cursorId, size)
+                ticketTransferService.getTickets(cursorId, size)
+        )
+        );
+    }
+
+    @Operation(summary = "티켓 양도 글 검색")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<CursorPageResponse<TicketTransferResponseDto>>> searchTickets(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        TicketTransferSearchRequest request = new TicketTransferSearchRequest(
+                title,
+                country,
+                location,
+                content,
+                parseStatus(status)
+        );
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "티켓 양도 글 검색 성공",
+                        ticketTransferService.getTickets(cursorId, size, request)
                 )
         );
     }
@@ -146,5 +173,12 @@ public class TicketTransferController {
         return ResponseEntity.ok(
                 ApiResponse.success("티켓 양도 완료 처리 성공", null)
         );
+    }
+
+    private com.uniroad.backend.domain.ticket.entity.TicketTransferStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return com.uniroad.backend.domain.ticket.entity.TicketTransferStatus.valueOf(status.trim().toUpperCase());
     }
 }

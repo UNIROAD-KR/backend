@@ -49,6 +49,27 @@ public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
     @Query("""
         SELECT u
         FROM UsedItemPost u
+        WHERE (:cursorId IS NULL OR u.id < :cursorId)
+          AND (:title IS NULL OR LOWER(u.title) LIKE LOWER(CONCAT('%', :title, '%')))
+          AND (:country IS NULL OR LOWER(u.country) LIKE LOWER(CONCAT('%', :country, '%')))
+          AND (:region IS NULL OR LOWER(u.region) LIKE LOWER(CONCAT('%', :region, '%')))
+          AND (:content IS NULL OR LOWER(u.content) LIKE LOWER(CONCAT('%', :content, '%')))
+          AND (:status IS NULL OR u.status = :status)
+        ORDER BY u.id DESC
+    """)
+    List<UsedItemPost> searchByCursor(
+            @Param("cursorId") Long cursorId,
+            @Param("title") String title,
+            @Param("country") String country,
+            @Param("region") String region,
+            @Param("content") String content,
+            @Param("status") com.uniroad.backend.domain.useditem.entity.UsedItemStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT u
+        FROM UsedItemPost u
         JOIN Scrap s ON s.targetId = u.id
         WHERE s.member.id = :memberId
           AND s.targetType = :targetType

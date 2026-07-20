@@ -5,6 +5,7 @@ import com.uniroad.backend.domain.community.freepost.dto.FreePostCommentResponse
 import com.uniroad.backend.domain.community.freepost.dto.FreePostDetailResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostLikeResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostRequest;
+import com.uniroad.backend.domain.community.freepost.dto.FreePostSearchRequest;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostSummaryResponse;
 import com.uniroad.backend.domain.community.freepost.entity.FreePost;
 import com.uniroad.backend.domain.community.freepost.entity.FreePostComment;
@@ -46,6 +47,17 @@ public class FreePostService {
                 PageRequest.of(0, requestSize + 1)
         );
 
+        return toCursorResponse(posts, requestSize);
+    }
+
+    public CursorPageResponse<FreePostSummaryResponse> searchPosts(Long cursorId, int size, FreePostSearchRequest request) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.searchByCursor(
+                cursorId,
+                normalizeText(request.title()),
+                normalizeText(request.content()),
+                PageRequest.of(0, requestSize + 1)
+        );
         return toCursorResponse(posts, requestSize);
     }
 
@@ -259,6 +271,13 @@ public class FreePostService {
             return null;
         }
         return keyword.trim();
+    }
+
+    private String normalizeText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     private int normalizeSize(int size) {
