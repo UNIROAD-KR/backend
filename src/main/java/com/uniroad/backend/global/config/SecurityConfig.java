@@ -80,6 +80,7 @@ public class SecurityConfig {
                                                                 "/login/oauth2/**",
                                                                 "/h2-console/**",
                                                                 "/actuator/health",
+                                                                "/ws/**",
                                                                 "/ws-stomp/**",
                                                                 "/swagger-ui/**",
                                                                 "/v3/api-docs/**")

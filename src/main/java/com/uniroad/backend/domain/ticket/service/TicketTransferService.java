@@ -33,17 +33,30 @@ public class TicketTransferService {
     @Transactional
     public Long create(TicketTransferRequestDto requestDto) {
         Member member = getCurrentMember();
+        validateTicketFields(requestDto);
 
         TicketTransferPost post = TicketTransferPost.builder()
                 .author(member)
                 .ticketType(requestDto.getTicketType())
+                .customTicketType(requestDto.getCustomTicketType())
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
                 .country(requestDto.getCountry())
-                .eventDate(requestDto.getEventDate())
-                .eventEndDate(requestDto.getEventEndDate())
-                .eventTime(requestDto.getEventTime())
-                .location(requestDto.getLocation())
+                .useDate(requestDto.getUseDate())
+                .useTime(requestDto.getUseTime())
+                .placeName(requestDto.getPlaceName())
+                .performanceDate(requestDto.getPerformanceDate())
+                .performanceTime(requestDto.getPerformanceTime())
+                .performancePlace(requestDto.getPerformancePlace())
+                .departureDate(requestDto.getDepartureDate())
+                .departureTime(requestDto.getDepartureTime())
+                .departureStation(requestDto.getDepartureStation())
+                .arrivalStation(requestDto.getArrivalStation())
+                .departureAirport(requestDto.getDepartureAirport())
+                .arrivalAirport(requestDto.getArrivalAirport())
+                .checkInDate(requestDto.getCheckInDate())
+                .checkOutDate(requestDto.getCheckOutDate())
+                .accommodationName(requestDto.getAccommodationName())
                 .quantity(requestDto.getQuantity())
                 .transferPrice(requestDto.getTransferPrice())
                 .originalPrice(requestDto.getOriginalPrice())
@@ -116,17 +129,31 @@ public class TicketTransferService {
 
         post.update(
                 requestDto.getTicketType(),
+                requestDto.getCustomTicketType(),
                 requestDto.getTitle(),
                 requestDto.getContent(),
                 requestDto.getCountry(),
-                requestDto.getEventDate(),
-                requestDto.getEventEndDate(),
-                requestDto.getEventTime(),
-                requestDto.getLocation(),
+                requestDto.getUseDate(),
+                requestDto.getUseTime(),
+                requestDto.getPlaceName(),
+                requestDto.getPerformanceDate(),
+                requestDto.getPerformanceTime(),
+                requestDto.getPerformancePlace(),
+                requestDto.getDepartureDate(),
+                requestDto.getDepartureTime(),
+                requestDto.getDepartureStation(),
+                requestDto.getArrivalStation(),
+                requestDto.getDepartureAirport(),
+                requestDto.getArrivalAirport(),
+                requestDto.getCheckInDate(),
+                requestDto.getCheckOutDate(),
+                requestDto.getAccommodationName(),
                 requestDto.getQuantity(),
                 requestDto.getTransferPrice(),
                 requestDto.getOriginalPrice()
         );
+
+        validateTicketFields(requestDto);
     }
 
     @Transactional
@@ -204,5 +231,52 @@ public class TicketTransferService {
             return null;
         }
         return value.trim();
+    }
+
+    private void validateTicketFields(TicketTransferRequestDto requestDto) {
+        switch (requestDto.getTicketType()) {
+            case TOUR -> requireFields(
+                    requestDto.getUseDate(),
+                    requestDto.getUseTime(),
+                    requestDto.getCountry(),
+                    requestDto.getPlaceName()
+            );
+            case CONCERT -> requireFields(
+                    requestDto.getPerformanceDate(),
+                    requestDto.getPerformanceTime(),
+                    requestDto.getCountry(),
+                    requestDto.getPerformancePlace()
+            );
+            case TRAIN -> requireFields(
+                    requestDto.getDepartureDate(),
+                    requestDto.getDepartureTime(),
+                    requestDto.getDepartureStation(),
+                    requestDto.getArrivalStation()
+            );
+            case FLIGHT -> requireFields(
+                    requestDto.getDepartureDate(),
+                    requestDto.getDepartureTime(),
+                    requestDto.getDepartureAirport(),
+                    requestDto.getArrivalAirport()
+            );
+            case ACCOMMODATION -> requireFields(
+                    requestDto.getCheckInDate(),
+                    requestDto.getCheckOutDate(),
+                    requestDto.getCountry(),
+                    requestDto.getAccommodationName()
+            );
+            case ETC -> requireFields(
+                    requestDto.getCustomTicketType(),
+                    requestDto.getCountry()
+            );
+        }
+    }
+
+    private void requireFields(String... values) {
+        for (String value : values) {
+            if (value == null || value.isBlank()) {
+                throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        }
     }
 }

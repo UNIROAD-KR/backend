@@ -41,7 +41,16 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
             WHERE (:cursorId IS NULL OR t.id < :cursorId)
               AND (:title IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :title, '%')))
               AND (:country IS NULL OR LOWER(t.country) LIKE LOWER(CONCAT('%', :country, '%')))
-              AND (:location IS NULL OR LOWER(t.location) LIKE LOWER(CONCAT('%', :location, '%')))
+              AND (
+                  :location IS NULL OR
+                  LOWER(COALESCE(t.placeName, '')) LIKE LOWER(CONCAT('%', :location, '%')) OR
+                  LOWER(COALESCE(t.performancePlace, '')) LIKE LOWER(CONCAT('%', :location, '%')) OR
+                  LOWER(COALESCE(t.departureStation, '')) LIKE LOWER(CONCAT('%', :location, '%')) OR
+                  LOWER(COALESCE(t.arrivalStation, '')) LIKE LOWER(CONCAT('%', :location, '%')) OR
+                  LOWER(COALESCE(t.departureAirport, '')) LIKE LOWER(CONCAT('%', :location, '%')) OR
+                  LOWER(COALESCE(t.accommodationName, '')) LIKE LOWER(CONCAT('%', :location, '%')) OR
+                  LOWER(COALESCE(t.customTicketType, '')) LIKE LOWER(CONCAT('%', :location, '%'))
+              )
               AND (:content IS NULL OR LOWER(t.content) LIKE LOWER(CONCAT('%', :content, '%')))
               AND (:status IS NULL OR t.status = :status)
             ORDER BY t.id DESC

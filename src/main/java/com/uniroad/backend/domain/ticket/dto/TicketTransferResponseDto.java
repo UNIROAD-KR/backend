@@ -24,14 +24,26 @@ public class TicketTransferResponseDto {
     private String authorDispatchSemester;
     private LocalDate authorDispatchStartDate;
     private TicketType ticketType;
+    private String customTicketType;
     private String title;
     private String content;
     private String country;
     private long scrapCount;
-    private String eventDate;
-    private String eventEndDate;
-    private String eventTime;
-    private String location;
+    private String useDate;
+    private String useTime;
+    private String placeName;
+    private String performanceDate;
+    private String performanceTime;
+    private String performancePlace;
+    private String departureDate;
+    private String departureTime;
+    private String departureStation;
+    private String arrivalStation;
+    private String departureAirport;
+    private String arrivalAirport;
+    private String checkInDate;
+    private String checkOutDate;
+    private String accommodationName;
     private Integer quantity;
     private Long transferPrice;
     private Long originalPrice;
@@ -51,14 +63,26 @@ public class TicketTransferResponseDto {
                 .authorDispatchSemester(post.getAuthor().getDispatchSemester())
                 .authorDispatchStartDate(post.getAuthor().getDispatchStartDate())
                 .ticketType(post.getTicketType())
+                .customTicketType(post.getCustomTicketType())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .country(post.getCountry())
                 .scrapCount(scrapCount)
-                .eventDate(post.getEventDate())
-                .eventEndDate(post.getEventEndDate())
-                .eventTime(post.getEventTime())
-                .location(post.getLocation())
+                .useDate(post.getUseDate())
+                .useTime(post.getUseTime())
+                .placeName(post.getPlaceName())
+                .performanceDate(post.getPerformanceDate())
+                .performanceTime(post.getPerformanceTime())
+                .performancePlace(post.getPerformancePlace())
+                .departureDate(post.getDepartureDate())
+                .departureTime(post.getDepartureTime())
+                .departureStation(post.getDepartureStation())
+                .arrivalStation(post.getArrivalStation())
+                .departureAirport(post.getDepartureAirport())
+                .arrivalAirport(post.getArrivalAirport())
+                .checkInDate(post.getCheckInDate())
+                .checkOutDate(post.getCheckOutDate())
+                .accommodationName(post.getAccommodationName())
                 .quantity(post.getQuantity())
                 .transferPrice(post.getTransferPrice())
                 .originalPrice(post.getOriginalPrice())

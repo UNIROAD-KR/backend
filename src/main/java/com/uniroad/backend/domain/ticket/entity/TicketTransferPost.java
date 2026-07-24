@@ -37,6 +37,9 @@ public class TicketTransferPost extends BaseTimeEntity {
     @Column(nullable = false)
     private TicketType ticketType;
 
+    @Column(length = 100)
+    private String customTicketType;
+
     @Column(nullable = false, length = 100)
     private String title;
 
@@ -45,16 +48,25 @@ public class TicketTransferPost extends BaseTimeEntity {
 
     private String country;
 
-    @Column(nullable = false)
-    private String eventDate;
+    private String useDate;
+    private String useTime;
+    private String placeName;
 
-    private String eventEndDate;
+    private String performanceDate;
+    private String performanceTime;
+    private String performancePlace;
 
-    @Column(nullable = false)
-    private String eventTime;
+    private String departureDate;
+    private String departureTime;
+    private String departureStation;
+    private String arrivalStation;
 
-    @Column(nullable = false)
-    private String location;
+    private String departureAirport;
+    private String arrivalAirport;
+
+    private String checkInDate;
+    private String checkOutDate;
+    private String accommodationName;
 
     @Column(nullable = false)
     private Integer quantity;
@@ -75,25 +87,49 @@ public class TicketTransferPost extends BaseTimeEntity {
 
     public void update(
             TicketType ticketType,
+            String customTicketType,
             String title,
             String content,
             String country,
-            String eventDate,
-            String eventEndDate,
-            String eventTime,
-            String location,
+            String useDate,
+            String useTime,
+            String placeName,
+            String performanceDate,
+            String performanceTime,
+            String performancePlace,
+            String departureDate,
+            String departureTime,
+            String departureStation,
+            String arrivalStation,
+            String departureAirport,
+            String arrivalAirport,
+            String checkInDate,
+            String checkOutDate,
+            String accommodationName,
             Integer quantity,
             Long transferPrice,
             Long originalPrice
     ) {
         this.ticketType = ticketType;
+        this.customTicketType = customTicketType;
         this.title = title;
         this.content = content;
         this.country = country;
-        this.eventDate = eventDate;
-        this.eventEndDate = eventEndDate;
-        this.eventTime = eventTime;
-        this.location = location;
+        this.useDate = useDate;
+        this.useTime = useTime;
+        this.placeName = placeName;
+        this.performanceDate = performanceDate;
+        this.performanceTime = performanceTime;
+        this.performancePlace = performancePlace;
+        this.departureDate = departureDate;
+        this.departureTime = departureTime;
+        this.departureStation = departureStation;
+        this.arrivalStation = arrivalStation;
+        this.departureAirport = departureAirport;
+        this.arrivalAirport = arrivalAirport;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+        this.accommodationName = accommodationName;
         this.quantity = quantity;
         this.transferPrice = transferPrice;
         this.originalPrice = originalPrice;

@@ -14,24 +14,34 @@ public class TicketTransferRequestDto {
     @NotNull
     private TicketType ticketType;
 
+    private String customTicketType;
+
     @NotBlank
     private String title;
 
     private String content;
 
-    @NotBlank
     private String country;
 
-    @NotBlank
-    private String eventDate;
+    private String useDate;
+    private String useTime;
+    private String placeName;
 
-    private String eventEndDate;
+    private String performanceDate;
+    private String performanceTime;
+    private String performancePlace;
 
-    @NotBlank
-    private String eventTime;
+    private String departureDate;
+    private String departureTime;
+    private String departureStation;
+    private String arrivalStation;
 
-    @NotBlank
-    private String location;
+    private String departureAirport;
+    private String arrivalAirport;
+
+    private String checkInDate;
+    private String checkOutDate;
+    private String accommodationName;
 
     @NotNull
     private Integer quantity;

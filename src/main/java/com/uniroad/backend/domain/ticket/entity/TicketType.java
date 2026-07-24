@@ -5,5 +5,6 @@ public enum TicketType {
     CONCERT,
     TRAIN,
     FLIGHT,
-    ACCOMMODATION
+    ACCOMMODATION,
+    ETC
 }
