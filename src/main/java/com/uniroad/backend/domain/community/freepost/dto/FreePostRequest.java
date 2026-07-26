@@ -15,14 +15,6 @@ public record FreePostRequest(
         @NotBlank(message = "본문은 필수입니다.")
         String content,
 
-        @Schema(description = "국가", example = "독일")
-        @NotBlank(message = "국가는 필수입니다.")
-        String country,
-
-        @Schema(description = "상태", example = "파견 중")
-        @NotBlank(message = "상태는 필수입니다.")
-        String status,
-
         @Schema(description = "이미지 URL 목록")
         List<String> imageUrls
 ) {

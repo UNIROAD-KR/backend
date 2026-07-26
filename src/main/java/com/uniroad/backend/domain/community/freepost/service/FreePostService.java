@@ -14,6 +14,7 @@ import com.uniroad.backend.domain.community.freepost.repository.FreePostCommentR
 import com.uniroad.backend.domain.community.freepost.repository.FreePostLikeRepository;
 import com.uniroad.backend.domain.community.freepost.repository.FreePostRepository;
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.domain.member.entity.MemberStatus;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
@@ -50,6 +51,14 @@ public class FreePostService {
         return toCursorResponse(posts, requestSize);
     }
 
+    public CursorPageResponse<FreePostSummaryResponse> getPreDispatchPosts(Long cursorId, String keyword, int size) {
+        return getPostsByStatus(cursorId, keyword, size, "파견 전");
+    }
+
+    public CursorPageResponse<FreePostSummaryResponse> getDispatchedPosts(Long cursorId, String keyword, int size) {
+        return getPostsByStatus(cursorId, keyword, size, "파견 중");
+    }
+
     public CursorPageResponse<FreePostSummaryResponse> searchPosts(Long cursorId, int size, FreePostSearchRequest request) {
         int requestSize = normalizeSize(size);
         List<FreePost> posts = freePostRepository.searchByCursor(
@@ -59,6 +68,14 @@ public class FreePostService {
                 PageRequest.of(0, requestSize + 1)
         );
         return toCursorResponse(posts, requestSize);
+    }
+
+    public CursorPageResponse<FreePostSummaryResponse> searchPreDispatchPosts(Long cursorId, int size, FreePostSearchRequest request) {
+        return searchPostsByStatus(cursorId, size, request, "파견 전");
+    }
+
+    public CursorPageResponse<FreePostSummaryResponse> searchDispatchedPosts(Long cursorId, int size, FreePostSearchRequest request) {
+        return searchPostsByStatus(cursorId, size, request, "파견 중");
     }
 
     public CursorPageResponse<FreePostSummaryResponse> getMyPosts(Long memberId, Long cursorId, int size) {
@@ -148,8 +165,8 @@ public class FreePostService {
                 .member(member)
                 .title(request.title().trim())
                 .content(request.content().trim())
-                .country(request.country().trim())
-                .status(request.status().trim())
+                .country(FreePost.resolveCountry(member))
+                .status(FreePost.resolveStatus(member))
                 .imageUrls(normalizeImageUrls(request.imageUrls()))
                 .build();
 
@@ -164,8 +181,8 @@ public class FreePostService {
         post.update(
                 request.title().trim(),
                 request.content().trim(),
-                request.country().trim(),
-                request.status().trim(),
+                FreePost.resolveCountry(post.getMember()),
+                FreePost.resolveStatus(post.getMember()),
                 normalizeImageUrls(request.imageUrls())
         );
     }
@@ -285,5 +302,27 @@ public class FreePostService {
             return 10;
         }
         return Math.min(size, 50);
+    }
+
+    private CursorPageResponse<FreePostSummaryResponse> getPostsByStatus(Long cursorId, String keyword, int size, String status) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.findByCursorAndKeywordAndStatus(
+                cursorId,
+                normalizeKeyword(keyword),
+                status,
+                PageRequest.of(0, requestSize + 1)
+        );
+        return toCursorResponse(posts, requestSize);
+    }
+
+    private CursorPageResponse<FreePostSummaryResponse> searchPostsByStatus(Long cursorId, int size, FreePostSearchRequest request, String status) {
+        int requestSize = normalizeSize(size);
+        List<FreePost> posts = freePostRepository.findByCursorAndKeywordAndStatus(
+                cursorId,
+                normalizeText(request.title()),
+                status,
+                PageRequest.of(0, requestSize + 1)
+        );
+        return toCursorResponse(posts, requestSize);
     }
 }

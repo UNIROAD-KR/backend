@@ -34,6 +34,38 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
             SELECT f
             FROM FreePost f
             WHERE (:cursorId IS NULL OR f.id < :cursorId)
+              AND f.status = :status
+              AND (
+                    :keyword IS NULL
+                    OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
+            ORDER BY f.id DESC
+            """)
+    List<FreePost> findByCursorAndKeywordAndStatus(
+            @Param("cursorId") Long cursorId,
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT f
+            FROM FreePost f
+            WHERE (:cursorId IS NULL OR f.id < :cursorId)
+              AND f.status = :status
+            ORDER BY f.id DESC
+            """)
+    List<FreePost> findByCursorAndStatus(
+            @Param("cursorId") Long cursorId,
+            @Param("status") String status,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT f
+            FROM FreePost f
+            WHERE (:cursorId IS NULL OR f.id < :cursorId)
               AND (:title IS NULL OR LOWER(f.title) LIKE LOWER(CONCAT('%', :title, '%')))
               AND (:content IS NULL OR LOWER(f.content) LIKE LOWER(CONCAT('%', :content, '%')))
             ORDER BY f.id DESC

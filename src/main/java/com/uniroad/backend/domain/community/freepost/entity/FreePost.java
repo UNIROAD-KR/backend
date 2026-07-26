@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.community.freepost.entity;
 
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.domain.member.entity.CurrentSituation;
 import com.uniroad.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,5 +66,13 @@ public class FreePost extends BaseTimeEntity {
         this.country = country;
         this.status = status;
         this.imageUrls = imageUrls == null ? new ArrayList<>() : new ArrayList<>(imageUrls);
+    }
+
+    public static String resolveCountry(Member member) {
+        return member.getDispatchedCountry();
+    }
+
+    public static String resolveStatus(Member member) {
+        return member.getCurrentSituation() == CurrentSituation.DISPATCHED ? "파견 중" : "파견 전";
     }
 }

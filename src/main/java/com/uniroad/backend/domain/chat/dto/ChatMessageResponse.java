@@ -30,6 +30,9 @@ public class ChatMessageResponse {
     @Schema(description = "메시지 생성 일시")
     private LocalDateTime createdAt;
 
+    @Schema(description = "현재 로그인 사용자의 기준 읽음 여부")
+    private boolean isRead;
+
     public static ChatMessageResponse from(ChatMessage message) {
         return ChatMessageResponse.builder()
                 .id(message.getId())
@@ -38,6 +41,22 @@ public class ChatMessageResponse {
                 .message(message.getMessage())
                 .type(message.getType())
                 .createdAt(message.getCreatedAt())
+                .isRead(false)
+                .build();
+    }
+
+    public static ChatMessageResponse from(ChatMessage message, Long currentMemberId, LocalDateTime lastReadAt) {
+        boolean read = message.getSenderId().equals(currentMemberId)
+                || (lastReadAt != null && !message.getSenderId().equals(currentMemberId) && !message.getCreatedAt().isAfter(lastReadAt));
+
+        return ChatMessageResponse.builder()
+                .id(message.getId())
+                .roomId(message.getChatRoom().getId())
+                .senderId(message.getSenderId())
+                .message(message.getMessage())
+                .type(message.getType())
+                .createdAt(message.getCreatedAt())
+                .isRead(read)
                 .build();
     }
 }

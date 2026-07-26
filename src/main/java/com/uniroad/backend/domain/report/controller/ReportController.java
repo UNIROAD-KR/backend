@@ -23,7 +23,7 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    @Operation(summary = "신고 생성", description = "자유게시판, 중고거래, 동행, 회원을 신고합니다.")
+    @Operation(summary = "신고 생성", description = "자유게시판, 중고거래, 티켓 양도, 동행, 회원을 신고합니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> createReport(
             @AuthenticationPrincipal CustomUserDetails userDetails,

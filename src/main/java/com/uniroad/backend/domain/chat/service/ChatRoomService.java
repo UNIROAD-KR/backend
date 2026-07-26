@@ -93,7 +93,7 @@ public class ChatRoomService {
 
         return chatMessageRepository.findByChatRoomOrderByCreatedAtDesc(chatRoom, pageable)
                 .stream()
-                .map(ChatMessageResponse::from)
+                .map(message -> ChatMessageResponse.from(message, memberId, chatRoomMember.getLastReadAt()))
                 .collect(Collectors.toList());
     }
 

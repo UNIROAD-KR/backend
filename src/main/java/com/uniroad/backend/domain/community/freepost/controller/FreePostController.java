@@ -51,6 +51,32 @@ public class FreePostController {
         ));
     }
 
+    @Operation(summary = "파견 전 자유게시판 목록 조회")
+    @GetMapping("/pre-dispatch")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getPreDispatchPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "파견 전 자유게시판 목록 조회 성공",
+                freePostService.getPreDispatchPosts(cursorId, keyword, size)
+        ));
+    }
+
+    @Operation(summary = "파견 중 자유게시판 목록 조회")
+    @GetMapping("/dispatched")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getDispatchedPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "파견 중 자유게시판 목록 조회 성공",
+                freePostService.getDispatchedPosts(cursorId, keyword, size)
+        ));
+    }
+
     @Operation(summary = "자유게시판 검색")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchPosts(
@@ -61,6 +87,30 @@ public class FreePostController {
         CursorPageResponse<FreePostSummaryResponse> response =
                 freePostService.getPosts(cursorId, keyword, size);
         return ResponseEntity.ok(ApiResponse.success("자유게시판 검색 성공", response));
+    }
+
+    @Operation(summary = "파견 전 자유게시판 검색")
+    @GetMapping("/pre-dispatch/search")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchPreDispatchPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<FreePostSummaryResponse> response =
+                freePostService.searchPreDispatchPosts(cursorId, size, new com.uniroad.backend.domain.community.freepost.dto.FreePostSearchRequest(keyword, null));
+        return ResponseEntity.ok(ApiResponse.success("파견 전 자유게시판 검색 성공", response));
+    }
+
+    @Operation(summary = "파견 중 자유게시판 검색")
+    @GetMapping("/dispatched/search")
+    public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchDispatchedPosts(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CursorPageResponse<FreePostSummaryResponse> response =
+                freePostService.searchDispatchedPosts(cursorId, size, new com.uniroad.backend.domain.community.freepost.dto.FreePostSearchRequest(keyword, null));
+        return ResponseEntity.ok(ApiResponse.success("파견 중 자유게시판 검색 성공", response));
     }
 
     @Operation(summary = "내 자유게시판 글 조회")
