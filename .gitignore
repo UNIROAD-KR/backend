@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-user-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -37,7 +38,6 @@ out/
 .vscode/
 
 ### Local Config ###
-src/main/resources/application-local.yml
 src/main/resources/application-test.yml
 .Ds_Store
 .env

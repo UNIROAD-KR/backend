@@ -2,6 +2,7 @@ spring:
   application:
     name: backend
   profiles:
+    # Dockerfile은 prod 프로필을 명시하므로, IDE/gradlew로 실행할 때만 local이 사용됩니다.
     active: local
   output:
     ansi:

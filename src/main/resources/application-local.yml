@@ -1,0 +1,68 @@
+# 로컬 개발 전용 설정입니다. 운영 자격 증명이나 외부 DB 없이 실행됩니다.
+spring:
+  datasource:
+    # build/local-db 아래에 저장되어 재시작해도 개발 데이터를 유지합니다.
+    url: jdbc:h2:file:./build/local-db/uniroad;MODE=MySQL;NON_KEYWORDS=USER;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+cors:
+  allowed-origins:
+    - http://localhost:3000
+    - http://127.0.0.1:3000
+    - http://localhost:5173
+    - http://127.0.0.1:5173
+
+firebase:
+  # 기본값은 비활성화입니다. 실제 로컬 푸시 검증 시 환경변수로 Firebase 서비스 계정을 주입합니다.
+  enabled: ${FIREBASE_ENABLED:false}
+  project-id: ${FIREBASE_PROJECT_ID:}
+  service-account-base64: ${FIREBASE_SERVICE_ACCOUNT_BASE64:}
+
+local:
+  development:
+    test-account:
+      # 로컬에서만 생성되는 계정입니다. 관리자 전용 API(FCM 테스트 발송 포함)도 검증할 수 있습니다.
+      role: ADMIN
+
+# S3 호출이 필요한 API는 presigned URL 생성까지는 가능하지만 실제 업로드에는 별도 AWS 자격 증명이 필요합니다.
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: uniroad-local
+    credentials:
+      access-key: local-access-key
+      secret-key: local-secret-key
+
+jwt:
+  # 로컬에서만 쓰는 서명 키입니다. 운영 키는 application-prod.yml의 환경 변수로만 주입합니다.
+  secret: ZGV2LWdyZWVucGF0aC1zZWNyZXQta2V5LW11c3QtYmUtYXQtbGVhc3QtMjU2Yml0cw==
+  access-token-validity-seconds: 1800
+  refresh-token-validity-seconds: 1209600
+
+frontend:
+  url: http://localhost:3000
