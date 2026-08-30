@@ -21,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,12 +72,58 @@ public class ChatRoomService {
         return toRoomResponse(chatRoom, memberId, currentRoomMember);
     }
 
+    /**
+     * 방 목록은 10초마다 폴링되므로 방 개수에 비례해 쿼리가 늘지 않도록 한 번에 모아 조회한다.
+     * 예전에는 방마다 상대방·마지막 메시지·안 읽은 수를 따로 조회해서 방이 늘수록 쿼리가 선형으로 증가했다.
+     */
     public List<ChatRoomResponse> getMyRooms(Long memberId) {
         Member member = getMember(memberId);
 
-        return chatRoomMemberRepository.findByMemberAndLeftAtIsNull(member)
+        List<ChatRoomMember> myMemberships = chatRoomMemberRepository.findActiveWithRoomByMember(member);
+        if (myMemberships.isEmpty()) {
+            return List.of();
+        }
+
+        List<ChatRoom> rooms = myMemberships.stream()
+                .map(ChatRoomMember::getChatRoom)
+                .toList();
+
+        Map<Long, Member> opponentByRoomId = chatRoomMemberRepository.findActiveWithMemberByChatRoomIn(rooms)
                 .stream()
-                .map(chatRoomMember -> toRoomResponse(chatRoomMember.getChatRoom(), memberId, chatRoomMember))
+                .filter(roomMember -> !roomMember.getMember().getId().equals(memberId))
+                .collect(Collectors.toMap(
+                        roomMember -> roomMember.getChatRoom().getId(),
+                        ChatRoomMember::getMember,
+                        (first, second) -> first
+                ));
+
+        Map<Long, ChatMessage> lastMessageByRoomId = chatMessageRepository.findLastMessagesByChatRoomIn(rooms)
+                .stream()
+                .collect(Collectors.toMap(
+                        message -> message.getChatRoom().getId(),
+                        message -> message,
+                        (first, second) -> first
+                ));
+
+        Map<Long, Long> unreadByRoomId = new HashMap<>();
+        for (Object[] row : chatRoomMemberRepository.countUnreadPerRoom(memberId)) {
+            unreadByRoomId.put((Long) row[0], (Long) row[1]);
+        }
+
+        return myMemberships.stream()
+                .map(chatRoomMember -> {
+                    ChatRoom room = chatRoomMember.getChatRoom();
+                    ChatMessage lastMessage = lastMessageByRoomId.get(room.getId());
+                    return ChatRoomResponse.of(
+                            room,
+                            opponentByRoomId.get(room.getId()),
+                            lastMessage != null ? lastMessage.getMessage() : null,
+                            lastMessage != null ? lastMessage.getType() : null,
+                            lastMessage != null ? lastMessage.getCreatedAt() : null,
+                            unreadByRoomId.getOrDefault(room.getId(), 0L),
+                            chatRoomMember.getLastReadAt()
+                    );
+                })
                 .sorted(Comparator.comparing(
                         response -> response.getLastMessageCreatedAt() != null
                                 ? response.getLastMessageCreatedAt()
@@ -100,10 +148,32 @@ public class ChatRoomService {
             chatRoomMember.updateLastReadAt();
         }
 
-        LocalDateTime lastReadAt = chatRoomMember.getLastReadAt();
+        LocalDateTime myLastReadAt = chatRoomMember.getLastReadAt();
+        LocalDateTime opponentLastReadAt = findOpponentLastReadAt(chatRoom, memberId);
+
         return messages.stream()
-                .map(message -> ChatMessageResponse.from(message, memberId, lastReadAt))
+                .map(message -> ChatMessageResponse.from(message, memberId, myLastReadAt, opponentLastReadAt))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 상대가 어디까지 읽었는지. 내가 보낸 메시지의 "읽음" 표시 기준이 된다.
+     * 아직 읽지 않은 참여자가 한 명이라도 있으면 읽지 않은 것으로 본다.
+     */
+    private LocalDateTime findOpponentLastReadAt(ChatRoom chatRoom, Long memberId) {
+        List<ChatRoomMember> opponents = chatRoomMemberRepository.findByChatRoomAndLeftAtIsNull(chatRoom)
+                .stream()
+                .filter(roomMember -> !roomMember.getMember().getId().equals(memberId))
+                .toList();
+
+        if (opponents.isEmpty() || opponents.stream().anyMatch(opponent -> opponent.getLastReadAt() == null)) {
+            return null;
+        }
+
+        return opponents.stream()
+                .map(ChatRoomMember::getLastReadAt)
+                .min(Comparator.naturalOrder())
+                .orElse(null);
     }
 
     private boolean hasUnreadFromOthers(List<ChatMessage> messages, Long memberId, LocalDateTime lastReadAt) {

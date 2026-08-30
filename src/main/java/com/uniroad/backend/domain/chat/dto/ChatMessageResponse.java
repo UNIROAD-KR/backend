@@ -45,9 +45,18 @@ public class ChatMessageResponse {
                 .build();
     }
 
-    public static ChatMessageResponse from(ChatMessage message, Long currentMemberId, LocalDateTime lastReadAt) {
-        boolean read = message.getSenderId().equals(currentMemberId)
-                || (lastReadAt != null && !message.getSenderId().equals(currentMemberId) && !message.getCreatedAt().isAfter(lastReadAt));
+    /**
+     * 내가 보낸 메시지는 "상대가 읽었는지", 받은 메시지는 "내가 읽었는지"를 나타낸다.
+     *
+     * 예전에는 내 메시지를 무조건 읽음으로 표시해서, 상대가 보지 않았는데도
+     * 화면에 항상 "읽음"이 뜨고 있었다.
+     */
+    public static ChatMessageResponse from(ChatMessage message, Long currentMemberId,
+                                           LocalDateTime myLastReadAt, LocalDateTime opponentLastReadAt) {
+        LocalDateTime readerLastReadAt = message.getSenderId().equals(currentMemberId)
+                ? opponentLastReadAt
+                : myLastReadAt;
+        boolean read = readerLastReadAt != null && !message.getCreatedAt().isAfter(readerLastReadAt);
 
         return ChatMessageResponse.builder()
                 .id(message.getId())
