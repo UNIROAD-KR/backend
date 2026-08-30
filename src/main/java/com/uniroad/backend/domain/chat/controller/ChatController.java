@@ -6,7 +6,6 @@ import com.uniroad.backend.domain.chat.dto.ChatMessageSendRequest;
 import com.uniroad.backend.domain.chat.entity.ChatMessage;
 import com.uniroad.backend.domain.chat.entity.MessageType;
 import com.uniroad.backend.domain.chat.service.ChatService;
-import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.security.SecurityUtil;
@@ -30,7 +29,6 @@ import java.security.Principal;
 public class ChatController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ChatService chatService;
-    private final NotificationService notificationService;
 
     @MessageMapping("/chat/message")
     public void message(@Valid ChatMessageRequest request, Principal principal) {
@@ -63,7 +61,8 @@ public class ChatController {
 
         ChatMessageResponse response = ChatMessageResponse.from(message);
         messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, response);
-        notificationService.notifyChatMessage(message);
+        // 알림 생성은 ChatService.saveMessage가 이미 처리한다.
+        // 여기서 다시 부르면 메시지 한 건당 알림이 두 개씩 쌓인다.
         return response;
     }
 }

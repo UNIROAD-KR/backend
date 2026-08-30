@@ -89,12 +89,27 @@ public class ChatRoomService {
     public List<ChatMessageResponse> getMessages(Long roomId, Long memberId, Pageable pageable) {
         ChatRoom chatRoom = findById(roomId);
         ChatRoomMember chatRoomMember = getActiveRoomMember(chatRoom, memberId);
-        chatRoomMember.updateLastReadAt();
 
-        return chatMessageRepository.findByChatRoomOrderByCreatedAtDesc(chatRoom, pageable)
-                .stream()
-                .map(message -> ChatMessageResponse.from(message, memberId, chatRoomMember.getLastReadAt()))
+        List<ChatMessage> messages = chatMessageRepository
+                .findByChatRoomOrderByCreatedAtDesc(chatRoom, pageable)
+                .getContent();
+
+        // 프론트가 이 API를 3초마다 폴링하므로 무조건 갱신하면 조회 한 번마다 UPDATE가 나간다.
+        // 실제로 읽지 않은 상대방 메시지가 있을 때만 읽음 시각을 옮긴다.
+        if (hasUnreadFromOthers(messages, memberId, chatRoomMember.getLastReadAt())) {
+            chatRoomMember.updateLastReadAt();
+        }
+
+        LocalDateTime lastReadAt = chatRoomMember.getLastReadAt();
+        return messages.stream()
+                .map(message -> ChatMessageResponse.from(message, memberId, lastReadAt))
                 .collect(Collectors.toList());
+    }
+
+    private boolean hasUnreadFromOthers(List<ChatMessage> messages, Long memberId, LocalDateTime lastReadAt) {
+        return messages.stream()
+                .anyMatch(message -> !message.getSenderId().equals(memberId)
+                        && (lastReadAt == null || message.getCreatedAt().isAfter(lastReadAt)));
     }
 
     @Transactional
