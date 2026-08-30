@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,8 +35,9 @@ public class TicketTransferController {
     private final TicketTransferService ticketTransferService;
     private final ScrapService scrapService;
 
-    @Operation(summary = "티켓 양도 글 작성")
+    @Operation(summary = "티켓 양도 글 작성", description = "인증 회원 또는 관리자만 작성할 수 있습니다.")
     @PostMapping
+    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Long>> create(
             @Valid @RequestBody TicketTransferRequestDto requestDto
     ) {

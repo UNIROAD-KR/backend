@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 @Schema(description = "동행 구하기 게시글 응답")
 public record CompanionPostResponse(
     Long id,
+    /** 작성자 본인 여부 판단에 쓰인다 */
+    Long memberId,
     String memberName,
     String title,
     String content,
@@ -34,6 +36,7 @@ public record CompanionPostResponse(
     public static CompanionPostResponse from(CompanionPost post, long scrapCount) {
         return new CompanionPostResponse(
             post.getId(),
+            post.getMember().getId(),
             post.getMember().getName(),
             post.getTitle(),
             post.getContent(),

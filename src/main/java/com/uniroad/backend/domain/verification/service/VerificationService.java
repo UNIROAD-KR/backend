@@ -8,6 +8,8 @@ import com.uniroad.backend.domain.verification.entity.Verification;
 import com.uniroad.backend.domain.verification.entity.VerificationStatus;
 import com.uniroad.backend.domain.verification.repository.VerificationRepository;
 import com.uniroad.backend.domain.member.entity.Member;
+import com.uniroad.backend.global.exception.CustomException;
+import com.uniroad.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,25 @@ public class VerificationService {
 
     private final VerificationRepository verificationRepository;
     private final MemberRepository memberRepository;
+
+    /**
+     * 인증 서류 이미지에 접근할 수 있는지 확인한다.
+     *
+     * 비공개 버킷의 조회용 URL은 key만 알면 누구에게나 발급될 수 있으므로,
+     * 관리자이거나 그 서류를 제출한 본인일 때만 허용한다.
+     */
+    public void validateImageAccess(Long memberId, String imageUrl) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (member.getRole() == Role.ADMIN) {
+            return;
+        }
+
+        if (!verificationRepository.existsByMemberIdAndImageUrl(memberId, imageUrl)) {
+            throw new CustomException(ErrorCode.FORBIDDEN);
+        }
+    }
 
     @Transactional
     public VerificationResponse submitVerification(Long memberId, String imageUrl) {

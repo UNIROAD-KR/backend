@@ -14,6 +14,9 @@ public interface VerificationRepository extends JpaRepository<Verification, Long
 
     List<Verification> findAllByMemberIdOrderBySubmittedAtDesc(Long memberId);
 
+    /** 제출한 본인만 자기 서류 이미지를 조회할 수 있는지 확인할 때 사용한다 */
+    boolean existsByMemberIdAndImageUrl(Long memberId, String imageUrl);
+
     @EntityGraph(attributePaths = {"member"})
     List<Verification> findAllByStatusAndIsCurrentTrue(VerificationStatus status);
 

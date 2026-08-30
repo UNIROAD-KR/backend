@@ -1,6 +1,8 @@
 package com.uniroad.backend.global.infra.s3.controller;
 
+import com.uniroad.backend.domain.verification.service.VerificationService;
 import com.uniroad.backend.global.common.ApiResponse;
+import com.uniroad.backend.global.security.SecurityUtil;
 import com.uniroad.backend.global.infra.s3.dto.PresignedUrlRequestDto;
 import com.uniroad.backend.global.infra.s3.dto.PresignedUrlResponseDto;
 import com.uniroad.backend.global.infra.s3.dto.PrivatePresignedUrlRequestDto;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class S3Controller {
 
     private final S3Service s3Service;
+    private final VerificationService verificationService;
 
     @Operation(summary = "Presigned URL 발급")
     @PostMapping("/presigned-url")
@@ -47,11 +50,16 @@ public class S3Controller {
         );
     }
 
-    @Operation(summary = "교환학생 인증 파일 조회 Presigned URL 발급")
+    @Operation(
+            summary = "교환학생 인증 파일 조회 Presigned URL 발급",
+            description = "관리자이거나 해당 서류를 제출한 본인만 발급받을 수 있습니다."
+    )
     @PostMapping("/exchange-verification/read-url")
     public ResponseEntity<ApiResponse<PrivatePresignedUrlResponseDto>> getExchangeVerificationReadUrl(
             @Valid @RequestBody PrivatePresignedUrlRequestDto requestDto
     ) {
+        verificationService.validateImageAccess(SecurityUtil.getCurrentMemberId(), requestDto.getKey());
+
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "교환학생 인증 파일 조회 Presigned URL 발급 성공",

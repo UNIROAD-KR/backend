@@ -2,6 +2,7 @@ package com.uniroad.backend.global.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -35,6 +36,38 @@ public class GlobalExceptionHandler {
                 "INVALID_INPUT_VALUE",
                 "입력값 검증에 실패했습니다.",
                 fieldErrors
+        );
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * 요청 본문을 읽지 못한 경우 (JSON 문법 오류, 잘못된 인코딩, enum 값 불일치 등)
+     *
+     * 클라이언트가 잘못 보낸 것이므로 500이 아니라 400으로 응답한다.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleNotReadableException(HttpMessageNotReadableException ex) {
+        log.warn("[HttpMessageNotReadableException] {}", ex.getMessage());
+        ErrorResponse response = ErrorResponse.of(
+                ErrorCode.INVALID_INPUT_VALUE.getStatus().value(),
+                "INVALID_INPUT_VALUE",
+                "요청 본문을 읽을 수 없습니다. 형식과 인코딩(UTF-8)을 확인해주세요."
+        );
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * 잘못된 파라미터로 서비스 로직이 거부한 경우
+     *
+     * 예: 지원하지 않는 fileType, contentType과 fileType 불일치
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("[IllegalArgumentException] {}", ex.getMessage());
+        ErrorResponse response = ErrorResponse.of(
+                ErrorCode.INVALID_INPUT_VALUE.getStatus().value(),
+                "INVALID_INPUT_VALUE",
+                ex.getMessage() != null ? ex.getMessage() : ErrorCode.INVALID_INPUT_VALUE.getMessage()
         );
         return ResponseEntity.badRequest().body(response);
     }

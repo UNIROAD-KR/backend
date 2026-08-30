@@ -47,9 +47,9 @@ public class CompanionController {
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 게시글 작성 성공", id));
     }
 
+    // 조회는 로그인한 회원이면 누구나 가능하다. 등록·수정·삭제만 인증 회원으로 제한한다.
     @Operation(summary = "동행 구하기 목록 조회")
     @GetMapping
-    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> getPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "10") int size
@@ -60,7 +60,6 @@ public class CompanionController {
 
     @Operation(summary = "동행 구하기 검색")
     @GetMapping("/search")
-    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> searchPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String status,
@@ -87,7 +86,6 @@ public class CompanionController {
 
     @Operation(summary = "내 동행 구하기 글 조회")
     @GetMapping("/my")
-    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> getMyPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) Long cursorId,
@@ -100,7 +98,6 @@ public class CompanionController {
 
     @Operation(summary = "내가 스크랩한 동행 구하기 글 조회")
     @GetMapping("/scraps")
-    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> getMyScrappedPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) Long cursorId,
@@ -113,7 +110,6 @@ public class CompanionController {
 
     @Operation(summary = "동행 구하기 상세 조회")
     @GetMapping("/{postId}")
-    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CompanionPostResponse>> getPostDetail(
             @PathVariable Long postId
     ) {
@@ -123,7 +119,6 @@ public class CompanionController {
 
     @Operation(summary = "동행 구하기 스크랩 토글")
     @PostMapping("/{postId}/scrap")
-    @PreAuthorize("hasRole('VERIFIED') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Boolean>> toggleScrap(@PathVariable Long postId) {
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 스크랩 토글 성공", scrapService.toggle(ScrapTargetType.COMPANION_POST, postId)));
     }

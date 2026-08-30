@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.useditem.dto;
 
 import com.uniroad.backend.domain.useditem.entity.UsedItemPost;
+import com.uniroad.backend.domain.useditem.entity.UsedItemStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,11 +49,15 @@ public class UsedItemSummaryResponseDto {
 
     private LocalDateTime updatedAt;
 
+    /** 목록에서 판매완료 여부를 표시할 수 있도록 함께 내려준다 */
+    private UsedItemStatus status;
+
     public static UsedItemSummaryResponseDto from(UsedItemPost post, long scrapCount) {
 
         return UsedItemSummaryResponseDto.builder()
                 .id(post.getId())
                 .title(post.getTitle())
+                .status(post.getStatus())
                 .price(post.getPrice())
                 .region(post.getRegion())
                 .semester(post.getSemester())

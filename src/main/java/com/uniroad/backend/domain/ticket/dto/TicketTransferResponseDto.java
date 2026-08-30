@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 public class TicketTransferResponseDto {
 
     private Long id;
+    /** 채팅방 생성(targetMemberId)과 작성자 본인 여부 판단에 쓰인다 */
+    private Long memberId;
     private String authorName;
     private String authorNickname;
     private String authorDispatchedCountry;
@@ -54,6 +56,7 @@ public class TicketTransferResponseDto {
     public static TicketTransferResponseDto from(TicketTransferPost post, long scrapCount) {
         return TicketTransferResponseDto.builder()
                 .id(post.getId())
+                .memberId(post.getAuthor().getId())
                 .authorName(post.getAuthor().getName())
                 .authorNickname(post.getAuthor().getNickname())
                 .authorDispatchedCountry(post.getAuthor().getDispatchedCountry())

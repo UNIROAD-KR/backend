@@ -28,12 +28,10 @@ springdoc:
   swagger-ui:
     enabled: true
 
+# SecurityConfig가 @Value("${cors.allowed-origins}")로 읽으므로 YAML 목록이 아니라
+# 쉼표로 구분한 문자열이어야 합니다. (운영·테스트 프로필도 같은 형식입니다.)
 cors:
-  allowed-origins:
-    - http://localhost:3000
-    - http://127.0.0.1:3000
-    - http://localhost:5173
-    - http://127.0.0.1:5173
+  allowed-origins: http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173
 
 firebase:
   # 기본값은 비활성화입니다. 실제 로컬 푸시 검증 시 환경변수로 Firebase 서비스 계정을 주입합니다.

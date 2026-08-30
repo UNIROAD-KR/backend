@@ -1,6 +1,7 @@
 package com.uniroad.backend.global.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -53,6 +55,8 @@ public class SecurityConfig {
         private final OAuth2SuccessHandler oAuth2SuccessHandler;
         private final OAuth2FailureHandler oAuth2FailureHandler;
         private final JwtExceptionFilter jwtExceptionFilter;
+        /** 소셜 클라이언트 등록이 없는 프로필에서도 기동할 수 있도록 지연 조회한다 */
+        private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepositoryProvider;
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -93,13 +97,6 @@ public class SecurityConfig {
                                                 UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class) // 예외 필터 추가
 
-                                // ── OAuth2 로그인 설정 ────────────────────────────
-                                .oauth2Login(oauth2 -> oauth2
-                                                .userInfoEndpoint(userInfo -> userInfo
-                                                                .userService(customOAuth2UserService))
-                                                .successHandler(oAuth2SuccessHandler)
-                                                .failureHandler(oAuth2FailureHandler))
-
                                 // ── 인증/인가 예외 처리 ───────────────────────────
                                 .exceptionHandling(exception -> exception
                                                 .authenticationEntryPoint((request, response, authException) -> {
@@ -117,6 +114,18 @@ public class SecurityConfig {
 
                                 // H2 콘솔 iframe 허용 (개발 환경)
                                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+
+                // ── OAuth2 로그인 설정 ────────────────────────────
+                // 소셜 클라이언트가 설정된 프로필에서만 켠다.
+                // 로컬처럼 등록 정보가 없는 환경에서 무조건 켜면
+                // ClientRegistrationRepository 빈이 없어 애플리케이션이 뜨지 않는다.
+                if (clientRegistrationRepositoryProvider.getIfAvailable() != null) {
+                        http.oauth2Login(oauth2 -> oauth2
+                                        .userInfoEndpoint(userInfo -> userInfo
+                                                        .userService(customOAuth2UserService))
+                                        .successHandler(oAuth2SuccessHandler)
+                                        .failureHandler(oAuth2FailureHandler));
+                }
 
                 return http.build();
         }
