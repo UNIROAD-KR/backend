@@ -55,7 +55,8 @@ public class Member extends BaseTimeEntity {
     @Column(name = "current_situation")
     private CurrentSituation currentSituation;
 
-    private Integer age;
+    @Column(name = "birth_year")
+    private Integer birthYear;
 
     @Column(name = "dispatched_university")
     private String dispatchedUniversity;
@@ -133,13 +134,13 @@ public class Member extends BaseTimeEntity {
         this.role = role;
     }
 
-    public void completeOnboarding(Integer age, University domesticUniversity, String dispatchedUniversity,
+    public void completeOnboarding(Integer birthYear, University domesticUniversity, String dispatchedUniversity,
                                    String dispatchedCountry, String dispatchedRegion, String nickname,
                                    Gender gender, CurrentSituation currentSituation,
                                    Integer dispatchYear, String dispatchSemester,
                                    LocalDate applicationDeadline, LocalDate departureDate,
                                    LocalDate dispatchStartDate, LocalDate returnDate) {
-        this.age = age;
+        this.birthYear = birthYear;
         this.domesticUniversity = domesticUniversity;
         this.dispatchedUniversity = dispatchedUniversity;
         this.dispatchedCountry = dispatchedCountry;

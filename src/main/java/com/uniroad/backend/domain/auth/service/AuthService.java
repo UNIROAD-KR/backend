@@ -83,7 +83,7 @@ public class AuthService {
         University domesticUniversity = findOrCreateUniversity(request.domesticUniversity());
 
         member.completeOnboarding(
-                request.age(),
+                request.birthYear(),
                 domesticUniversity,
                 request.dispatchedUniversity(),
                 request.dispatchedCountry(),

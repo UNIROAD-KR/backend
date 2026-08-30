@@ -21,7 +21,7 @@ public class MemberResponseDto {
     private String nickname;
     private Gender gender;
     private CurrentSituation currentSituation;
-    private Integer age;
+    private Integer birthYear;
     private Long domesticUniversityId;
     private String domesticUniversity;
     private String homeUniversity;
@@ -47,7 +47,7 @@ public class MemberResponseDto {
                 .nickname(member.getNickname())
                 .gender(member.getGender())
                 .currentSituation(member.getCurrentSituation())
-                .age(member.getAge())
+                .birthYear(member.getBirthYear())
                 .domesticUniversityId(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getId() : null)
                 .domesticUniversity(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getName() : null)
                 .homeUniversity(member.getDomesticUniversity() != null ? member.getDomesticUniversity().getName() : null)
