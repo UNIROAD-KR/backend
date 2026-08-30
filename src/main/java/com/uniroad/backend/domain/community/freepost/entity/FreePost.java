@@ -68,8 +68,13 @@ public class FreePost extends BaseTimeEntity {
         this.imageUrls = imageUrls == null ? new ArrayList<>() : new ArrayList<>(imageUrls);
     }
 
+    /**
+     * 파견 국가는 온보딩에서 "파견교 미정"을 고를 수 있어 비어 있을 수 있다.
+     * country 컬럼은 NOT NULL이므로 그대로 두면 글 작성이 500으로 실패한다.
+     */
     public static String resolveCountry(Member member) {
-        return member.getDispatchedCountry();
+        String dispatchedCountry = member.getDispatchedCountry();
+        return dispatchedCountry == null || dispatchedCountry.isBlank() ? "미정" : dispatchedCountry;
     }
 
     public static String resolveStatus(Member member) {

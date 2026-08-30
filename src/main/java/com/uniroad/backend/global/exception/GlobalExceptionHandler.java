@@ -6,7 +6,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -54,6 +56,38 @@ public class GlobalExceptionHandler {
                 "요청 본문을 읽을 수 없습니다. 형식과 인코딩(UTF-8)을 확인해주세요."
         );
         return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * 필수 쿼리 파라미터가 빠진 경우
+     *
+     * 클라이언트가 잘못 보낸 것이므로 500이 아니라 400으로 응답한다.
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParameterException(MissingServletRequestParameterException ex) {
+        log.warn("[MissingServletRequestParameterException] {}", ex.getMessage());
+        ErrorResponse response = ErrorResponse.of(
+                ErrorCode.INVALID_INPUT_VALUE.getStatus().value(),
+                "INVALID_INPUT_VALUE",
+                "필수 파라미터 '" + ex.getParameterName() + "'가 필요합니다."
+        );
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * 해당 경로가 지원하지 않는 HTTP 메서드로 호출된 경우
+     *
+     * 클라이언트가 잘못 보낸 것이므로 500이 아니라 405로 응답한다.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        log.warn("[HttpRequestMethodNotSupportedException] {}", ex.getMessage());
+        ErrorResponse response = ErrorResponse.of(
+                405,
+                "METHOD_NOT_ALLOWED",
+                "지원하지 않는 요청 방식입니다."
+        );
+        return ResponseEntity.status(405).body(response);
     }
 
     /**
