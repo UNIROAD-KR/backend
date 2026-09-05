@@ -11,6 +11,7 @@ import com.uniroad.backend.domain.member.entity.MemberSocialAccount;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.domain.member.repository.MemberSocialAccountRepository;
+import com.uniroad.backend.domain.notification.service.FcmService;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.jwt.JwtProvider;
@@ -40,6 +41,7 @@ public class AuthService {
 
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final FcmService fcmService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final ApplicationEventPublisher eventPublisher;
@@ -330,8 +332,14 @@ public class AuthService {
     // ── 로그아웃 ────────────────────────────────────────────────
 
     @Transactional
-    public void logout(Long memberId) {
+    public void logout(Long memberId, String fcmToken) {
         refreshTokenRepository.deleteByMemberId(memberId);
+
+        // 토큰을 안 지우면 로그아웃한 기기로 이 회원의 알림이 계속 간다.
+        // 기기를 넘겨주거나 빌려준 경우 남의 채팅 내용이 잠금화면에 뜬다.
+        // 다른 기기의 토큰은 살려야 하므로 넘어온 토큰만 지운다.
+        fcmService.deleteToken(memberId, fcmToken);
+
         log.info("[Logout] memberId={}", memberId);
     }
 

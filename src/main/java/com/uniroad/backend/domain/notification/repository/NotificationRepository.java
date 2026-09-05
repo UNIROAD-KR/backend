@@ -14,6 +14,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Page<Notification> findByUserOrderByCreatedAtDesc(Member user, Pageable pageable);
     long countByUserAndReadFalse(Member user);
 
+    /** 푸시는 트랜잭션 밖에서 나가므로 엔티티 대신 id로 센다 (iOS 뱃지 숫자) */
+    long countByUserIdAndReadFalse(Long userId);
+
     @Modifying
     @Query("UPDATE Notification n SET n.read = :read WHERE n.user = :user AND n.read = false")
     int updateReadByUserAndReadFalse(@Param("user") Member user, @Param("read") boolean read);

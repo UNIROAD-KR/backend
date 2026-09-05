@@ -98,6 +98,18 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "FCM 토큰 삭제",
+            description = "로그아웃한 기기로 푸시가 계속 가지 않도록 해당 기기의 토큰을 지웁니다. "
+                    + "다른 기기의 토큰은 그대로 두므로, 지울 토큰을 본문에 담아 보내세요."
+    )
+    @DeleteMapping("/fcm-token")
+    public ResponseEntity<Void> deleteFcmToken(@Valid @RequestBody FcmTokenRequest request) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        fcmService.deleteToken(memberId, request.token());
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "FCM test push send", description = "Sends a test push notification to a specific member. Admin only.")
     @PostMapping("/test-push/{memberId}")
     @PreAuthorize("hasRole('ADMIN')")

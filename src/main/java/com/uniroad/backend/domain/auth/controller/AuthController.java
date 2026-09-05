@@ -118,12 +118,21 @@ public class AuthController {
      * 로그아웃 (Refresh Token DB 삭제)
      * 인증된 사용자만 호출 가능
      */
-    @Operation(summary = "로그아웃", description = "인증된 사용자의 Refresh Token을 DB에서 삭제합니다.")
+    @Operation(
+            summary = "로그아웃",
+            description = "인증된 사용자의 Refresh Token을 DB에서 삭제합니다. "
+                    + "본문에 fcmToken을 함께 보내면 그 기기의 푸시 토큰도 지워, "
+                    + "로그아웃한 기기로 알림이 계속 가지 않게 합니다. 본문은 없어도 됩니다."
+    )
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody(required = false) LogoutRequest request
     ) {
-        authService.logout(userDetails.getMemberId());
+        authService.logout(
+                userDetails.getMemberId(),
+                request == null ? null : request.fcmToken()
+        );
         return ResponseEntity.ok(ApiResponse.success("로그아웃 되었습니다.", null));
     }
 
