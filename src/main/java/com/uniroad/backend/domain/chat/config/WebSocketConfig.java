@@ -1,7 +1,11 @@
 package com.uniroad.backend.domain.chat.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -15,14 +19,47 @@ import java.util.List;
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    /** 하트비트 주기(ms). 양방향 동일하게 둔다. */
+    private static final long HEARTBEAT_MILLIS = 15_000L;
     private final StompHandler stompHandler;
 
     @Value("${cors.allowed-origins}")
     private List<String> allowedOrigins;
 
+    /**
+     * 하트비트를 보내는 주체.
+     *
+     * @EnableWebSocketMessageBroker가 등록해 주는 messageBrokerTaskScheduler를 그대로 쓴다.
+     * 생성자로 받으면 이 설정 클래스와 순환 참조가 생기므로 세터로 늦게 주입받는다.
+     */
+    private TaskScheduler messageBrokerTaskScheduler;
+
+    @Autowired
+    public void setMessageBrokerTaskScheduler(
+            @Lazy @Qualifier("messageBrokerTaskScheduler") TaskScheduler taskScheduler
+    ) {
+        this.messageBrokerTaskScheduler = taskScheduler;
+    }
+
+    /**
+     * 하트비트를 켜서 죽은 연결을 빨리 알아챈다.
+     *
+     * 모바일은 지하철·엘리베이터·기내모드로 연결이 소리 없이 끊긴다. 클라이언트가
+     * DISCONNECT 프레임을 못 보내면 서버는 TCP가 죽은 걸 한참 뒤에나 아는데,
+     * 그동안 ChatPresenceService는 그 사용자가 "방을 보고 있다"고 판단해
+     * 새 메시지의 푸시를 계속 억제한다. 즉 알림을 통째로 놓친다.
+     *
+     * 15초는 배터리와 감지 속도의 절충이다. 하트비트 프레임 자체는 개행 한 글자라
+     * 3초 폴링과는 비교가 안 되게 가볍지만, 짧을수록 라디오를 자주 깨운다.
+     * 값은 [서버→클라이언트, 클라이언트→서버] 순서이며, 실제 주기는 클라이언트가
+     * CONNECT에서 제시한 값과 협상해 정해진다.
+     */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/sub");
+        registry.enableSimpleBroker("/sub")
+                .setHeartbeatValue(new long[] {HEARTBEAT_MILLIS, HEARTBEAT_MILLIS})
+                .setTaskScheduler(messageBrokerTaskScheduler);
         registry.setApplicationDestinationPrefixes("/pub");
     }
 
