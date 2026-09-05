@@ -89,6 +89,14 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/v3/api-docs/**")
                                                 .permitAll()
+                                                // 블로그는 읽기만 열어 둔다.
+                                                // /api/blog/** 를 통째로 열면 좋아요(POST)까지 익명이 되어
+                                                // 누가 눌렀는지 알 수 없으므로 GET만 골라 허용한다.
+                                                .requestMatchers(
+                                                                org.springframework.http.HttpMethod.GET,
+                                                                "/api/blog/posts",
+                                                                "/api/blog/posts/**")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
 
                                 // ── JWT 필터 등록 ─────────────────────────────────

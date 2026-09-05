@@ -45,6 +45,9 @@ dependencies {
 	implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.2.0'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+	// HTML sanitizer — 에디터가 보낸 본문 HTML을 저장 전에 소독한다
+	implementation 'org.jsoup:jsoup:1.18.3'
+
 	// AWS S3
 	implementation 'software.amazon.awssdk:s3:2.26.19'
 
