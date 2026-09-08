@@ -32,6 +32,7 @@ public class NotificationService {
     private final MemberRepository memberRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatPresenceService chatPresenceService;
+    private final NotificationSettingService notificationSettingService;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -122,6 +123,11 @@ public class NotificationService {
                 postId
         );
 
+        // 커뮤니티 알림을 꺼둔 사람에게는 푸시만 보내지 않는다. 알림함 행은 위에서 이미 만들었다.
+        if (!notificationSettingService.isPushAllowed(receiver.getId(), NotificationType.COMMENT)) {
+            return;
+        }
+
         // 채팅과 같은 이유로 커밋 뒤에 보낸다. 여기서 바로 보내면 댓글 저장 트랜잭션이
         // 구글로 나가는 왕복이 끝날 때까지 열려 있게 된다.
         eventPublisher.publishEvent(new PushNotificationEvent(
@@ -204,6 +210,12 @@ public class NotificationService {
                 content,
                 roomId
         );
+
+        // 알림함 행은 위에서 이미 만들었다. 여기서 막는 것은 푸시뿐이라,
+        // 채팅 알림을 꺼둔 사람도 앱에서 알림함을 열면 놓친 메시지를 볼 수 있다.
+        if (!notificationSettingService.isPushAllowed(receiver.getId(), NotificationType.CHAT)) {
+            return;
+        }
 
         // 발송은 커밋 뒤에 다른 스레드가 맡는다. 여기서 바로 보내면
         // 구글로 나가는 왕복이 끝날 때까지 채팅 저장 트랜잭션이 열려 있게 된다.

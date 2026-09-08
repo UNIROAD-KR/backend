@@ -10,6 +10,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
@@ -70,6 +71,23 @@ public class GlobalExceptionHandler {
                 ErrorCode.INVALID_INPUT_VALUE.getStatus().value(),
                 "INVALID_INPUT_VALUE",
                 "필수 파라미터 '" + ex.getParameterName() + "'가 필요합니다."
+        );
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    /**
+     * 경로 변수나 쿼리 파라미터를 선언한 타입으로 바꾸지 못한 경우
+     *
+     * 예: enum 경로 변수에 없는 값(/settings/categories/UNKNOWN), 숫자 자리에 문자.
+     * 클라이언트가 잘못 보낸 것이므로 500이 아니라 400으로 응답한다.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        log.warn("[MethodArgumentTypeMismatchException] {}", ex.getMessage());
+        ErrorResponse response = ErrorResponse.of(
+                ErrorCode.INVALID_INPUT_VALUE.getStatus().value(),
+                "INVALID_INPUT_VALUE",
+                "'" + ex.getName() + "' 값이 올바르지 않습니다."
         );
         return ResponseEntity.badRequest().body(response);
     }

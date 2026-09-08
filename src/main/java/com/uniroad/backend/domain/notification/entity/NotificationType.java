@@ -23,4 +23,22 @@ public enum NotificationType {
     public String channelId() {
         return name().toLowerCase(Locale.ROOT);
     }
+
+    /**
+     * 앱 "알림 설정" 화면에서 이 알림을 끄고 켜는 스위치.
+     *
+     * null이면 끌 수 없는 알림이다. 공지와 시스템 안내는 서비스 필수 안내라 종류별로 끄지
+     * 못하게 두고, 전체 알림을 껐을 때만 막힌다.
+     */
+    public NotificationCategory category() {
+        return switch (this) {
+            // 동행 매칭은 결국 채팅으로 이어지므로 채팅 스위치를 따른다
+            case CHAT, MATCH -> NotificationCategory.CHAT;
+            // 앱 화면의 "커뮤니티 알림" 설명이 "내 글의 댓글과 관심 게시판 소식"이다
+            case COMMENT, LIKE -> NotificationCategory.COMMUNITY;
+            case NOTICE -> NotificationCategory.NOTICE;
+            // 점검·보안·인증 결과처럼 반드시 닿아야 하는 안내다. 전체 알림을 껐을 때만 막힌다.
+            case SYSTEM -> null;
+        };
+    }
 }

@@ -13,6 +13,7 @@ import com.uniroad.backend.domain.member.entity.MemberSocialAccount;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.domain.member.repository.MemberSocialAccountRepository;
 import com.uniroad.backend.domain.notification.repository.FcmTokenRepository;
+import com.uniroad.backend.domain.notification.repository.NotificationSettingRepository;
 import com.uniroad.backend.domain.notification.repository.NotificationRepository;
 import com.uniroad.backend.domain.community.freepost.repository.FreePostCommentRepository;
 import com.uniroad.backend.domain.community.freepost.repository.FreePostLikeRepository;
@@ -41,6 +42,7 @@ public class MemberService {
     private final MemberSocialAccountRepository memberSocialAccountRepository;
     private final NotificationRepository notificationRepository;
     private final FcmTokenRepository fcmTokenRepository;
+    private final NotificationSettingRepository notificationSettingRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final FreePostCommentRepository freePostCommentRepository;
@@ -70,6 +72,7 @@ public class MemberService {
         memberSocialAccountRepository.deleteByMemberId(memberId);
         notificationRepository.deleteByUserId(memberId);
         fcmTokenRepository.deleteByMemberId(memberId);
+        notificationSettingRepository.deleteByMemberId(memberId);
         chatRoomMemberRepository.deleteByMemberId(memberId);
         chatMessageRepository.deleteBySenderId(memberId);
         freePostCommentRepository.deleteByMemberId(memberId);

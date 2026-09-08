@@ -4,9 +4,14 @@ import com.uniroad.backend.domain.notification.dto.FcmTokenRequest;
 import com.uniroad.backend.domain.notification.dto.FcmPushResponse;
 import com.uniroad.backend.domain.notification.dto.FcmTestPushRequest;
 import com.uniroad.backend.domain.notification.dto.NotificationResponse;
+import com.uniroad.backend.domain.notification.dto.NotificationSettingRequest;
+import com.uniroad.backend.domain.notification.dto.NotificationSettingResponse;
+import com.uniroad.backend.domain.notification.dto.NotificationToggleRequest;
+import com.uniroad.backend.domain.notification.entity.NotificationCategory;
 import com.uniroad.backend.domain.notification.dto.UnreadCountResponse;
 import com.uniroad.backend.domain.notification.service.FcmService;
 import com.uniroad.backend.domain.notification.service.NotificationService;
+import com.uniroad.backend.domain.notification.service.NotificationSettingService;
 import com.uniroad.backend.global.security.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +38,60 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping({"/api/v1/notifications", "/notifications"})
 public class NotificationController {
     private final NotificationService notificationService;
+    private final NotificationSettingService notificationSettingService;
     private final FcmService fcmService;
+
+    @Operation(
+            summary = "알림 설정 조회",
+            description = "앱 알림 설정 화면의 스위치 값을 돌려줍니다. 한 번도 저장한 적이 없으면 기본값을 돌려줍니다."
+    )
+    @GetMapping("/settings")
+    public ResponseEntity<NotificationSettingResponse> getNotificationSettings() {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        return ResponseEntity.ok(notificationSettingService.get(memberId));
+    }
+
+    @Operation(
+            summary = "알림 설정 변경",
+            description = "앱 알림 설정 화면의 스위치를 저장합니다. 값을 빼고 보내면 그 항목은 서버에 저장된 값을 유지합니다. "
+                    + "끈 알림은 FCM 푸시만 보내지 않습니다 - 알림함에는 그대로 쌓이므로 앱에서 알림함을 열면 확인할 수 있습니다. "
+                    + "공지(NOTICE)와 시스템 안내(SYSTEM)는 종류별로 끌 수 없고, 전체 알림을 껐을 때만 막힙니다."
+    )
+    @PutMapping("/settings")
+    public ResponseEntity<NotificationSettingResponse> updateNotificationSettings(
+            @Valid @RequestBody NotificationSettingRequest request
+    ) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        return ResponseEntity.ok(notificationSettingService.update(memberId, request));
+    }
+
+    @Operation(
+            summary = "전체 알림 끄기/켜기",
+            description = "전체 알림 스위치 하나만 바꿉니다. 끄면 종류별 설정과 관계없이 어떤 푸시도 보내지 않습니다."
+    )
+    @PatchMapping("/settings/all")
+    public ResponseEntity<NotificationSettingResponse> updateAllNotificationSetting(
+            @Valid @RequestBody NotificationToggleRequest request
+    ) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        return ResponseEntity.ok(notificationSettingService.updateAllEnabled(memberId, request.enabled()));
+    }
+
+    @Operation(
+            summary = "알림 종류별 끄기/켜기",
+            description = "종류 하나의 스위치만 바꿉니다. CHAT은 채팅, COMMUNITY는 내 글의 댓글, NOTICE는 공지사항입니다. "
+                    + "끈 종류도 알림함에는 그대로 쌓이고 FCM 푸시만 나가지 않습니다. "
+                    + "점검·보안 같은 필수 안내(SYSTEM)는 종류별로 끌 수 없고 전체 알림을 껐을 때만 막힙니다."
+    )
+    @PatchMapping("/settings/categories/{category}")
+    public ResponseEntity<NotificationSettingResponse> updateNotificationCategorySetting(
+            @PathVariable NotificationCategory category,
+            @Valid @RequestBody NotificationToggleRequest request
+    ) {
+        Long memberId = SecurityUtil.getCurrentMemberId();
+        return ResponseEntity.ok(
+                notificationSettingService.updateCategory(memberId, category, request.enabled()));
+    }
 
     @Operation(
             summary = "읽지 않은 알림 목록 조회",

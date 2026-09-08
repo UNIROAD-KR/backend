@@ -142,7 +142,7 @@ public class FcmService {
             return 0;
         }
 
-        List<String> tokens = fcmTokenRepository.findAllTokenValues();
+        List<String> tokens = fcmTokenRepository.findTokenValuesForNoticePush();
         if (tokens.isEmpty()) {
             return 0;
         }
