@@ -27,6 +27,11 @@ dependencies {
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+	// DB 마이그레이션 — 배포할 때 src/main/resources/db/migration의 SQL을 순서대로 적용한다.
+	// MySQL 지원은 Flyway 10부터 flyway-mysql로 분리되어 있어 함께 넣는다.
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	

@@ -6,6 +6,20 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  # 스키마 변경은 Flyway가 맡는다. 배포할 때 db/migration의 SQL을 순서대로 적용하므로
+  # 손으로 ALTER를 돌리는 단계가 없다.
+  #
+  # ddl-auto=update는 그대로 둔다. 지금까지 만들어진 테이블이 전부 update로 생긴 것이라
+  # 곧바로 validate로 바꾸면 그동안 쌓인 차이 때문에 기동 자체가 막힌다.
+  # 당분간 테이블·컬럼 "추가"는 update가, 이미 있는 것의 "변경"은 Flyway가 맡는다.
+  # (update는 기존 컬럼의 타입·제약을 절대 바꾸지 않는다 — 이번 enum 사고가 그래서 났다.)
+  flyway:
+    enabled: true
+    # 이미 테이블이 있는 DB라 첫 실행에서 히스토리가 없다.
+    # 현재 스키마를 버전 1로 인정하고 그 뒤 버전부터 적용한다.
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
   jpa:
     hibernate:
       ddl-auto: update
