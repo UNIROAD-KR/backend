@@ -34,8 +34,10 @@ public class Notification extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private Member user;
 
+    // 알림 종류를 새로 추가해도 기존 DB에서 INSERT가 죽지 않도록 네이티브 ENUM 대신 varchar로 만든다.
+    // (Hibernate는 MySQL에서 enum을 ENUM 컬럼으로 만들고, ddl-auto=update는 그 허용 값을 넓히지 못한다.)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 30, columnDefinition = "varchar(30)")
     private NotificationType type;
 
     @Column(nullable = false, length = 100)

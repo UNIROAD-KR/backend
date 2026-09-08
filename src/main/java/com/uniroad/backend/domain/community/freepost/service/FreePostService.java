@@ -16,6 +16,7 @@ import com.uniroad.backend.domain.community.freepost.repository.FreePostReposito
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.entity.MemberStatus;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
@@ -39,6 +40,7 @@ public class FreePostService {
     private final FreePostLikeRepository freePostLikeRepository;
     private final ScrapRepository scrapRepository;
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     public CursorPageResponse<FreePostSummaryResponse> getPosts(Long cursorId, String keyword, int size) {
         int requestSize = normalizeSize(size);
@@ -226,6 +228,14 @@ public class FreePostService {
                 .member(member)
                 .content(request.content().trim())
                 .build());
+
+        notificationService.notifyPostComment(
+                post.getMember().getId(),
+                post.getId(),
+                post.getTitle(),
+                memberId,
+                comment.getContent()
+        );
 
         return FreePostCommentResponse.from(comment, memberId);
     }

@@ -99,6 +99,48 @@ public class NotificationService {
     }
 
     /**
+     * 내 글에 달린 댓글을 글쓴이에게 알린다. 알림함에 행을 남기고, 커밋 뒤 푸시를 한 번 보낸다.
+     *
+     * 자기 글에 자기가 단 댓글은 알리지 않는다 — 방금 쓴 본인에게 되돌아가는 알림이라 소음만 된다.
+     */
+    @Transactional
+    public void notifyPostComment(Long postAuthorId, Long postId, String postTitle, Long commenterId, String commentContent) {
+        if (postAuthorId.equals(commenterId)) {
+            return;
+        }
+
+        Member receiver = getMember(postAuthorId);
+        String title = "내 글에 댓글이 달렸어요";
+        // 알림함에서는 어느 글인지가 먼저 보여야 해서 글 제목을 앞에 붙인다.
+        String content = "[" + postTitle + "] " + commentContent;
+
+        Notification notification = createNotification(
+                receiver,
+                NotificationType.COMMENT,
+                title,
+                content,
+                postId
+        );
+
+        // 채팅과 같은 이유로 커밋 뒤에 보낸다. 여기서 바로 보내면 댓글 저장 트랜잭션이
+        // 구글로 나가는 왕복이 끝날 때까지 열려 있게 된다.
+        eventPublisher.publishEvent(new PushNotificationEvent(
+                receiver.getId(),
+                title,
+                content,
+                Map.of(
+                        "type", NotificationType.COMMENT.name(),
+                        "postId", String.valueOf(postId),
+                        "referenceId", String.valueOf(postId),
+                        "notificationId", String.valueOf(notification.getId())
+                ),
+                NotificationType.COMMENT.channelId(),
+                // 같은 글의 댓글 알림은 하나로 덮어쓴다. 댓글 열 개에 푸시 열 개가 쌓이지 않도록.
+                "comment-" + postId
+        ));
+    }
+
+    /**
      * 공지를 전 회원에게 알린다. 앱 알림함에 남길 행을 만들고, 커밋 뒤 푸시를 한 번 쏜다.
      *
      * 회원 엔티티를 통째로 올리지 않고 id만 읽어 프록시로 참조를 건다.

@@ -4,6 +4,7 @@ import java.util.Locale;
 
 public enum NotificationType {
     CHAT,
+    COMMENT,
     MATCH,
     LIKE,
     NOTICE,
