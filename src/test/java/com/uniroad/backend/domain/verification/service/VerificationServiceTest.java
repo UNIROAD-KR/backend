@@ -3,6 +3,7 @@ package com.uniroad.backend.domain.verification.service;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.domain.verification.dto.AdminVerificationResponse;
 import com.uniroad.backend.domain.verification.dto.VerificationResponse;
 import com.uniroad.backend.domain.verification.entity.Verification;
@@ -25,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class VerificationServiceTest {
@@ -37,6 +39,9 @@ class VerificationServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private NotificationService notificationService;
 
     @Test
     @DisplayName("submitVerification creates pending current verification")
@@ -131,6 +136,21 @@ class VerificationServiceTest {
         assertThat(verification.getStatus()).isEqualTo(VerificationStatus.APPROVED);
         assertThat(verification.getReviewedAt()).isNotNull();
         assertThat(verification.getMember().getRole()).isEqualTo(Role.VERIFIED);
+        // 승인해 놓고 알리지 않으면 사용자는 인증 회원 기능이 열린 줄 모른다
+        verify(notificationService).notifyVerificationApproved(verification.getMember(), 1L);
+    }
+
+    @Test
+    @DisplayName("approveVerification does not notify when the request is not pending")
+    void approveVerification_NoNotificationWhenNotPending() {
+        // given
+        Verification verification = verification(1L, member(1L), "image", VerificationStatus.REJECTED, true);
+        given(verificationRepository.findById(1L)).willReturn(Optional.of(verification));
+
+        // when & then
+        assertThatThrownBy(() -> verificationService.approveVerification(1L))
+                .isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -159,6 +179,34 @@ class VerificationServiceTest {
         assertThat(verification.getStatus()).isEqualTo(VerificationStatus.REJECTED);
         assertThat(verification.getRejectReason()).isEqualTo("invalid image");
         assertThat(verification.getReviewedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("rejectVerification notifies the member with the reason")
+    void rejectVerification_Notifies() {
+        // given
+        Verification verification = verification(1L, member(1L), "image", VerificationStatus.PENDING, true);
+        given(verificationRepository.findById(1L)).willReturn(Optional.of(verification));
+
+        // when
+        verificationService.rejectVerification(1L, "서류가 흐릿합니다");
+
+        // then — 반려를 알리지 않으면 사용자는 다시 신청할 생각을 하지 못한다
+        verify(notificationService).notifyVerificationRejected(
+                verification.getMember(), 1L, "서류가 흐릿합니다");
+    }
+
+    @Test
+    @DisplayName("rejectVerification does not notify when the request is not pending")
+    void rejectVerification_NoNotificationWhenNotPending() {
+        // given
+        Verification verification = verification(1L, member(1L), "image", VerificationStatus.APPROVED, true);
+        given(verificationRepository.findById(1L)).willReturn(Optional.of(verification));
+
+        // when & then
+        assertThatThrownBy(() -> verificationService.rejectVerification(1L, "reason"))
+                .isInstanceOf(IllegalStateException.class);
+        verifyNoInteractions(notificationService);
     }
 
     @Test

@@ -147,6 +147,94 @@ public class NotificationService {
     }
 
     /**
+     * 교환학생 인증이 승인됐음을 본인에게 알린다.
+     *
+     * 사용자는 서류를 올린 뒤 승인이 언제 났는지 알 방법이 없어서, 앱을 열어 직접
+     * 확인하기 전에는 인증 회원 기능이 열린 줄 모른다. 결과를 기다리게 하는 종류의
+     * 알림이라 SYSTEM으로 보낸다 — 종류별로 끌 수 없고 전체 알림을 껐을 때만 막힌다.
+     *
+     * 권한은 이 알림과 무관하게 이미 올라가 있다. 인증 필터가 요청마다 회원을 다시 읽으므로
+     * 다시 로그인하지 않아도 곧바로 인증 회원 기능을 쓸 수 있다.
+     */
+    @Transactional
+    public void notifyVerificationApproved(Member receiver, Long verificationId) {
+        String title = "교환학생 인증이 완료되었어요";
+        String content = "이제 중고거래와 티켓 양도, 동행 구하기 글을 올릴 수 있어요.";
+
+        Notification notification = createNotification(
+                receiver,
+                NotificationType.VERIFICATION,
+                title,
+                content,
+                verificationId
+        );
+
+        if (!notificationSettingService.isPushAllowed(receiver.getId(), NotificationType.VERIFICATION)) {
+            return;
+        }
+
+        // 다른 알림과 같은 이유로 커밋 뒤에 보낸다. 승인 트랜잭션이 구글로 나가는
+        // 왕복이 끝날 때까지 열려 있으면 안 된다.
+        eventPublisher.publishEvent(new PushNotificationEvent(
+                receiver.getId(),
+                title,
+                content,
+                Map.of(
+                        "type", NotificationType.VERIFICATION.name(),
+                        "verificationId", String.valueOf(verificationId),
+                        "referenceId", String.valueOf(verificationId),
+                        "notificationId", String.valueOf(notification.getId())
+                ),
+                NotificationType.VERIFICATION.channelId(),
+                // 인증 결과는 한 번뿐이라 묶을 이유가 없다. 다시 신청해 또 승인되면
+                // 그건 별개의 소식이므로 verificationId로 구분한다.
+                "verification-" + verificationId
+        ));
+    }
+
+    /**
+     * 교환학생 인증이 반려됐음을 본인에게 알린다.
+     *
+     * 승인보다 이쪽이 더 중요하다. 승인은 늦게 알아도 손해가 없지만, 반려는 알려주지 않으면
+     * 사용자가 계속 기다리기만 하고 서류를 다시 올릴 생각을 하지 못한다.
+     * 그래서 사유를 본문에 실어 무엇을 고쳐야 하는지까지 함께 보낸다.
+     */
+    @Transactional
+    public void notifyVerificationRejected(Member receiver, Long verificationId, String reason) {
+        String title = "교환학생 인증이 반려되었어요";
+        // 관리자가 사유를 비워 둘 수 있다. 그때 "사유: null"이 뜨지 않게 문구를 나눈다.
+        String content = (reason == null || reason.isBlank())
+                ? "서류를 다시 확인한 뒤 인증을 다시 신청해주세요."
+                : "사유: " + reason.trim();
+
+        Notification notification = createNotification(
+                receiver,
+                NotificationType.VERIFICATION,
+                title,
+                content,
+                verificationId
+        );
+
+        if (!notificationSettingService.isPushAllowed(receiver.getId(), NotificationType.VERIFICATION)) {
+            return;
+        }
+
+        eventPublisher.publishEvent(new PushNotificationEvent(
+                receiver.getId(),
+                title,
+                content,
+                Map.of(
+                        "type", NotificationType.VERIFICATION.name(),
+                        "verificationId", String.valueOf(verificationId),
+                        "referenceId", String.valueOf(verificationId),
+                        "notificationId", String.valueOf(notification.getId())
+                ),
+                NotificationType.VERIFICATION.channelId(),
+                "verification-" + verificationId
+        ));
+    }
+
+    /**
      * 공지를 전 회원에게 알린다. 앱 알림함에 남길 행을 만들고, 커밋 뒤 푸시를 한 번 쏜다.
      *
      * 회원 엔티티를 통째로 올리지 않고 id만 읽어 프록시로 참조를 건다.

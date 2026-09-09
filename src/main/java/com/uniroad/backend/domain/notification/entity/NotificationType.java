@@ -8,6 +8,8 @@ public enum NotificationType {
     MATCH,
     LIKE,
     NOTICE,
+    /** 교환학생 인증 심사 결과 */
+    VERIFICATION,
     SYSTEM;
 
     /**
@@ -38,7 +40,7 @@ public enum NotificationType {
             case COMMENT, LIKE -> NotificationCategory.COMMUNITY;
             case NOTICE -> NotificationCategory.NOTICE;
             // 점검·보안·인증 결과처럼 반드시 닿아야 하는 안내다. 전체 알림을 껐을 때만 막힌다.
-            case SYSTEM -> null;
+            case VERIFICATION, SYSTEM -> null;
         };
     }
 }

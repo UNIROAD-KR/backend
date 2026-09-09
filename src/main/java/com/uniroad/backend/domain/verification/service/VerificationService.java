@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.verification.service;
 
 import com.uniroad.backend.domain.member.repository.MemberRepository;
+import com.uniroad.backend.domain.notification.service.NotificationService;
 import com.uniroad.backend.domain.member.entity.Role;
 import com.uniroad.backend.domain.verification.dto.AdminVerificationResponse;
 import com.uniroad.backend.domain.verification.dto.VerificationResponse;
@@ -24,6 +25,7 @@ public class VerificationService {
 
     private final VerificationRepository verificationRepository;
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     /**
      * 인증 서류 이미지에 접근할 수 있는지 확인한다.
@@ -101,6 +103,10 @@ public class VerificationService {
         if (member.getRole() == Role.USER) {
             member.updateRole(Role.VERIFIED);
         }
+
+        // 승인은 관리자가 임의의 시점에 하므로, 알려주지 않으면 사용자는 앱을 열어
+        // 직접 확인하기 전까지 인증 회원 기능이 열린 줄 모른다.
+        notificationService.notifyVerificationApproved(member, verification.getId());
     }
 
     @Transactional
@@ -113,5 +119,9 @@ public class VerificationService {
         }
 
         verification.reject(reason);
+
+        // 반려는 사용자가 다시 신청해야 끝나는 일이라, 알리지 않으면 아무 일도 일어나지 않는다.
+        notificationService.notifyVerificationRejected(
+                verification.getMember(), verification.getId(), reason);
     }
 }
