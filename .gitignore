@@ -38,6 +38,5 @@ out/
 .vscode/
 
 ### Local Config ###
-src/main/resources/application-test.yml
 .Ds_Store
 .env
