@@ -109,6 +109,18 @@ public class Member extends BaseTimeEntity {
     @Builder.Default
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
+
+    /**
+     * 발급된 Access Token의 세대 번호.
+     *
+     * 토큰에 발급 시점의 값을 실어 두고 인증할 때 이 값과 대조한다.
+     * 로그아웃·비밀번호 변경처럼 "지금까지 준 토큰을 전부 회수해야" 하는 순간에
+     * 이 값을 1 올리면, 남은 수명이 얼마든 그 토큰들은 그 즉시 통하지 않는다.
+     * 인증 필터가 어차피 요청마다 회원을 읽으므로 대조 비용은 0이다.
+     */
+    @Builder.Default
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
     
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -216,6 +228,12 @@ public class Member extends BaseTimeEntity {
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
+
+    /** 지금까지 이 회원에게 발급된 Access Token을 모두 무효로 만든다 */
+    public void invalidateIssuedTokens() {
+        this.tokenVersion++;
+    }
+
 
     public void chargeBalance(BigDecimal amount) {
         this.balance = this.balance.add(amount);

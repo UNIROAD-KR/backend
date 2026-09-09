@@ -6,6 +6,9 @@ import com.uniroad.backend.domain.notification.service.ChatPresenceService;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.jwt.JwtProvider;
+import com.uniroad.backend.global.security.CustomUserDetailsService;
+
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -26,6 +29,7 @@ public class StompHandler implements ChannelInterceptor {
     private static final String CHAT_ROOM_DESTINATION_PREFIX = "/sub/chat/room/";
 
     private final JwtProvider jwtProvider;
+    private final CustomUserDetailsService userDetailsService;
     private final ChatPresenceService chatPresenceService;
     private final ChatRoomService chatRoomService;
 
@@ -52,18 +56,30 @@ public class StompHandler implements ChannelInterceptor {
         return message;
     }
 
+    /**
+     * 웹소켓도 HTTP와 같은 기준으로 막는다.
+     *
+     * 예전에는 서명과 만료만 확인해서, Refresh Token으로도 채팅에 붙을 수 있었고
+     * 로그아웃한 뒤의 토큰도 그대로 통했다. 지금은 Access Token만 받고,
+     * 연결 시점에 회원을 한 번 읽어 회수된 토큰인지까지 확인한다.
+     * (연결당 한 번뿐이라 메시지마다 드는 비용은 없다.)
+     */
     private void handleConnect(StompHeaderAccessor accessor) {
         String jwt = accessor.getFirstNativeHeader("Authorization");
         if (jwt != null && jwt.startsWith("Bearer ")) {
             jwt = jwt.substring(7);
         }
 
-        if (!jwtProvider.validateToken(jwt)) {
-            log.error("Invalid JWT token in STOMP connection");
-            throw new RuntimeException("Invalid JWT token");
+        Long memberId;
+        try {
+            Claims claims = jwtProvider.parseAccessClaims(jwt);
+            memberId = jwtProvider.getMemberId(claims);
+            userDetailsService.loadUserById(memberId, jwtProvider.getTokenVersion(claims));
+        } catch (CustomException e) {
+            log.warn("[Stomp] CONNECT 거부: {}", e.getMessage());
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
-        Long memberId = jwtProvider.getMemberId(jwt);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(memberId, null, null);
         accessor.setUser(authentication);
         chatPresenceService.connect(accessor.getSessionId(), memberId);

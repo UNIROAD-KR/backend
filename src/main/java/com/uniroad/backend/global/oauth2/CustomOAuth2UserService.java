@@ -61,6 +61,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     return existing;
                 })
                 .orElseGet(() -> {
+                    // TODO(보안): 이메일이 같다는 이유만으로 기존 계정에 소셜 계정을 붙인다.
+                    //   프로바이더가 그 이메일을 검증했는지 우리는 알 수 없으므로,
+                    //   검증이 느슨한 곳에서 피해자 이메일로 계정을 만들면 남의 계정에 들어올 수 있다.
+                    //   자동 연결을 없애고 본인 확인 뒤 설정에서 연결하게 해야 한다.
+                    //   가입 흐름이 함께 바뀌므로 프론트엔드와 협의 후 적용한다.
                     if (userInfo.getEmail() != null) {
                         return memberRepository.findByEmail(userInfo.getEmail())
                                 .map(existing -> {

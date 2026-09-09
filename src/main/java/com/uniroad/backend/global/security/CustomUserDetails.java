@@ -24,6 +24,8 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private final Long memberId;
     private final String email;
     private final String password;
+    /** 이 회원의 현재 토큰 세대. 토큰에 실린 값과 다르면 그 토큰은 회수된 것이다. */
+    private final int tokenVersion;
     private final Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;  // OAuth2 전용
 
@@ -32,6 +34,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         this.memberId   = member.getId();
         this.email      = member.getEmail();
         this.password   = member.getPassword();
+        this.tokenVersion = member.getTokenVersion();
         this.authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(member.getRole().getKey())
         );

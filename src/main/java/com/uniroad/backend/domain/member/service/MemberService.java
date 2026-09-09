@@ -3,6 +3,7 @@ package com.uniroad.backend.domain.member.service;
 import com.uniroad.backend.domain.info.entity.University;
 import com.uniroad.backend.domain.info.repository.UniversityRepository;
 import com.uniroad.backend.domain.accountbook.repository.AccountBookRepository;
+import com.uniroad.backend.domain.auth.repository.RefreshTokenRepository;
 import com.uniroad.backend.domain.chat.repository.ChatMessageRepository;
 import com.uniroad.backend.domain.chat.repository.ChatRoomMemberRepository;
 import com.uniroad.backend.domain.member.dto.MemberProfileUpdateRequest;
@@ -36,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final UniversityRepository universityRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationRepository verificationRepository;
@@ -57,6 +59,11 @@ public class MemberService {
         return MemberResponseDto.from(getCurrentMember());
     }
 
+    // TODO(보안): 현재 비밀번호 확인이 없어, 토큰이 한 번 유출되면 공격자가 곧바로
+    //   비밀번호를 바꿔 계정을 영구히 가져갈 수 있다. 반대로 사용자가 비밀번호를 바꿔도
+    //   이미 발급된 토큰이 살아 있어 공격자를 쫓아내지 못한다.
+    //   요청에 currentPassword를 추가하고 변경 후 member.invalidateIssuedTokens()로
+    //   토큰을 회수하는 것이 맞다. 프론트엔드 계약이 함께 바뀌므로 협의 후 적용한다.
     @Transactional
     public void updatePassword(PasswordUpdateRequest request) {
         Member member = getCurrentMember();
@@ -68,6 +75,7 @@ public class MemberService {
         Long memberId = SecurityUtil.getCurrentMemberId();
         Member member = getCurrentMember();
 
+        refreshTokenRepository.deleteByMemberId(memberId);
         verificationRepository.deleteByMemberId(memberId);
         memberSocialAccountRepository.deleteByMemberId(memberId);
         notificationRepository.deleteByUserId(memberId);

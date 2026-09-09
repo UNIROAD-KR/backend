@@ -236,6 +236,11 @@ public class AuthService {
                     return existing;
                 })
                 .orElseGet(() -> {
+                    // TODO(보안): 이메일이 같다는 이유만으로 기존 계정에 소셜 계정을 붙인다.
+                    //   프로바이더가 그 이메일을 검증했는지 우리는 알 수 없으므로,
+                    //   검증이 느슨한 곳에서 피해자 이메일로 계정을 만들면 남의 계정에 들어올 수 있다.
+                    //   자동 연결을 없애고 본인 확인 뒤 설정에서 연결하게 해야 한다.
+                    //   가입 흐름이 함께 바뀌므로 프론트엔드와 협의 후 적용한다.
                     if (userInfo.getEmail() != null) {
                         return memberRepository.findByEmail(userInfo.getEmail())
                                 .map(existing -> {
@@ -286,12 +291,10 @@ public class AuthService {
     public TokenResponse reissue(ReissueRequest request, String clientIp) {
         String oldRefreshToken = request.refreshToken();
 
-        // 1. JWT 서명/만료 검증
-        if (!jwtProvider.validateToken(oldRefreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
-        }
-
-        Long memberId = jwtProvider.getMemberId(oldRefreshToken);
+        // 1. JWT 서명/만료 검증 + 타입 확인.
+        //    Access Token을 여기에 넣으면 막힌다 — 예전에는 통과한 뒤 DB의 토큰과
+        //    불일치해서 "탈취 의심"으로 판정돼 멀쩡한 세션이 끊기곤 했다.
+        Long memberId = jwtProvider.getMemberId(jwtProvider.parseRefreshClaims(oldRefreshToken));
 
         // 2. DB에서 Refresh Token 조회 및 일치 여부 확인
         RefreshToken savedToken = refreshTokenRepository.findByMemberId(memberId)
@@ -313,7 +316,8 @@ public class AuthService {
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         // 4. 새 토큰 발급 + Refresh Token Rotation
-        String newAccessToken  = jwtProvider.createAccessToken(memberId, member.getRole().getKey());
+        String newAccessToken  = jwtProvider.createAccessToken(
+                memberId, member.getRole().getKey(), member.getTokenVersion());
         String newRefreshToken = jwtProvider.createRefreshToken(memberId);
         Long ttl = jwtProvider.getRefreshTokenValiditySeconds();
 
@@ -333,6 +337,12 @@ public class AuthService {
 
     @Transactional
     public void logout(Long memberId, String fcmToken) {
+        // Refresh Token 행만 지우면 이미 나간 Access Token은 남은 30분 동안 그대로 통했다.
+        // 토큰 세대를 올려 그 토큰들을 즉시 회수한다.
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        member.invalidateIssuedTokens();
+
         refreshTokenRepository.deleteByMemberId(memberId);
 
         // 토큰을 안 지우면 로그아웃한 기기로 이 회원의 알림이 계속 간다.
@@ -346,7 +356,8 @@ public class AuthService {
     // ── 내부 공통 토큰 발급 메서드 ───────────────────────────────
 
     private TokenResponse issueTokens(Member member) {
-        String accessToken  = jwtProvider.createAccessToken(member.getId(), member.getRole().getKey());
+        String accessToken  = jwtProvider.createAccessToken(
+                member.getId(), member.getRole().getKey(), member.getTokenVersion());
         String refreshToken = jwtProvider.createRefreshToken(member.getId());
         upsertRefreshToken(
                 member.getId(),

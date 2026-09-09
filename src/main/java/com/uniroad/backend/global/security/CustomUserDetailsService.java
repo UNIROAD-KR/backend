@@ -43,4 +43,21 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         return new CustomUserDetails(member);
     }
+
+    /**
+     * ID로 사용자를 조회하면서, 토큰에 실린 세대가 아직 유효한지 함께 확인한다.
+     *
+     * 로그아웃이나 비밀번호 변경으로 회원의 tokenVersion이 올라갔다면 그 이전에 발급된
+     * 토큰은 여기서 걸린다. 회원 조회는 어차피 하던 것이라 검사에 드는 쿼리는 없다.
+     */
+    @Transactional(readOnly = true)
+    public UserDetails loadUserById(Long id, int tokenVersion) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (member.getTokenVersion() != tokenVersion) {
+            throw new CustomException(ErrorCode.EXPIRED_TOKEN);
+        }
+        return new CustomUserDetails(member);
+    }
 }

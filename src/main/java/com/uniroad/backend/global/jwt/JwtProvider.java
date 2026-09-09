@@ -17,11 +17,24 @@ import java.util.Date;
  * JWT 토큰 생성 / 검증 / 파싱 전담 컴포넌트
  *
  * Access  Token : 짧은 수명 (기본 30분)  → Authorization 헤더로 전달
- * Refresh Token : 긴 수명   (기본 14일)  → Redis + HttpOnly Cookie 또는 Body로 전달
+ * Refresh Token : 긴 수명   (기본 14일)  → refresh_token 테이블에 저장하고 Body로 전달
+ *
+ * 두 토큰은 같은 키로 서명되므로 서명 검증만으로는 서로를 구분하지 못한다.
+ * 예전에는 그래서 Refresh Token을 Authorization 헤더에 넣어도 인증이 통과했고,
+ * 30분짜리로 설계한 자격 증명이 실제로는 14일을 살았다.
+ * 지금은 파싱 진입점을 타입별로 나눠, 쓰려는 자리에 맞는 토큰만 통과시킨다.
  */
 @Slf4j
 @Component
 public class JwtProvider {
+
+    public static final String CLAIM_TYPE = "type";
+    public static final String CLAIM_ROLE = "role";
+    /** 발급 시점의 Member.tokenVersion. 로그아웃·비밀번호 변경으로 값이 오르면 이 토큰은 무효가 된다. */
+    public static final String CLAIM_TOKEN_VERSION = "tv";
+
+    private static final String TYPE_ACCESS = "ACCESS";
+    private static final String TYPE_REFRESH = "REFRESH";
 
     private final SecretKey key;
     private final long accessTokenValidityMs;
@@ -41,17 +54,19 @@ public class JwtProvider {
 
     /**
      * Access Token 생성
-     * @param memberId  회원 PK (subject)
-     * @param role      권한 문자열 (ex. "ROLE_USER")
+     * @param memberId      회원 PK (subject)
+     * @param role          권한 문자열 (ex. "ROLE_USER")
+     * @param tokenVersion  발급 시점의 Member.tokenVersion
      */
-    public String createAccessToken(Long memberId, String role) {
+    public String createAccessToken(Long memberId, String role, int tokenVersion) {
         Date now    = new Date();
         Date expiry = new Date(now.getTime() + accessTokenValidityMs);
 
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
-                .claim("role", role)
-                .claim("type", "ACCESS")
+                .claim(CLAIM_ROLE, role)
+                .claim(CLAIM_TYPE, TYPE_ACCESS)
+                .claim(CLAIM_TOKEN_VERSION, tokenVersion)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -67,7 +82,7 @@ public class JwtProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
-                .claim("type", "REFRESH")
+                .claim(CLAIM_TYPE, TYPE_REFRESH)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
@@ -77,10 +92,32 @@ public class JwtProvider {
     // ── 토큰 파싱 / 검증 ──────────────────────────────────────
 
     /**
-     * 토큰에서 Claims 추출 (서명 검증 포함)
-     * 만료 / 서명 오류 시 CustomException 발생
+     * Access Token으로 쓰이는 자리의 유일한 파싱 진입점.
+     * Refresh Token을 넣으면 여기서 막힌다.
      */
-    public Claims parseClaims(String token) {
+    public Claims parseAccessClaims(String token) {
+        return parseTypedClaims(token, TYPE_ACCESS);
+    }
+
+    /**
+     * 재발급 자리의 파싱 진입점. Access Token을 넣으면 여기서 막힌다.
+     */
+    public Claims parseRefreshClaims(String token) {
+        return parseTypedClaims(token, TYPE_REFRESH);
+    }
+
+    private Claims parseTypedClaims(String token, String expectedType) {
+        Claims claims = parseClaims(token);
+        if (!expectedType.equals(claims.get(CLAIM_TYPE, String.class))) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+        return claims;
+    }
+
+    /**
+     * 서명과 만료만 검증한다. 타입을 구분하지 않으므로 바깥에 열지 않는다.
+     */
+    private Claims parseClaims(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(key)
@@ -95,38 +132,33 @@ public class JwtProvider {
     }
 
     /**
-     * 토큰 유효성 검사 (boolean 반환 — Filter 내부 사용)
+     * Claims에서 회원 ID 추출
      */
-    public boolean validateToken(String token) {
+    public Long getMemberId(Claims claims) {
         try {
-            parseClaims(token);
-            return true;
-        } catch (CustomException e) {
-            return false;
+            return Long.parseLong(claims.getSubject());
+        } catch (NumberFormatException e) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
     }
 
     /**
-     * 토큰에서 회원 ID 추출
+     * Claims에서 발급 시점의 tokenVersion 추출.
+     *
+     * 이 클레임이 도입되기 전에 발급된 토큰에는 값이 없다. 그런 토큰까지 한 번에 막으면
+     * 배포 순간 접속 중인 사용자가 전부 튕기므로, 당분간은 최초 버전(0)으로 간주한다.
+     * 기존 토큰의 최대 수명(30분)이 지나면 이 관용은 없애고 null을 거부해도 된다.
      */
-    public Long getMemberId(String token) {
-        return Long.parseLong(parseClaims(token).getSubject());
-    }
-
-    /**
-     * 토큰에서 Role 추출
-     */
-    public String getRole(String token) {
-        return parseClaims(token).get("role", String.class);
+    public int getTokenVersion(Claims claims) {
+        Integer tokenVersion = claims.get(CLAIM_TOKEN_VERSION, Integer.class);
+        return tokenVersion == null ? 0 : tokenVersion;
     }
 
     /**
      * Access Token 만료까지 남은 시간(ms) 반환
-     * — 블랙리스트 TTL 계산 등에 활용
      */
-    public long getExpiration(String token) {
-        Date expiry = parseClaims(token).getExpiration();
-        return expiry.getTime() - System.currentTimeMillis();
+    public long getExpiration(Claims claims) {
+        return claims.getExpiration().getTime() - System.currentTimeMillis();
     }
 
     public long getAccessTokenValiditySeconds() {
