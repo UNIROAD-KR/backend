@@ -22,7 +22,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,6 +81,41 @@ public class BlogPost extends BaseTimeEntity {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
+    /* ── 검색 노출 ──────────────────────────────────────────
+     * 비워두면 화면용 값(title·summary·thumbnailUrl)을 대신 쓴다.
+     * 자동으로 채운 값을 컬럼에 박아 넣지 않는 이유는, 그 순간 "작성자가 비워둔 것"과
+     * "직접 그렇게 쓴 것"을 구별할 수 없게 되고 본문을 고쳐도 옛 값이 남기 때문이다.
+     * fallback은 응답을 만들 때 계산한다(BlogPostDetailResponse 참고).
+     */
+
+    /** 검색결과에 뜨는 제목. 비우면 title을 쓴다. */
+    @Column(name = "meta_title", length = 60)
+    private String metaTitle;
+
+    /** 검색결과에 뜨는 설명. 비우면 summary를 쓴다. */
+    @Column(name = "meta_description", length = 160)
+    private String metaDescription;
+
+    /** 공유 미리보기 이미지(1200×630). 비우면 thumbnailUrl을 쓴다. */
+    @Column(name = "og_image_url", length = 500)
+    private String ogImageUrl;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "tags", columnDefinition = "JSON")
+    private List<String> tags;
+
+    /** 같은 글을 외부에 먼저 실었을 때만 채운다. 비우면 /blog/{slug}가 원본이다. */
+    @Column(name = "canonical_url", length = 500)
+    private String canonicalUrl;
+
+    /**
+     * 색인에서 빼고 싶은 글.
+     * 이미 행이 있는 테이블에 기본값 없는 not null을 추가하면 ddl-auto가 조용히 실패하므로
+     * 기본값을 컬럼 정의에 직접 적는다.
+     */
+    @Column(name = "noindex", nullable = false, columnDefinition = "boolean not null default false")
+    private boolean noindex;
+
     @Column(name = "view_count", nullable = false)
     private long viewCount;
 
@@ -87,24 +124,9 @@ public class BlogPost extends BaseTimeEntity {
     private Member author;
 
     @Builder
-    private BlogPost(
-            String slug,
-            String title,
-            String summary,
-            String thumbnailUrl,
-            Map<String, Object> contentJson,
-            String contentHtml,
-            String plainText,
-            BlogPostStatus status,
-            Member author
-    ) {
-        this.slug = slug;
-        this.title = title;
-        this.summary = summary;
-        this.thumbnailUrl = thumbnailUrl;
-        this.contentJson = contentJson == null ? new LinkedHashMap<>() : new LinkedHashMap<>(contentJson);
-        this.contentHtml = contentHtml;
-        this.plainText = plainText;
+    private BlogPost(BlogPostContent content, BlogPostSeo seo, BlogPostStatus status, Member author) {
+        applyContent(content);
+        applySeo(seo == null ? BlogPostSeo.empty() : seo);
         this.status = status == null ? BlogPostStatus.DRAFT : status;
         this.author = author;
         this.viewCount = 0L;
@@ -113,22 +135,35 @@ public class BlogPost extends BaseTimeEntity {
         }
     }
 
-    public void update(
-            String slug,
-            String title,
-            String summary,
-            String thumbnailUrl,
-            Map<String, Object> contentJson,
-            String contentHtml,
-            String plainText
-    ) {
-        this.slug = slug;
-        this.title = title;
-        this.summary = summary;
-        this.thumbnailUrl = thumbnailUrl;
-        this.contentJson = contentJson == null ? new LinkedHashMap<>() : new LinkedHashMap<>(contentJson);
-        this.contentHtml = contentHtml;
-        this.plainText = plainText;
+    public void update(BlogPostContent content, BlogPostSeo seo) {
+        applyContent(content);
+        applySeo(seo == null ? BlogPostSeo.empty() : seo);
+    }
+
+    private void applyContent(BlogPostContent content) {
+        this.slug = content.slug();
+        this.title = content.title();
+        this.summary = content.summary();
+        this.thumbnailUrl = content.thumbnailUrl();
+        this.contentJson = content.contentJson() == null
+                ? new LinkedHashMap<>()
+                : new LinkedHashMap<>(content.contentJson());
+        this.contentHtml = content.contentHtml();
+        this.plainText = content.plainText();
+    }
+
+    private void applySeo(BlogPostSeo seo) {
+        this.metaTitle = seo.metaTitle();
+        this.metaDescription = seo.metaDescription();
+        this.ogImageUrl = seo.ogImageUrl();
+        this.tags = seo.tags() == null ? new ArrayList<>() : new ArrayList<>(seo.tags());
+        this.canonicalUrl = seo.canonicalUrl();
+        this.noindex = seo.noindex();
+    }
+
+    /** 예전에 저장된 글은 tags 컬럼이 null이다. 부르는 쪽에서 매번 확인하지 않게 여기서 흡수한다. */
+    public List<String> getTags() {
+        return this.tags == null ? List.of() : List.copyOf(this.tags);
     }
 
     /**
@@ -152,10 +187,6 @@ public class BlogPost extends BaseTimeEntity {
      */
     public void assignSlug(String slug) {
         this.slug = slug;
-    }
-
-    public void increaseViewCount() {
-        this.viewCount++;
     }
 
     public boolean isPublished() {

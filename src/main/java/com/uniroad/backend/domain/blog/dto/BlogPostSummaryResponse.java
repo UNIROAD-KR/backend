@@ -18,7 +18,9 @@ public record BlogPostSummaryResponse(
         LocalDateTime updatedAt,
         long viewCount,
         long likeCount,
-        boolean likedByMe
+        boolean likedByMe,
+        /** sitemap이 색인 제외 글을 걸러내는 데 쓴다. 나머지 SEO 값은 목록에 싣지 않는다. */
+        boolean noindex
 ) {
     public static BlogPostSummaryResponse of(BlogPost post, long likeCount, boolean likedByMe) {
         return new BlogPostSummaryResponse(
@@ -34,7 +36,8 @@ public record BlogPostSummaryResponse(
                 post.getUpdatedAt(),
                 post.getViewCount(),
                 likeCount,
-                likedByMe
+                likedByMe,
+                post.isNoindex()
         );
     }
 }

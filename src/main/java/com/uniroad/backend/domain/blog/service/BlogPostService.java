@@ -5,7 +5,9 @@ import com.uniroad.backend.domain.blog.dto.BlogPostLikeResponse;
 import com.uniroad.backend.domain.blog.dto.BlogPostRequest;
 import com.uniroad.backend.domain.blog.dto.BlogPostSummaryResponse;
 import com.uniroad.backend.domain.blog.entity.BlogPost;
+import com.uniroad.backend.domain.blog.entity.BlogPostContent;
 import com.uniroad.backend.domain.blog.entity.BlogPostLike;
+import com.uniroad.backend.domain.blog.entity.BlogPostSeo;
 import com.uniroad.backend.domain.blog.entity.BlogPostStatus;
 import com.uniroad.backend.domain.blog.repository.BlogPostLikeRepository;
 import com.uniroad.backend.domain.blog.repository.BlogPostRepository;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -36,6 +39,7 @@ public class BlogPostService {
 
     private static final int SUMMARY_LENGTH = 150;
     private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_TAGS = 10;
 
     private final BlogPostRepository blogPostRepository;
     private final BlogPostLikeRepository blogPostLikeRepository;
@@ -73,8 +77,10 @@ public class BlogPostService {
             throw new CustomException(ErrorCode.BLOG_POST_NOT_FOUND);
         }
 
-        post.increaseViewCount();
-        return toDetail(post, memberId, false);
+        // 엔티티를 고치지 않고 UPDATE 한 문장으로 올린다 — updatedAt을 건드리면 안 된다(레포지토리 주석 참고).
+        // 엔티티에는 반영되지 않으므로 이번 조회까지 센 값을 따로 넘긴다.
+        blogPostRepository.increaseViewCount(post.getId());
+        return toDetail(post, memberId, false, post.getViewCount() + 1);
     }
 
     // ── 좋아요 ────────────────────────────────────────────────
@@ -123,14 +129,17 @@ public class BlogPostService {
         String desiredSlug = resolveSlug(request.slug(), request.title());
 
         BlogPost post = BlogPost.builder()
-                // slug를 못 만든 경우 임시 값으로 저장한 뒤 id로 바꾼다
-                .slug(desiredSlug == null ? temporarySlug() : uniqueSlug(desiredSlug, null))
-                .title(request.title().trim())
-                .summary(resolveSummary(request.summary(), plainText))
-                .thumbnailUrl(resolveThumbnail(request.thumbnailUrl(), sanitizedHtml))
-                .contentJson(request.contentJson())
-                .contentHtml(sanitizedHtml)
-                .plainText(plainText)
+                .content(new BlogPostContent(
+                        // slug를 못 만든 경우 임시 값으로 저장한 뒤 id로 바꾼다
+                        desiredSlug == null ? temporarySlug() : uniqueSlug(desiredSlug, null),
+                        request.title().trim(),
+                        resolveSummary(request.summary(), plainText),
+                        resolveThumbnail(request.thumbnailUrl(), sanitizedHtml),
+                        request.contentJson(),
+                        sanitizedHtml,
+                        plainText
+                ))
+                .seo(toSeo(request))
                 .status(request.published() ? BlogPostStatus.PUBLISHED : BlogPostStatus.DRAFT)
                 .author(author)
                 .build();
@@ -153,13 +162,16 @@ public class BlogPostService {
         String slug = desiredSlug == null ? post.getSlug() : uniqueSlug(desiredSlug, postId);
 
         post.update(
-                slug,
-                request.title().trim(),
-                resolveSummary(request.summary(), plainText),
-                resolveThumbnail(request.thumbnailUrl(), sanitizedHtml),
-                request.contentJson(),
-                sanitizedHtml,
-                plainText
+                new BlogPostContent(
+                        slug,
+                        request.title().trim(),
+                        resolveSummary(request.summary(), plainText),
+                        resolveThumbnail(request.thumbnailUrl(), sanitizedHtml),
+                        request.contentJson(),
+                        sanitizedHtml,
+                        plainText
+                ),
+                toSeo(request)
         );
 
         if (request.published()) {
@@ -224,10 +236,14 @@ public class BlogPostService {
     }
 
     private BlogPostDetailResponse toDetail(BlogPost post, Long memberId, boolean includeJson) {
+        return toDetail(post, memberId, includeJson, post.getViewCount());
+    }
+
+    private BlogPostDetailResponse toDetail(BlogPost post, Long memberId, boolean includeJson, long viewCount) {
         long likeCount = blogPostLikeRepository.countByBlogPostId(post.getId());
         boolean likedByMe = memberId != null
                 && blogPostLikeRepository.existsByBlogPostIdAndMemberId(post.getId(), memberId);
-        return BlogPostDetailResponse.of(post, likeCount, likedByMe, includeJson);
+        return BlogPostDetailResponse.of(post, likeCount, likedByMe, includeJson, viewCount);
     }
 
     private Map<Long, Long> countLikes(Collection<Long> postIds) {
@@ -243,6 +259,53 @@ public class BlogPostService {
             return Set.of();
         }
         return new HashSet<>(blogPostLikeRepository.findLikedPostIds(memberId, postIds));
+    }
+
+    /**
+     * SEO 값은 작성자가 적은 것만 담는다.
+     * 프론트는 빈 칸을 ""로 보내오므로 여기서 null로 눕혀, "비었다"의 표현을 한 가지로 고정한다.
+     */
+    private BlogPostSeo toSeo(BlogPostRequest request) {
+        return new BlogPostSeo(
+                blankToNull(request.metaTitle()),
+                blankToNull(request.metaDescription()),
+                blankToNull(request.ogImageUrl()),
+                normalizeTags(request.tags()),
+                blankToNull(request.canonicalUrl()),
+                request.noindex()
+        );
+    }
+
+    private String blankToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /**
+     * 소문자로 눕히고 공백을 정리한 뒤 중복을 없앤다.
+     * 다듬지 않으면 "교환학생"과 "교환학생 "이 서로 다른 태그가 되어 태그로 묶는 일이 불가능해진다.
+     */
+    private List<String> normalizeTags(List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return List.of();
+        }
+        Set<String> unique = new LinkedHashSet<>();
+        for (String tag : tags) {
+            if (tag == null) {
+                continue;
+            }
+            String normalized = tag.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+            if (!normalized.isEmpty()) {
+                unique.add(normalized);
+            }
+            if (unique.size() == MAX_TAGS) {
+                break;
+            }
+        }
+        return List.copyOf(unique);
     }
 
     private String resolveSummary(String summary, String plainText) {
