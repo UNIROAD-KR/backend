@@ -40,11 +40,86 @@ class BlogContentSanitizerTest {
     }
 
     @Test
-    @DisplayName("style 속성은 허용하지 않는다")
-    void dropsStyleAttribute() {
-        String result = sanitizer.sanitize("<p style=\"position:fixed\">글</p>");
+    @DisplayName("허용 목록에 없는 style 선언은 남지 않는다")
+    void dropsUnknownStyleDeclarations() {
+        String result = sanitizer.sanitize(
+                "<p style=\"position:fixed\">글</p>"
+                        + "<p style=\"background-image:url(https://evil.example.com/track.png)\">추적</p>");
 
-        assertThat(result).doesNotContain("style");
+        assertThat(result).doesNotContain("style", "position", "url(");
+        assertThat(result).contains("글", "추적");
+    }
+
+    @Test
+    @DisplayName("색·크기·정렬은 값이 모양에 맞을 때만 살아남는다")
+    void keepsAllowedStyleDeclarations() {
+        String result = sanitizer.sanitize(
+                "<p style=\"text-align: center\">가운데</p>"
+                        + "<p><span style=\"font-size: 24px; color: #1f4f9e\">큰 글씨</span></p>"
+                        + "<p><mark style=\"background-color: rgb(255, 214, 229)\">형광펜</mark></p>");
+
+        assertThat(result).contains("text-align: center");
+        assertThat(result).contains("font-size: 24px");
+        assertThat(result).contains("color: #1f4f9e");
+        assertThat(result).contains("background-color: rgb(255, 214, 229)");
+    }
+
+    @Test
+    @DisplayName("한 style 안에 섞여 있어도 허용한 선언만 남는다")
+    void keepsOnlyAllowedPartOfStyle() {
+        String result = sanitizer.sanitize(
+                "<p style=\"color:#ff0000; position:absolute; top:0\">글</p>");
+
+        assertThat(result).contains("color: #ff0000");
+        assertThat(result).doesNotContain("position", "top");
+    }
+
+    @Test
+    @DisplayName("읽을 수 없는 글씨 크기는 통과하지 못한다")
+    void rejectsExtremeFontSize() {
+        String result = sanitizer.sanitize(
+                "<p><span style=\"font-size: 400px\">거대</span></p>"
+                        + "<p><span style=\"font-size: 2px\">먼지</span></p>");
+
+        assertThat(result).doesNotContain("font-size", "<span");
+        // 껍데기만 남은 span은 벗겨내고 글자는 그대로 둔다
+        assertThat(result).contains("거대", "먼지");
+    }
+
+    @Test
+    @DisplayName("표는 구조와 칸 배경색을 지킨 채 살아남는다")
+    void keepsTables() {
+        String result = sanitizer.sanitize(
+                "<table data-border=\"horizontal\"><tbody>"
+                        + "<tr><th colspan=\"2\">머리</th></tr>"
+                        + "<tr><td style=\"background-color: #cdf0d8\">칸</td><td>칸</td></tr>"
+                        + "</tbody></table>");
+
+        assertThat(result).contains("<table", "<tr>", "<th", "<td", "colspan=\"2\"");
+        assertThat(result).contains("data-border=\"horizontal\"");
+        assertThat(result).contains("background-color: #cdf0d8");
+    }
+
+    @Test
+    @DisplayName("이미지는 조절한 폭을 지킨 채 살아남는다")
+    void keepsImageWidth() {
+        String result = sanitizer.sanitize(
+                "<p><img src=\"https://cdn.example.com/a.png\" alt=\"설명\" width=\"1600\" height=\"1000\""
+                        + " style=\"width: 55%\"></p>");
+
+        assertThat(result).contains("width: 55%");
+        // 원본 크기는 그대로 둔다 — 브라우저가 이미지 자리를 미리 잡는 데 쓴다
+        assertThat(result).contains("width=\"1600\"", "height=\"1000\"");
+    }
+
+    @Test
+    @DisplayName("표 안에 숨긴 스크립트도 걸러진다")
+    void removesScriptInsideTable() {
+        String result = sanitizer.sanitize(
+                "<table><tr><td onmouseover=\"steal()\"><script>alert(1)</script>칸</td></tr></table>");
+
+        assertThat(result).doesNotContain("script", "onmouseover");
+        assertThat(result).contains("칸");
     }
 
     /* ── 내부·외부 링크 ──────────────────────────────── */

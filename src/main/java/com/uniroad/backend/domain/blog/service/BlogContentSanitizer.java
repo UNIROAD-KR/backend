@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Map;
+import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 /**
  * 에디터가 보낸 HTML을 그대로 믿지 않기 위한 소독기.
@@ -18,8 +21,15 @@ import java.util.Locale;
  * 관리자 계정이 한 번 털리면 전체 방문자에게 스크립트가 나가므로
  * "누가 보냈는지"가 아니라 "무엇을 허용할지"로 막는다.
  *
- * style 속성은 통째로 막는다. 하이라이트 색은 style이 아니라 data-color로 싣고
- * 실제 색은 프론트 CSS가 입힌다(허용 목록을 좁게 유지하려는 의도적인 선택).
+ * style 속성은 값까지 검사해서 허용한 선언만 남긴다.
+ *
+ * 예전에는 통째로 막았다. 그때는 형광펜 색 네 가지가 전부라 data-color로 이름만 실어도 됐다.
+ * 글씨 크기·글자 색·표 칸 배경색처럼 값이 정해져 있지 않은 서식이 생기면서, 값을 실어 나를
+ * 방법이 style 말고는 없어졌다.
+ *
+ * 그래서 "style을 연다"가 아니라 "허용한 선언만 남긴다"로 바꿨다. 색·크기·정렬·폭
+ * 여섯 가지 속성만, 그것도 정해진 모양의 값일 때만 통과한다. url(...)로 바깥을 부르거나
+ * position:fixed로 화면을 덮는 선언은 속성 이름에서 이미 걸린다.
  */
 @Component
 public class BlogContentSanitizer {
@@ -31,6 +41,28 @@ public class BlogContentSanitizer {
 
     /** 우리 도메인 바깥으로 나가는 링크에만 붙인다 */
     private static final String EXTERNAL_LINK_REL = "nofollow noopener noreferrer";
+
+    /** #rgb·#rrggbb·rgb()·rgba()만 받는다. 이름 있는 색까지 열면 검사할 목록이 끝없이 늘어난다. */
+    private static final String COLOR =
+            "#[0-9a-f]{3}|#[0-9a-f]{6}"
+                    + "|rgba?\\(\\s*[0-9.%]+\\s*,\\s*[0-9.%]+\\s*,\\s*[0-9.%]+\\s*(?:,\\s*[0-9.]+\\s*)?\\)";
+
+    /**
+     * style에서 살려 두는 선언.
+     *
+     * 글씨 크기는 위아래를 묶어 둔다. 8px 아래는 읽을 수 없고 99px 위는 한 글자가 화면을 덮는데,
+     * 둘 다 잘못 눌렀을 때 글 전체를 못 읽게 만드는 값이라 아예 통과시키지 않는다.
+     */
+    private static final Map<String, Pattern> ALLOWED_STYLE = Map.of(
+            "color", Pattern.compile(COLOR),
+            "background-color", Pattern.compile(COLOR),
+            "font-size", Pattern.compile(
+                    "(?:[89]|[1-9][0-9])(?:\\.[0-9]+)?px"
+                            + "|(?:0\\.[5-9][0-9]*|[1-5](?:\\.[0-9]+)?)(?:rem|em)"),
+            "text-align", Pattern.compile("left|center|right|justify"),
+            "width", Pattern.compile("[0-9]{1,4}(?:\\.[0-9]+)?(?:px|%)"),
+            "min-width", Pattern.compile("[0-9]{1,4}(?:\\.[0-9]+)?(?:px|%)")
+    );
 
     private final String siteUrl;
     private final String siteHost;
@@ -48,12 +80,35 @@ public class BlogContentSanitizer {
                         "strong", "b", "em", "i", "u", "s", "del", "mark", "code",
                         "ul", "ol", "li",
                         "blockquote", "pre",
-                        "a", "img"
+                        "a", "img",
+                        "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+                        "colgroup", "col",
+                        "span"
                 )
                 .addAttributes("a", "href", "title", "target")
                 .addAttributes("img", "src", "alt", "title", "width", "height")
-                // 하이라이트 색 구분용. 값은 아래 renderHTML 규칙에 맞춰 프론트에서 CSS로 처리한다.
+                // 하이라이트 색 구분용. 옛 글은 색 이름만 싣고 실제 색은 프론트 CSS가 입힌다.
                 .addAttributes("mark", "data-color")
+                // 표. colwidth는 열 폭을 끌어 맞춘 결과라, 없으면 글을 열 때마다 폭이 달라진다.
+                .addAttributes("table", "data-border")
+                .addAttributes("th", "colspan", "rowspan", "colwidth")
+                .addAttributes("td", "colspan", "rowspan", "colwidth")
+                .addAttributes("col", "span", "width")
+                // 색·크기·정렬·폭을 싣는 자리. 값은 sanitizeStyles가 한 번 더 거른다.
+                .addAttributes("span", "style")
+                .addAttributes("mark", "style")
+                .addAttributes("p", "style")
+                .addAttributes("h2", "style")
+                .addAttributes("h3", "style")
+                .addAttributes("h4", "style")
+                .addAttributes("li", "style")
+                .addAttributes("blockquote", "style")
+                .addAttributes("table", "style")
+                .addAttributes("th", "style")
+                .addAttributes("td", "style")
+                .addAttributes("col", "style")
+                // 이미지는 글쓴이가 조절한 폭(width: NN%)을 싣는다
+                .addAttributes("img", "style")
                 // 상대 경로(/blog/...)를 살리려면 절대 URL만 허용하는 기본 동작을 꺼야 한다.
                 // 프로토콜 제한은 그대로라 javascript: 는 여전히 걸러진다.
                 .preserveRelativeLinks(true)
@@ -79,10 +134,51 @@ public class BlogContentSanitizer {
         document.select("img:not([src])").remove();
         document.select("a:not([href])").forEach(Element::unwrap);
 
+        sanitizeStyles(document);
+        // 색·크기를 싣던 span에서 style이 통째로 걸러졌다면 껍데기만 남는다 — 벗겨서 글만 남긴다
+        document.select("span:not([style])").forEach(Element::unwrap);
+
         demoteTopHeadings(document);
         applyLinkRel(document);
 
         return document.body().html();
+    }
+
+    /**
+     * style 안에서 허용하는 선언만 남긴다.
+     *
+     * 속성 이름이 목록에 있고, 값이 그 속성의 모양 검사를 통과할 때만 살아남는다.
+     * 하나도 남지 않으면 속성 자체를 지운다 — 빈 style=""이 본문에 깔리지 않게.
+     */
+    private void sanitizeStyles(Document document) {
+        for (Element element : document.select("[style]")) {
+            String kept = keepAllowedDeclarations(element.attr("style"));
+            if (kept.isEmpty()) {
+                element.removeAttr("style");
+            } else {
+                element.attr("style", kept);
+            }
+        }
+    }
+
+    private static String keepAllowedDeclarations(String style) {
+        StringJoiner kept = new StringJoiner("; ");
+
+        for (String declaration : style.split(";")) {
+            int colon = declaration.indexOf(':');
+            if (colon < 0) {
+                continue;
+            }
+            String property = declaration.substring(0, colon).trim().toLowerCase(Locale.ROOT);
+            String value = declaration.substring(colon + 1).trim().toLowerCase(Locale.ROOT);
+
+            Pattern allowedValue = ALLOWED_STYLE.get(property);
+            if (allowedValue != null && allowedValue.matcher(value).matches()) {
+                kept.add(property + ": " + value);
+            }
+        }
+
+        return kept.toString();
     }
 
     /**
