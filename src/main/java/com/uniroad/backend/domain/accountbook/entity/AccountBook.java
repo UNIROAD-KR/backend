@@ -37,6 +37,10 @@ public class AccountBook extends BaseTimeEntity {
     @Column(nullable = false)
     private String title;
 
+    /**
+     * 메모. 화면에서 삭제되어 더 이상 입력받지도, 응답에 싣지도 않는다.
+     * 예전에 저장된 내용이 남아 있어 컬럼과 필드는 지우지 않는다.
+     */
     @Column(columnDefinition = "TEXT")
     private String description;
 

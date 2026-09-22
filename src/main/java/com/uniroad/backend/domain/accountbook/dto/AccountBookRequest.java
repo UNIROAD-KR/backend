@@ -28,9 +28,6 @@ public record AccountBookRequest(
     @NotBlank(message = "내역 이름은 필수입니다.")
     String title,
 
-    @Schema(description = "설명 (선택)", example = "김치찌개 먹음")
-    String description,
-
     @Schema(description = "거래 날짜", example = "2024-05-08")
     @NotNull(message = "거래 날짜는 필수입니다.")
     LocalDate transactionDate

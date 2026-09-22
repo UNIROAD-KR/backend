@@ -50,7 +50,6 @@ public class AccountBookService {
                 .type(request.type())
                 .category(request.category())
                 .title(request.title())
-                .description(request.description())
                 .transactionDate(request.transactionDate())
                 .build();
 

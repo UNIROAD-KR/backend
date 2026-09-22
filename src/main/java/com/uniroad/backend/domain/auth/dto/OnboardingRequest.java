@@ -1,10 +1,7 @@
 package com.uniroad.backend.domain.auth.dto;
 
 import com.uniroad.backend.domain.member.entity.CurrentSituation;
-import com.uniroad.backend.domain.member.entity.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -12,18 +9,9 @@ import java.time.LocalDate;
 
 @Schema(description = "온보딩 요청 데이터")
 public record OnboardingRequest(
-        @Schema(description = "출생 연도", example = "2003")
-        @Min(value = 1900, message = "출생 연도를 확인해주세요.")
-        @Max(value = 2100, message = "출생 연도를 확인해주세요.")
-        Integer birthYear,
-
         @NotBlank(message = "닉네임은 필수입니다.")
         @Schema(description = "닉네임", example = "유니")
         String nickname,
-
-        @NotNull(message = "성별은 필수입니다.")
-        @Schema(description = "성별", example = "FEMALE", allowableValues = {"MALE", "FEMALE"})
-        Gender gender,
 
         @NotNull(message = "현재 상황은 필수입니다.")
         @Schema(description = "현재 상황", example = "PREPARING_APPLICATION",

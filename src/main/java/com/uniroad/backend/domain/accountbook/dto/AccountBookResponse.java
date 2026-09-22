@@ -15,7 +15,6 @@ public record AccountBookResponse(
     AccountCategory category,
     String categoryName,
     String title,
-    String description,
     LocalDate transactionDate
 ) {
     public static AccountBookResponse from(AccountBook accountBook) {
@@ -26,7 +25,6 @@ public record AccountBookResponse(
             accountBook.getCategory(),
             accountBook.getCategory().getDescription(),
             accountBook.getTitle(),
-            accountBook.getDescription(),
             accountBook.getTransactionDate()
         );
     }

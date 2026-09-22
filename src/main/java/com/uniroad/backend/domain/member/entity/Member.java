@@ -48,6 +48,10 @@ public class Member extends BaseTimeEntity {
 
     private String nickname;
 
+    /**
+     * 온보딩에서 성별·출생 연도를 더 이상 받지 않는다(화면에서 삭제됨).
+     * 이미 가입한 회원의 값이 남아 있어 컬럼과 필드는 유지하고, 새로 가입하는 회원은 null이다.
+     */
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
@@ -146,13 +150,12 @@ public class Member extends BaseTimeEntity {
         this.role = role;
     }
 
-    public void completeOnboarding(Integer birthYear, University domesticUniversity, String dispatchedUniversity,
+    public void completeOnboarding(University domesticUniversity, String dispatchedUniversity,
                                    String dispatchedCountry, String dispatchedRegion, String nickname,
-                                   Gender gender, CurrentSituation currentSituation,
+                                   CurrentSituation currentSituation,
                                    Integer dispatchYear, String dispatchSemester,
                                    LocalDate applicationDeadline, LocalDate departureDate,
                                    LocalDate dispatchStartDate, LocalDate returnDate) {
-        this.birthYear = birthYear;
         this.domesticUniversity = domesticUniversity;
         this.dispatchedUniversity = dispatchedUniversity;
         this.dispatchedCountry = dispatchedCountry;
@@ -160,7 +163,6 @@ public class Member extends BaseTimeEntity {
         this.dispatchYear = dispatchYear;
         this.dispatchSemester = dispatchSemester;
         this.nickname = nickname;
-        this.gender = gender;
         this.currentSituation = currentSituation;
         updateSituationDates(applicationDeadline, departureDate, dispatchStartDate, returnDate);
         this.status = MemberStatus.ACTIVE;
