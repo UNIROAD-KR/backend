@@ -191,11 +191,11 @@ public class AuthService {
     public TokenResponse login(LoginRequest request) {
         // 1. 아이디로 회원 조회
         Member member = memberRepository.findByUsername(request.username())
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_CREDENTIALS));
+                .orElseThrow(() -> new CustomException(ErrorCode.LOGIN_USERNAME_NOT_FOUND));
 
         // 2. 비밀번호 검증
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+            throw new CustomException(ErrorCode.LOGIN_PASSWORD_MISMATCH);
         }
 
         // 3. 토큰 발급
