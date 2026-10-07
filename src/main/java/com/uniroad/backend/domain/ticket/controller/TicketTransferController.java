@@ -6,6 +6,7 @@ import com.uniroad.backend.domain.ticket.dto.TicketTransferSearchRequest;
 import com.uniroad.backend.domain.ticket.service.TicketTransferService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
+import com.uniroad.backend.global.common.SortOrder;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.service.ScrapService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,7 +66,11 @@ public class TicketTransferController {
         );
     }
 
-    @Operation(summary = "티켓 양도 글 검색")
+    @Operation(
+            summary = "티켓 양도 글 검색",
+            description = "minPrice·maxPrice는 둘 다 선택이다. 하나만 보내면 반대쪽은 제한 없이 조회한다. "
+                    + "useDateTo(yyyy-MM-dd)를 보내면 이용 마감일이 그 날짜 이전(당일 포함)인 글만 조회한다. sort는 LATEST(최신순, 기본)·OLDEST(오래된순)이다."
+    )
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<CursorPageResponse<TicketTransferResponseDto>>> searchTickets(
             @RequestParam(required = false) Long cursorId,
@@ -74,6 +79,10 @@ public class TicketTransferController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) String content,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long minPrice,
+            @RequestParam(required = false) Long maxPrice,
+            @RequestParam(required = false) java.time.LocalDate useDateTo,
+            @RequestParam(defaultValue = "LATEST") SortOrder sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         TicketTransferSearchRequest request = new TicketTransferSearchRequest(
@@ -81,7 +90,11 @@ public class TicketTransferController {
                 country,
                 location,
                 content,
-                parseStatus(status)
+                parseStatus(status),
+                minPrice,
+                maxPrice,
+                useDateTo,
+                sort
         );
         return ResponseEntity.ok(
                 ApiResponse.success(

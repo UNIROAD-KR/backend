@@ -9,6 +9,7 @@ import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.service.ScrapService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
+import com.uniroad.backend.global.common.SortOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -83,7 +84,7 @@ public class UsedItemController {
         );
     }
 
-    @Operation(summary = "중고거래 게시글 검색")
+    @Operation(summary = "중고거래 게시글 검색", description = "minPrice·maxPrice는 둘 다 선택이다. 하나만 보내면 반대쪽은 제한 없이 조회한다. sort는 LATEST(최신순, 기본)·OLDEST(오래된순)이다.")
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<CursorPageResponse<UsedItemSummaryResponseDto>>> searchUsedItems(
             @RequestParam(required = false) Long cursorId,
@@ -92,6 +93,9 @@ public class UsedItemController {
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String content,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long minPrice,
+            @RequestParam(required = false) Long maxPrice,
+            @RequestParam(defaultValue = "LATEST") SortOrder sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         UsedItemSearchRequest request = new UsedItemSearchRequest(
@@ -99,7 +103,10 @@ public class UsedItemController {
                 country,
                 region,
                 content,
-                parseStatus(status)
+                parseStatus(status),
+                minPrice,
+                maxPrice,
+                sort
         );
         CursorPageResponse<UsedItemSummaryResponseDto> response =
                 usedItemService.getUsedItems(cursorId, size, request);

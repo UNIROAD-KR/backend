@@ -6,6 +6,7 @@ import com.uniroad.backend.domain.companion.dto.CompanionSearchRequest;
 import com.uniroad.backend.domain.companion.service.CompanionService;
 import com.uniroad.backend.global.common.ApiResponse;
 import com.uniroad.backend.global.common.CursorPageResponse;
+import com.uniroad.backend.global.common.SortOrder;
 import com.uniroad.backend.global.security.CustomUserDetails;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.service.ScrapService;
@@ -58,7 +59,11 @@ public class CompanionController {
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 목록 조회 성공", posts));
     }
 
-    @Operation(summary = "동행 구하기 검색")
+    @Operation(
+            summary = "동행 구하기 검색",
+            description = "모든 조건은 선택이다. genderCondition은 ANY(성별 무관)·FEMALE_ONLY(여성만)·MALE_ONLY(남성만) 중 하나이고, "
+                    + "minCapacity·maxCapacity는 정원(최대 인원) 범위다. sort는 LATEST(최신순, 기본)·OLDEST(오래된순)이다."
+    )
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<CursorPageResponse<CompanionPostResponse>>> searchPosts(
             @RequestParam(required = false) Long cursorId,
@@ -69,6 +74,10 @@ public class CompanionController {
             @RequestParam(required = false) java.time.LocalDate startDateTo,
             @RequestParam(required = false) java.time.LocalDate endDateFrom,
             @RequestParam(required = false) java.time.LocalDate endDateTo,
+            @RequestParam(required = false) com.uniroad.backend.domain.companion.entity.GenderCondition genderCondition,
+            @RequestParam(required = false) Integer minCapacity,
+            @RequestParam(required = false) Integer maxCapacity,
+            @RequestParam(defaultValue = "LATEST") SortOrder sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         CompanionSearchRequest request = new CompanionSearchRequest(
@@ -78,7 +87,11 @@ public class CompanionController {
                 startDateFrom,
                 startDateTo,
                 endDateFrom,
-                endDateTo
+                endDateTo,
+                genderCondition,
+                minCapacity,
+                maxCapacity,
+                sort
         );
         CursorPageResponse<CompanionPostResponse> posts = companionService.searchPosts(cursorId, size, request);
         return ResponseEntity.ok(ApiResponse.success("동행 구하기 검색 성공", posts));

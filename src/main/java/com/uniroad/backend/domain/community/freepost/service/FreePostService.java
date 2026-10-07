@@ -6,8 +6,10 @@ import com.uniroad.backend.domain.community.freepost.dto.FreePostDetailResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostLikeResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostRequest;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostSearchRequest;
+import com.uniroad.backend.domain.community.freepost.dto.FreePostSort;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostSummaryResponse;
 import com.uniroad.backend.domain.community.freepost.entity.FreePost;
+import com.uniroad.backend.domain.community.freepost.entity.FreePostCategory;
 import com.uniroad.backend.domain.community.freepost.entity.FreePostComment;
 import com.uniroad.backend.domain.community.freepost.entity.FreePostLike;
 import com.uniroad.backend.domain.community.freepost.repository.FreePostCommentRepository;
@@ -42,23 +44,22 @@ public class FreePostService {
     private final MemberRepository memberRepository;
     private final NotificationService notificationService;
 
-    public CursorPageResponse<FreePostSummaryResponse> getPosts(Long cursorId, String keyword, int size) {
-        int requestSize = normalizeSize(size);
-        List<FreePost> posts = freePostRepository.findByCursorAndKeyword(
-                cursorId,
-                normalizeKeyword(keyword),
-                PageRequest.of(0, requestSize + 1)
-        );
-
-        return toCursorResponse(posts, requestSize);
+    public CursorPageResponse<FreePostSummaryResponse> getPosts(
+            Long cursorId, String keyword, int size, FreePostCategory category, FreePostSort sort
+    ) {
+        return getPostsByStatus(cursorId, keyword, size, null, category, sort);
     }
 
-    public CursorPageResponse<FreePostSummaryResponse> getPreDispatchPosts(Long cursorId, String keyword, int size) {
-        return getPostsByStatus(cursorId, keyword, size, "파견 전");
+    public CursorPageResponse<FreePostSummaryResponse> getPreDispatchPosts(
+            Long cursorId, String keyword, int size, FreePostCategory category, FreePostSort sort
+    ) {
+        return getPostsByStatus(cursorId, keyword, size, "파견 전", category, sort);
     }
 
-    public CursorPageResponse<FreePostSummaryResponse> getDispatchedPosts(Long cursorId, String keyword, int size) {
-        return getPostsByStatus(cursorId, keyword, size, "파견 중");
+    public CursorPageResponse<FreePostSummaryResponse> getDispatchedPosts(
+            Long cursorId, String keyword, int size, FreePostCategory category, FreePostSort sort
+    ) {
+        return getPostsByStatus(cursorId, keyword, size, "파견 중", category, sort);
     }
 
     public CursorPageResponse<FreePostSummaryResponse> searchPosts(Long cursorId, int size, FreePostSearchRequest request) {
@@ -70,14 +71,6 @@ public class FreePostService {
                 PageRequest.of(0, requestSize + 1)
         );
         return toCursorResponse(posts, requestSize);
-    }
-
-    public CursorPageResponse<FreePostSummaryResponse> searchPreDispatchPosts(Long cursorId, int size, FreePostSearchRequest request) {
-        return searchPostsByStatus(cursorId, size, request, "파견 전");
-    }
-
-    public CursorPageResponse<FreePostSummaryResponse> searchDispatchedPosts(Long cursorId, int size, FreePostSearchRequest request) {
-        return searchPostsByStatus(cursorId, size, request, "파견 중");
     }
 
     public CursorPageResponse<FreePostSummaryResponse> getMyPosts(Long memberId, Long cursorId, int size) {
@@ -169,6 +162,7 @@ public class FreePostService {
                 .content(request.content().trim())
                 .country(FreePost.resolveCountry(member))
                 .status(FreePost.resolveStatus(member))
+                .category(request.category() == null ? FreePostCategory.CHAT : request.category())
                 .imageUrls(normalizeImageUrls(request.imageUrls()))
                 .build();
 
@@ -185,6 +179,7 @@ public class FreePostService {
                 request.content().trim(),
                 FreePost.resolveCountry(post.getMember()),
                 FreePost.resolveStatus(post.getMember()),
+                request.category(),
                 normalizeImageUrls(request.imageUrls())
         );
     }
@@ -314,25 +309,25 @@ public class FreePostService {
         return Math.min(size, 50);
     }
 
-    private CursorPageResponse<FreePostSummaryResponse> getPostsByStatus(Long cursorId, String keyword, int size, String status) {
+    private CursorPageResponse<FreePostSummaryResponse> getPostsByStatus(
+            Long cursorId, String keyword, int size, String status, FreePostCategory category, FreePostSort sort
+    ) {
         int requestSize = normalizeSize(size);
-        List<FreePost> posts = freePostRepository.findByCursorAndKeywordAndStatus(
-                cursorId,
-                normalizeKeyword(keyword),
-                status,
-                PageRequest.of(0, requestSize + 1)
-        );
-        return toCursorResponse(posts, requestSize);
-    }
+        String normalizedKeyword = normalizeKeyword(keyword);
+        PageRequest pageable = PageRequest.of(0, requestSize + 1);
 
-    private CursorPageResponse<FreePostSummaryResponse> searchPostsByStatus(Long cursorId, int size, FreePostSearchRequest request, String status) {
-        int requestSize = normalizeSize(size);
-        List<FreePost> posts = freePostRepository.findByCursorAndKeywordAndStatus(
-                cursorId,
-                normalizeText(request.title()),
-                status,
-                PageRequest.of(0, requestSize + 1)
-        );
+        List<FreePost> posts = switch (sort == null ? FreePostSort.LATEST : sort) {
+            case LATEST -> freePostRepository.findLatestByCursor(cursorId, normalizedKeyword, status, category, pageable);
+            case OLDEST -> freePostRepository.findOldestByCursor(cursorId, normalizedKeyword, status, category, pageable);
+            case POPULAR -> freePostRepository.findPopularByCursor(
+                    cursorId,
+                    cursorId == null ? 0L : freePostLikeRepository.countByFreePostId(cursorId),
+                    normalizedKeyword,
+                    status,
+                    category,
+                    pageable
+            );
+        };
         return toCursorResponse(posts, requestSize);
     }
 }

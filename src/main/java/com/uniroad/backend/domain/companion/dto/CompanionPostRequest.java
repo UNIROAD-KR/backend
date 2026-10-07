@@ -1,5 +1,6 @@
 package com.uniroad.backend.domain.companion.dto;
 
+import com.uniroad.backend.domain.companion.entity.GenderCondition;
 import com.uniroad.backend.domain.companion.entity.RecruitmentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -52,6 +53,9 @@ public record CompanionPostRequest(
     Integer currentParticipants,
 
     @Schema(description = "성비 (선택)", example = "1:1")
-    String genderRatio
+    String genderRatio,
+
+    @Schema(description = "성별 조건 (선택, 없으면 ANY)", example = "ANY", allowableValues = {"ANY", "FEMALE_ONLY", "MALE_ONLY"})
+    GenderCondition genderCondition
 ) {
 }

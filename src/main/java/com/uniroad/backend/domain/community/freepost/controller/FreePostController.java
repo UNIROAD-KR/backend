@@ -5,7 +5,9 @@ import com.uniroad.backend.domain.community.freepost.dto.FreePostCommentResponse
 import com.uniroad.backend.domain.community.freepost.dto.FreePostDetailResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostLikeResponse;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostRequest;
+import com.uniroad.backend.domain.community.freepost.dto.FreePostSort;
 import com.uniroad.backend.domain.community.freepost.dto.FreePostSummaryResponse;
+import com.uniroad.backend.domain.community.freepost.entity.FreePostCategory;
 import com.uniroad.backend.domain.community.freepost.service.FreePostService;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.service.ScrapService;
@@ -38,16 +40,23 @@ public class FreePostController {
     private final FreePostService freePostService;
     private final ScrapService scrapService;
 
-    @Operation(summary = "자유게시판 목록 조회")
+    @Operation(
+            summary = "자유게시판 목록 조회",
+            description = "category를 생략하면 전체, QUESTION(질문글)·CHAT(사담글)·WORRY(고민글)를 보내면 해당 글만 조회한다. "
+                    + "sort는 LATEST(최신순, 기본)·OLDEST(오래된순)·POPULAR(인기순)이다. "
+                    + "파견 전/중 목록과 검색 API도 같은 파라미터를 받는다."
+    )
     @GetMapping
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) FreePostCategory category,
+            @RequestParam(defaultValue = "LATEST") FreePostSort sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "자유게시판 목록 조회 성공",
-                freePostService.getPosts(cursorId, keyword, size)
+                freePostService.getPosts(cursorId, keyword, size, category, sort)
         ));
     }
 
@@ -56,11 +65,13 @@ public class FreePostController {
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getPreDispatchPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) FreePostCategory category,
+            @RequestParam(defaultValue = "LATEST") FreePostSort sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "파견 전 자유게시판 목록 조회 성공",
-                freePostService.getPreDispatchPosts(cursorId, keyword, size)
+                freePostService.getPreDispatchPosts(cursorId, keyword, size, category, sort)
         ));
     }
 
@@ -69,11 +80,13 @@ public class FreePostController {
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> getDispatchedPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) FreePostCategory category,
+            @RequestParam(defaultValue = "LATEST") FreePostSort sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "파견 중 자유게시판 목록 조회 성공",
-                freePostService.getDispatchedPosts(cursorId, keyword, size)
+                freePostService.getDispatchedPosts(cursorId, keyword, size, category, sort)
         ));
     }
 
@@ -82,10 +95,12 @@ public class FreePostController {
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) FreePostCategory category,
+            @RequestParam(defaultValue = "LATEST") FreePostSort sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         CursorPageResponse<FreePostSummaryResponse> response =
-                freePostService.getPosts(cursorId, keyword, size);
+                freePostService.getPosts(cursorId, keyword, size, category, sort);
         return ResponseEntity.ok(ApiResponse.success("자유게시판 검색 성공", response));
     }
 
@@ -94,10 +109,12 @@ public class FreePostController {
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchPreDispatchPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) FreePostCategory category,
+            @RequestParam(defaultValue = "LATEST") FreePostSort sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         CursorPageResponse<FreePostSummaryResponse> response =
-                freePostService.searchPreDispatchPosts(cursorId, size, new com.uniroad.backend.domain.community.freepost.dto.FreePostSearchRequest(keyword, null));
+                freePostService.getPreDispatchPosts(cursorId, keyword, size, category, sort);
         return ResponseEntity.ok(ApiResponse.success("파견 전 자유게시판 검색 성공", response));
     }
 
@@ -106,10 +123,12 @@ public class FreePostController {
     public ResponseEntity<ApiResponse<CursorPageResponse<FreePostSummaryResponse>>> searchDispatchedPosts(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) FreePostCategory category,
+            @RequestParam(defaultValue = "LATEST") FreePostSort sort,
             @RequestParam(defaultValue = "10") int size
     ) {
         CursorPageResponse<FreePostSummaryResponse> response =
-                freePostService.searchDispatchedPosts(cursorId, size, new com.uniroad.backend.domain.community.freepost.dto.FreePostSearchRequest(keyword, null));
+                freePostService.getDispatchedPosts(cursorId, keyword, size, category, sort);
         return ResponseEntity.ok(ApiResponse.success("파견 중 자유게시판 검색 성공", response));
     }
 

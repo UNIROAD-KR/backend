@@ -4,12 +4,14 @@ import com.uniroad.backend.domain.companion.dto.CompanionPostRequest;
 import com.uniroad.backend.domain.companion.dto.CompanionPostResponse;
 import com.uniroad.backend.domain.companion.dto.CompanionSearchRequest;
 import com.uniroad.backend.domain.companion.entity.CompanionPost;
+import com.uniroad.backend.domain.companion.entity.GenderCondition;
 import com.uniroad.backend.domain.companion.repository.CompanionPostRepository;
 import com.uniroad.backend.domain.member.entity.Member;
 import com.uniroad.backend.domain.member.repository.MemberRepository;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
+import com.uniroad.backend.global.common.SortOrder;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +48,7 @@ public class CompanionService {
                 .capacity(request.capacity())
                 .currentParticipants(request.currentParticipants())
                 .genderRatio(request.genderRatio())
+                .genderCondition(request.genderCondition() == null ? GenderCondition.ANY : request.genderCondition())
                 .build();
 
         return companionPostRepository.save(post).getId();
@@ -71,7 +74,8 @@ public class CompanionService {
                 request.status(),
                 request.capacity(),
                 request.currentParticipants(),
-                request.genderRatio()
+                request.genderRatio(),
+                request.genderCondition()
         );
     }
 
@@ -139,8 +143,10 @@ public class CompanionService {
     @Transactional(readOnly = true)
     public CursorPageResponse<CompanionPostResponse> searchPosts(Long cursorId, int size, CompanionSearchRequest request) {
         int requestSize = normalizeSize(size);
+        SortOrder sort = request.sort() == null ? SortOrder.LATEST : request.sort();
         List<CompanionPost> posts = companionPostRepository.searchByCursor(
                 cursorId,
+                sort.isOldest(),
                 request.status(),
                 normalizeText(request.country()),
                 normalizeText(request.region()),
@@ -148,7 +154,10 @@ public class CompanionService {
                 request.startDateTo(),
                 request.endDateFrom(),
                 request.endDateTo(),
-                PageRequest.of(0, requestSize + 1)
+                request.genderCondition(),
+                request.minCapacity(),
+                request.maxCapacity(),
+                PageRequest.of(0, requestSize + 1, sort.byId())
         );
         return toCursorResponse(posts, requestSize);
     }

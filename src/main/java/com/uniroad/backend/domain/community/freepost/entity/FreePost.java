@@ -5,6 +5,8 @@ import com.uniroad.backend.domain.member.entity.CurrentSituation;
 import com.uniroad.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -55,16 +57,25 @@ public class FreePost extends BaseTimeEntity {
     @Column(nullable = false)
     private String status;
 
+    // 이미 글이 있는 테이블에 not null 컬럼을 더하는 것이라 기본값을 함께 준다. 카테고리가 생기기 전 글은 사담글로 본다.
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'CHAT' not null")
+    @Builder.Default
+    private FreePostCategory category = FreePostCategory.CHAT;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "JSON")
     @Builder.Default
     private List<String> imageUrls = new ArrayList<>();
 
-    public void update(String title, String content, String country, String status, List<String> imageUrls) {
+    public void update(String title, String content, String country, String status, FreePostCategory category, List<String> imageUrls) {
         this.title = title;
         this.content = content;
         this.country = country;
         this.status = status;
+        if (category != null) {
+            this.category = category;
+        }
         this.imageUrls = imageUrls == null ? new ArrayList<>() : new ArrayList<>(imageUrls);
     }
 

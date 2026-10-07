@@ -46,24 +46,29 @@ public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
             Pageable pageable
     );
 
+    // 정렬은 Pageable의 Sort(id 오름/내림)로 붙는다. oldest는 커서 비교 방향만 정한다.
     @Query("""
         SELECT u
         FROM UsedItemPost u
-        WHERE (:cursorId IS NULL OR u.id < :cursorId)
+        WHERE (:cursorId IS NULL OR (:oldest = false AND u.id < :cursorId) OR (:oldest = true AND u.id > :cursorId))
           AND (:title IS NULL OR LOWER(u.title) LIKE LOWER(CONCAT('%', :title, '%')))
           AND (:country IS NULL OR LOWER(u.country) LIKE LOWER(CONCAT('%', :country, '%')))
           AND (:region IS NULL OR LOWER(u.region) LIKE LOWER(CONCAT('%', :region, '%')))
           AND (:content IS NULL OR LOWER(u.content) LIKE LOWER(CONCAT('%', :content, '%')))
           AND (:status IS NULL OR u.status = :status)
-        ORDER BY u.id DESC
+          AND (:minPrice IS NULL OR u.price >= :minPrice)
+          AND (:maxPrice IS NULL OR u.price <= :maxPrice)
     """)
     List<UsedItemPost> searchByCursor(
             @Param("cursorId") Long cursorId,
+            @Param("oldest") boolean oldest,
             @Param("title") String title,
             @Param("country") String country,
             @Param("region") String region,
             @Param("content") String content,
             @Param("status") com.uniroad.backend.domain.useditem.entity.UsedItemStatus status,
+            @Param("minPrice") Long minPrice,
+            @Param("maxPrice") Long maxPrice,
             Pageable pageable
     );
 

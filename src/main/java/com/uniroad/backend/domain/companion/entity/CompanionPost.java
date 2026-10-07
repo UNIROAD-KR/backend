@@ -57,13 +57,20 @@ public class CompanionPost extends BaseTimeEntity {
     @Column
     private String genderRatio;
 
+    // 이미 글이 있는 테이블에 not null 컬럼을 더하는 것이라 기본값을 함께 준다.
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'ANY' not null")
+    @Builder.Default
+    private GenderCondition genderCondition = GenderCondition.ANY;
+
     public void markCompleted() {
         this.status = RecruitmentStatus.COMPLETED;
     }
 
     public void update(String title, String content, LocalDate startDate, LocalDate endDate,
                        String country, String region, String chatLink,
-                       RecruitmentStatus status, Integer capacity, Integer currentParticipants, String genderRatio) {
+                       RecruitmentStatus status, Integer capacity, Integer currentParticipants, String genderRatio,
+                       GenderCondition genderCondition) {
         this.title = title;
         this.content = content;
         this.startDate = startDate;
@@ -75,5 +82,8 @@ public class CompanionPost extends BaseTimeEntity {
         this.capacity = capacity;
         this.currentParticipants = currentParticipants;
         this.genderRatio = genderRatio;
+        if (genderCondition != null) {
+            this.genderCondition = genderCondition;
+        }
     }
 }

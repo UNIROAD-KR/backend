@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.community.freepost.dto;
 
 import com.uniroad.backend.domain.community.freepost.entity.FreePost;
+import com.uniroad.backend.domain.community.freepost.entity.FreePostCategory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +12,8 @@ public record FreePostSummaryResponse(
         String preview,
         String country,
         String status,
+        FreePostCategory category,
+        String categoryDescription,
         String authorName,
         String authorNickname,
         long likeCount,
@@ -29,6 +32,8 @@ public record FreePostSummaryResponse(
                 toPreview(post.getContent()),
                 post.getCountry(),
                 post.getStatus(),
+                post.getCategory(),
+                post.getCategory().getDescription(),
                 "익명",
                 post.getMember().getNickname(),
                 likeCount,

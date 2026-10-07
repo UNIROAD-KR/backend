@@ -11,6 +11,7 @@ import com.uniroad.backend.domain.ticket.repository.TicketTransferRepository;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import com.uniroad.backend.domain.scrap.repository.ScrapRepository;
 import com.uniroad.backend.global.common.CursorPageResponse;
+import com.uniroad.backend.global.common.SortOrder;
 import com.uniroad.backend.global.exception.CustomException;
 import com.uniroad.backend.global.exception.ErrorCode;
 import com.uniroad.backend.global.security.SecurityUtil;
@@ -84,14 +85,19 @@ public class TicketTransferService {
             return toCursorResponse(posts, requestSize);
         }
 
+        SortOrder sort = request.sort() == null ? SortOrder.LATEST : request.sort();
         List<TicketTransferPost> posts = ticketTransferRepository.searchByCursor(
                 cursorId,
+                sort.isOldest(),
                 normalizeText(request.title()),
                 normalizeText(request.country()),
                 normalizeText(request.location()),
                 normalizeText(request.content()),
                 request.status(),
-                PageRequest.of(0, requestSize + 1)
+                request.minPrice(),
+                request.maxPrice(),
+                request.useDateTo() == null ? null : request.useDateTo().toString(),
+                PageRequest.of(0, requestSize + 1, sort.byId())
         );
         return toCursorResponse(posts, requestSize);
     }

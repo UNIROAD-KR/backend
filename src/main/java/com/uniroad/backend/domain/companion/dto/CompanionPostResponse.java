@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.companion.dto;
 
 import com.uniroad.backend.domain.companion.entity.CompanionPost;
+import com.uniroad.backend.domain.companion.entity.GenderCondition;
 import com.uniroad.backend.domain.companion.entity.RecruitmentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -26,6 +27,8 @@ public record CompanionPostResponse(
     Integer capacity,
     Integer currentParticipants,
     String genderRatio,
+    GenderCondition genderCondition,
+    String genderConditionDescription,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -51,6 +54,8 @@ public record CompanionPostResponse(
             post.getCapacity(),
             post.getCurrentParticipants(),
             post.getGenderRatio(),
+            post.getGenderCondition(),
+            post.getGenderCondition().getDescription(),
             post.getCreatedAt(),
             post.getUpdatedAt()
         );

@@ -35,10 +35,13 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
             Pageable pageable
     );
 
+    // 이용일은 종류마다 다른 컬럼에 yyyy-MM-dd 문자열로 들어 있어 하나로 합쳐 문자열로 비교한다.
+    // 숙박은 체크아웃일을 이용 마감일로 본다. 날짜가 없는 글은 useDateTo를 주면 빠진다.
+    // 정렬은 Pageable의 Sort(id 오름/내림)로 붙는다. oldest는 커서 비교 방향만 정한다.
     @Query("""
             SELECT t
             FROM TicketTransferPost t
-            WHERE (:cursorId IS NULL OR t.id < :cursorId)
+            WHERE (:cursorId IS NULL OR (:oldest = false AND t.id < :cursorId) OR (:oldest = true AND t.id > :cursorId))
               AND (:title IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :title, '%')))
               AND (:country IS NULL OR LOWER(t.country) LIKE LOWER(CONCAT('%', :country, '%')))
               AND (
@@ -53,15 +56,30 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
               )
               AND (:content IS NULL OR LOWER(t.content) LIKE LOWER(CONCAT('%', :content, '%')))
               AND (:status IS NULL OR t.status = :status)
-            ORDER BY t.id DESC
+              AND (:minPrice IS NULL OR t.transferPrice >= :minPrice)
+              AND (:maxPrice IS NULL OR t.transferPrice <= :maxPrice)
+              AND (
+                  :useDateTo IS NULL OR
+                  COALESCE(
+                      NULLIF(t.checkOutDate, ''),
+                      NULLIF(t.checkInDate, ''),
+                      NULLIF(t.useDate, ''),
+                      NULLIF(t.performanceDate, ''),
+                      NULLIF(t.departureDate, '')
+                  ) <= :useDateTo
+              )
             """)
     List<TicketTransferPost> searchByCursor(
             @Param("cursorId") Long cursorId,
+            @Param("oldest") boolean oldest,
             @Param("title") String title,
             @Param("country") String country,
             @Param("location") String location,
             @Param("content") String content,
             @Param("status") com.uniroad.backend.domain.ticket.entity.TicketTransferStatus status,
+            @Param("minPrice") Long minPrice,
+            @Param("maxPrice") Long maxPrice,
+            @Param("useDateTo") String useDateTo,
             Pageable pageable
     );
 

@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.community.freepost.dto;
 
 import com.uniroad.backend.domain.community.freepost.entity.FreePost;
+import com.uniroad.backend.domain.community.freepost.entity.FreePostCategory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +12,8 @@ public record FreePostDetailResponse(
         String content,
         String country,
         String status,
+        FreePostCategory category,
+        String categoryDescription,
         String authorName,
         String authorNickname,
         List<String> imageUrls,
@@ -38,6 +41,8 @@ public record FreePostDetailResponse(
                 post.getContent(),
                 post.getCountry(),
                 post.getStatus(),
+                post.getCategory(),
+                post.getCategory().getDescription(),
                 "익명",
                 post.getMember().getNickname(),
                 post.getImageUrls() == null ? List.of() : post.getImageUrls(),

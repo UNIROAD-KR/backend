@@ -38,10 +38,11 @@ public interface CompanionPostRepository extends JpaRepository<CompanionPost, Lo
             Pageable pageable
     );
 
+    // 정렬은 Pageable의 Sort(id 오름/내림)로 붙는다. oldest는 커서 비교 방향만 정한다.
     @Query("""
             SELECT c
             FROM CompanionPost c
-            WHERE (:cursorId IS NULL OR c.id < :cursorId)
+            WHERE (:cursorId IS NULL OR (:oldest = false AND c.id < :cursorId) OR (:oldest = true AND c.id > :cursorId))
               AND (:status IS NULL OR c.status = :status)
               AND (:country IS NULL OR LOWER(c.country) LIKE LOWER(CONCAT('%', :country, '%')))
               AND (:region IS NULL OR LOWER(c.region) LIKE LOWER(CONCAT('%', :region, '%')))
@@ -49,10 +50,13 @@ public interface CompanionPostRepository extends JpaRepository<CompanionPost, Lo
               AND (:startDateTo IS NULL OR c.startDate <= :startDateTo)
               AND (:endDateFrom IS NULL OR c.endDate >= :endDateFrom)
               AND (:endDateTo IS NULL OR c.endDate <= :endDateTo)
-            ORDER BY c.id DESC
+              AND (:genderCondition IS NULL OR c.genderCondition = :genderCondition)
+              AND (:minCapacity IS NULL OR c.capacity >= :minCapacity)
+              AND (:maxCapacity IS NULL OR c.capacity <= :maxCapacity)
             """)
     List<CompanionPost> searchByCursor(
             @Param("cursorId") Long cursorId,
+            @Param("oldest") boolean oldest,
             @Param("status") com.uniroad.backend.domain.companion.entity.RecruitmentStatus status,
             @Param("country") String country,
             @Param("region") String region,
@@ -60,6 +64,9 @@ public interface CompanionPostRepository extends JpaRepository<CompanionPost, Lo
             @Param("startDateTo") java.time.LocalDate startDateTo,
             @Param("endDateFrom") java.time.LocalDate endDateFrom,
             @Param("endDateTo") java.time.LocalDate endDateTo,
+            @Param("genderCondition") com.uniroad.backend.domain.companion.entity.GenderCondition genderCondition,
+            @Param("minCapacity") Integer minCapacity,
+            @Param("maxCapacity") Integer maxCapacity,
             Pageable pageable
     );
 

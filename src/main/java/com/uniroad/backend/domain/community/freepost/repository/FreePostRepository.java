@@ -1,6 +1,7 @@
 package com.uniroad.backend.domain.community.freepost.repository;
 
 import com.uniroad.backend.domain.community.freepost.entity.FreePost;
+import com.uniroad.backend.domain.community.freepost.entity.FreePostCategory;
 import com.uniroad.backend.domain.scrap.entity.ScrapTargetType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,8 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
             SELECT f
             FROM FreePost f
             WHERE (:cursorId IS NULL OR f.id < :cursorId)
+              AND (:status IS NULL OR f.status = :status)
+              AND (:category IS NULL OR f.category = :category)
               AND (
                     :keyword IS NULL
                     OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
@@ -24,28 +27,62 @@ public interface FreePostRepository extends JpaRepository<FreePost, Long> {
               )
             ORDER BY f.id DESC
             """)
-    List<FreePost> findByCursorAndKeyword(
+    List<FreePost> findLatestByCursor(
             @Param("cursorId") Long cursorId,
             @Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("category") FreePostCategory category,
             Pageable pageable
     );
 
     @Query("""
             SELECT f
             FROM FreePost f
-            WHERE (:cursorId IS NULL OR f.id < :cursorId)
-              AND f.status = :status
+            WHERE (:cursorId IS NULL OR f.id > :cursorId)
+              AND (:status IS NULL OR f.status = :status)
+              AND (:category IS NULL OR f.category = :category)
               AND (
                     :keyword IS NULL
                     OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
                     OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
               )
-            ORDER BY f.id DESC
+            ORDER BY f.id ASC
             """)
-    List<FreePost> findByCursorAndKeywordAndStatus(
+    List<FreePost> findOldestByCursor(
             @Param("cursorId") Long cursorId,
             @Param("keyword") String keyword,
             @Param("status") String status,
+            @Param("category") FreePostCategory category,
+            Pageable pageable
+    );
+
+    // 좋아요 수는 컬럼이 아니라 세어야 하므로, 커서 글의 좋아요 수(cursorLikeCount)를 함께 받아 (좋아요 수, id) 순으로 이어 읽는다.
+    @Query("""
+            SELECT f
+            FROM FreePost f
+            WHERE (
+                    :cursorId IS NULL
+                    OR (SELECT COUNT(l) FROM FreePostLike l WHERE l.freePost = f) < :cursorLikeCount
+                    OR (
+                        (SELECT COUNT(l) FROM FreePostLike l WHERE l.freePost = f) = :cursorLikeCount
+                        AND f.id < :cursorId
+                    )
+              )
+              AND (:status IS NULL OR f.status = :status)
+              AND (:category IS NULL OR f.category = :category)
+              AND (
+                    :keyword IS NULL
+                    OR LOWER(f.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                    OR LOWER(f.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
+            ORDER BY (SELECT COUNT(l) FROM FreePostLike l WHERE l.freePost = f) DESC, f.id DESC
+            """)
+    List<FreePost> findPopularByCursor(
+            @Param("cursorId") Long cursorId,
+            @Param("cursorLikeCount") long cursorLikeCount,
+            @Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("category") FreePostCategory category,
             Pageable pageable
     );
 
