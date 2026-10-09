@@ -4,6 +4,7 @@ import com.uniroad.backend.domain.info.entity.University;
 import com.uniroad.backend.domain.info.repository.UniversityRepository;
 import com.uniroad.backend.domain.accountbook.repository.AccountBookRepository;
 import com.uniroad.backend.domain.auth.repository.RefreshTokenRepository;
+import com.uniroad.backend.domain.calendar.service.CalendarService;
 import com.uniroad.backend.domain.chat.repository.ChatMessageRepository;
 import com.uniroad.backend.domain.chat.repository.ChatRoomMemberRepository;
 import com.uniroad.backend.domain.member.dto.MemberProfileUpdateRequest;
@@ -54,6 +55,7 @@ public class MemberService {
     private final UsedItemRepository usedItemRepository;
     private final TicketTransferRepository ticketTransferRepository;
     private final AccountBookRepository accountBookRepository;
+    private final CalendarService calendarService;
 
     public MemberResponseDto getMyInfo() {
         return MemberResponseDto.from(getCurrentMember());
@@ -90,6 +92,8 @@ public class MemberService {
         usedItemRepository.deleteByAuthorId(memberId);
         ticketTransferRepository.deleteByAuthorId(memberId);
         accountBookRepository.deleteByMemberId(memberId);
+        // 사진 파일까지 함께 지워야 해서 리포지토리가 아니라 서비스에 맡긴다.
+        calendarService.deleteAllByMember(memberId);
 
         memberRepository.delete(member);
     }

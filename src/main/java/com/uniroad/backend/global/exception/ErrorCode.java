@@ -61,7 +61,21 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 후기입니다."),
     SCHOLARSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 장학금입니다."),
     UNIVERSITY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 학교입니다."),
-    EXCHANGE_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "교환학생 정보를 찾을 수 없습니다.");
+    EXCHANGE_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "교환학생 정보를 찾을 수 없습니다."),
+
+    // Calendar
+    CALENDAR_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 일정입니다."),
+    CALENDAR_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),
+    CALENDAR_PHOTO_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사진입니다."),
+    DUPLICATE_CALENDAR_CATEGORY(HttpStatus.CONFLICT, "이미 있는 카테고리 이름입니다."),
+    CALENDAR_CATEGORY_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "카테고리는 최대 30개까지 만들 수 있습니다."),
+    INVALID_CALENDAR_PERIOD(HttpStatus.BAD_REQUEST, "종료 시각은 시작 시각보다 빠를 수 없습니다."),
+    INVALID_CALENDAR_RANGE(HttpStatus.BAD_REQUEST, "조회 기간이 올바르지 않습니다."),
+    INVALID_CALENDAR_REPEAT(HttpStatus.BAD_REQUEST, "반복 설정이 올바르지 않습니다."),
+    CALENDAR_EVENT_EMPTY(HttpStatus.BAD_REQUEST, "제목이나 사진 중 하나는 있어야 합니다."),
+    CALENDAR_PHOTO_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "사진은 최대 10장까지 첨부할 수 있습니다."),
+    INVALID_CALENDAR_PHOTO(HttpStatus.BAD_REQUEST, "첨부할 수 없는 사진입니다."),
+    INVALID_CALENDAR_COVER(HttpStatus.BAD_REQUEST, "이 날짜의 대표 사진으로 지정할 수 없는 사진입니다.");
 
     private final HttpStatus status;
     private final String message;
