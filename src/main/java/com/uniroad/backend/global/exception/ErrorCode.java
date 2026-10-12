@@ -48,6 +48,7 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 리소스입니다."),
     STOP_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 정류장 정보를 찾을 수 없습니다."),
     RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "기록을 찾을 수 없습니다."),
+    ACCOUNT_BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 가계부 내역입니다."),
 
     // Chat
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."),

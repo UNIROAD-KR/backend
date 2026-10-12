@@ -57,6 +57,44 @@ public class AccountBookService {
     }
 
     /**
+     * 가계부 내역 수정 및 잔액 재계산
+     */
+    @Transactional
+    public AccountBookResponse updateTransaction(Long memberId, Long accountBookId, AccountBookRequest request) {
+        AccountBook accountBook = findAccountBook(memberId, accountBookId);
+
+        // 옛 내역을 되돌린 뒤 새 내역을 얹으면 중간에 잔액이 모자라 보일 수 있어, 차액만 한 번에 반영한다
+        BigDecimal before = signedAmount(accountBook.getType(), accountBook.getAmount());
+        BigDecimal after = signedAmount(request.type(), request.amount());
+        applyBalanceChange(accountBook.getMember(), after.subtract(before));
+
+        accountBook.update(
+                request.amount(),
+                request.type(),
+                request.category(),
+                request.title(),
+                request.transactionDate()
+        );
+
+        return AccountBookResponse.from(accountBook);
+    }
+
+    /**
+     * 가계부 내역 삭제 및 잔액 되돌리기
+     */
+    @Transactional
+    public void deleteTransaction(Long memberId, Long accountBookId) {
+        AccountBook accountBook = findAccountBook(memberId, accountBookId);
+
+        applyBalanceChange(
+                accountBook.getMember(),
+                signedAmount(accountBook.getType(), accountBook.getAmount()).negate()
+        );
+
+        accountBookRepository.delete(accountBook);
+    }
+
+    /**
      * 월간 요약 조회
      */
     @Transactional(readOnly = true)
@@ -115,5 +153,23 @@ public class AccountBookService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         return BalanceResponse.of(member.getBalance());
+    }
+
+    private AccountBook findAccountBook(Long memberId, Long accountBookId) {
+        return accountBookRepository.findByIdAndMemberId(accountBookId, memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_BOOK_NOT_FOUND));
+    }
+
+    /** 내역이 잔액에 준 영향. 수입은 +, 지출은 - */
+    private BigDecimal signedAmount(TransactionType type, BigDecimal amount) {
+        return type == TransactionType.INCOME ? amount : amount.negate();
+    }
+
+    private void applyBalanceChange(Member member, BigDecimal delta) {
+        if (delta.signum() >= 0) {
+            member.chargeBalance(delta);
+        } else {
+            member.spendBalance(delta.negate());
+        }
     }
 }

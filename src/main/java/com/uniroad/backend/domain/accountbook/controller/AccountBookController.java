@@ -34,6 +34,33 @@ public class AccountBookController {
         return ResponseEntity.ok(ApiResponse.success("내역이 추가되었습니다.", id));
     }
 
+    @Operation(
+            summary = "가계부 내역 수정",
+            description = "모든 항목을 통째로 바꾸고, 바뀐 만큼 잔액을 다시 맞춥니다. 잔액이 0 미만이 되는 수정은 거절합니다."
+    )
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<AccountBookResponse>> updateTransaction(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id,
+            @Valid @RequestBody AccountBookRequest request
+    ) {
+        AccountBookResponse response = accountBookService.updateTransaction(userDetails.getMemberId(), id, request);
+        return ResponseEntity.ok(ApiResponse.success("내역이 수정되었습니다.", response));
+    }
+
+    @Operation(
+            summary = "가계부 내역 삭제",
+            description = "내역을 지우고 그 금액만큼 잔액을 되돌립니다. 잔액이 0 미만이 되는 삭제는 거절합니다."
+    )
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteTransaction(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long id
+    ) {
+        accountBookService.deleteTransaction(userDetails.getMemberId(), id);
+        return ResponseEntity.ok(ApiResponse.success("내역이 삭제되었습니다.", null));
+    }
+
     @Operation(summary = "월간 요약 조회", description = "지정한 달의 날짜별 소비/충전액과 총액을 조회합니다.")
     @GetMapping("/summary")
     public ResponseEntity<ApiResponse<MonthlySummaryResponse>> getMonthlySummary(

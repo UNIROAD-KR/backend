@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface AccountBookRepository extends JpaRepository<AccountBook, Long> {
 
@@ -21,6 +22,8 @@ public interface AccountBookRepository extends JpaRepository<AccountBook, Long> 
             @Param("memberId") Long memberId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    Optional<AccountBook> findByIdAndMemberId(Long id, Long memberId);
 
     void deleteByMemberId(Long memberId);
 }

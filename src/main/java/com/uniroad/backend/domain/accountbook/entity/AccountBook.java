@@ -46,4 +46,13 @@ public class AccountBook extends BaseTimeEntity {
 
     @Column(nullable = false)
     private LocalDate transactionDate;
+
+    public void update(java.math.BigDecimal amount, TransactionType type, AccountCategory category,
+                       String title, LocalDate transactionDate) {
+        this.amount = amount;
+        this.type = type;
+        this.category = category;
+        this.title = title;
+        this.transactionDate = transactionDate;
+    }
 }
