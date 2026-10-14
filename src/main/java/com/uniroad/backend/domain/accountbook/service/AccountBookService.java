@@ -63,7 +63,7 @@ public class AccountBookService {
     public AccountBookResponse updateTransaction(Long memberId, Long accountBookId, AccountBookRequest request) {
         AccountBook accountBook = findAccountBook(memberId, accountBookId);
 
-        // 옛 내역을 되돌린 뒤 새 내역을 얹으면 중간에 잔액이 모자라 보일 수 있어, 차액만 한 번에 반영한다
+        // 옛 내역과 새 내역의 차액만 잔액에 반영한다
         BigDecimal before = signedAmount(accountBook.getType(), accountBook.getAmount());
         BigDecimal after = signedAmount(request.type(), request.amount());
         applyBalanceChange(accountBook.getMember(), after.subtract(before));

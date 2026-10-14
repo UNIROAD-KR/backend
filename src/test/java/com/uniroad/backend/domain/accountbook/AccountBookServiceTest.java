@@ -52,6 +52,25 @@ class AccountBookServiceTest {
     }
 
     @Test
+    @DisplayName("잔액보다 많이 쓰면 거절하지 않고 잔액이 음수가 된다")
+    void spendBeyondBalance() {
+        add(income("충전", "100"));
+        add(expense("월세", "130"));
+
+        assertThat(balance()).isEqualByComparingTo("-30");
+        assertThat(accountBookService.getDailyDetails(me, SEP_21)).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("잔액이 음수여도 충전하면 그만큼 올라간다")
+    void chargeFromNegativeBalance() {
+        add(expense("점심", "30"));
+        add(income("충전", "50"));
+
+        assertThat(balance()).isEqualByComparingTo("20");
+    }
+
+    @Test
     @DisplayName("지출 금액을 고치면 차액만큼 잔액이 바뀌고 내역 내용이 통째로 바뀐다")
     void updateExpenseAmount() {
         add(income("충전", "100"));
@@ -96,18 +115,17 @@ class AccountBookServiceTest {
     }
 
     @Test
-    @DisplayName("잔액이 0 미만이 되는 수정은 거절하고 아무것도 바꾸지 않는다")
-    void rejectUpdateBelowZero() {
+    @DisplayName("잔액이 0 미만이 되는 수정도 받고 잔액이 음수가 된다")
+    void updateBelowZero() {
         Long charge = add(income("충전", "100"));
         add(expense("점심", "80"));
 
-        assertError(() -> accountBookService.updateTransaction(me, charge, income("충전", "50")),
-                ErrorCode.INSUFFICIENT_BALANCE);
+        accountBookService.updateTransaction(me, charge, income("충전", "50"));
         sync();
 
-        assertThat(balance()).isEqualByComparingTo("20");
+        assertThat(balance()).isEqualByComparingTo("-30");
         assertThat(amounts(SEP_21)).usingElementComparator(BigDecimal::compareTo)
-                .containsExactlyInAnyOrder(new BigDecimal("100"), new BigDecimal("80"));
+                .containsExactlyInAnyOrder(new BigDecimal("50"), new BigDecimal("80"));
     }
 
     @Test
@@ -137,16 +155,17 @@ class AccountBookServiceTest {
     }
 
     @Test
-    @DisplayName("잔액이 0 미만이 되는 삭제는 거절하고 내역을 남긴다")
-    void rejectDeleteBelowZero() {
+    @DisplayName("잔액이 0 미만이 되는 삭제도 받고 잔액이 음수가 된다")
+    void deleteBelowZero() {
         Long charge = add(income("충전", "100"));
         add(expense("점심", "80"));
 
-        assertError(() -> accountBookService.deleteTransaction(me, charge), ErrorCode.INSUFFICIENT_BALANCE);
+        accountBookService.deleteTransaction(me, charge);
         sync();
 
-        assertThat(balance()).isEqualByComparingTo("20");
-        assertThat(accountBookService.getDailyDetails(me, SEP_21)).hasSize(2);
+        assertThat(balance()).isEqualByComparingTo("-80");
+        assertThat(accountBookService.getDailyDetails(me, SEP_21)).extracting(AccountBookResponse::title)
+                .containsExactly("점심");
     }
 
     @Test

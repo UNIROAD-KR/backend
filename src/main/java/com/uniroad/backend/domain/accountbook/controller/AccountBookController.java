@@ -24,7 +24,7 @@ public class AccountBookController {
 
     private final AccountBookService accountBookService;
 
-    @Operation(summary = "가계부 내역 추가", description = "수입(충전) 또는 지출 내역을 추가하고 잔액을 업데이트합니다.")
+    @Operation(summary = "가계부 내역 추가", description = "수입(충전) 또는 지출 내역을 추가하고 잔액을 업데이트합니다. 잔액보다 많이 쓰면 잔액이 음수가 됩니다.")
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> addTransaction(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -36,7 +36,7 @@ public class AccountBookController {
 
     @Operation(
             summary = "가계부 내역 수정",
-            description = "모든 항목을 통째로 바꾸고, 바뀐 만큼 잔액을 다시 맞춥니다. 잔액이 0 미만이 되는 수정은 거절합니다."
+            description = "모든 항목을 통째로 바꾸고, 바뀐 만큼 잔액을 다시 맞춥니다. 잔액은 음수가 될 수 있습니다."
     )
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AccountBookResponse>> updateTransaction(
@@ -50,7 +50,7 @@ public class AccountBookController {
 
     @Operation(
             summary = "가계부 내역 삭제",
-            description = "내역을 지우고 그 금액만큼 잔액을 되돌립니다. 잔액이 0 미만이 되는 삭제는 거절합니다."
+            description = "내역을 지우고 그 금액만큼 잔액을 되돌립니다. 잔액은 음수가 될 수 있습니다."
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteTransaction(

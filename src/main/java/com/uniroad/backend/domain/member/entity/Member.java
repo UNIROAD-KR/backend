@@ -241,11 +241,8 @@ public class Member extends BaseTimeEntity {
         this.balance = this.balance.add(amount);
     }
 
+    /** 잔액보다 많이 써도 막지 않는다. 모자란 만큼 잔액이 음수가 된다 */
     public void spendBalance(BigDecimal amount) {
-        if (this.balance.compareTo(amount) < 0) {
-            throw new com.uniroad.backend.global.exception.CustomException(
-                com.uniroad.backend.global.exception.ErrorCode.INSUFFICIENT_BALANCE);
-        }
         this.balance = this.balance.subtract(amount);
     }
 }

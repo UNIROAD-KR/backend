@@ -35,7 +35,6 @@ public enum ErrorCode {
     OAUTH2_USER_INFO_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 사용자 정보를 불러올 수 없습니다."),
 
     // Post
-    INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "잔액이 부족합니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글입니다."),
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 공지사항입니다."),
     BLOG_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 블로그 글입니다."),
