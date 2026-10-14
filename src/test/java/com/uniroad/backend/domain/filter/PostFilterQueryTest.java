@@ -212,7 +212,7 @@ class PostFilterQueryTest {
         return CompanionPost.builder()
                 .member(author).title(title).content("내용")
                 .startDate(LocalDate.of(2026, 11, 1)).endDate(LocalDate.of(2026, 11, 3))
-                .country("프랑스").region("파리").chatLink("https://open.kakao.com/o/test")
+                .country("프랑스").region("파리")
                 .status(RecruitmentStatus.RECRUITING).capacity(capacity).currentParticipants(1);
     }
 

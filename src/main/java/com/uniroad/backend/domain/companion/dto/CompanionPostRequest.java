@@ -35,10 +35,6 @@ public record CompanionPostRequest(
     @NotBlank(message = "지역은 필수입니다.")
     String region,
 
-    @Schema(description = "오픈채팅방 링크", example = "https://open.kakao.com/o/s123456")
-    @NotBlank(message = "채팅 링크는 필수입니다.")
-    String chatLink,
-
     @Schema(description = "모집 상태", example = "RECRUITING")
     @NotNull(message = "모집 상태는 필수입니다.")
     RecruitmentStatus status,

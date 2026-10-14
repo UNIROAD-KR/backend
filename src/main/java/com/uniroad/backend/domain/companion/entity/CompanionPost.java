@@ -41,9 +41,6 @@ public class CompanionPost extends BaseTimeEntity {
     @Column(nullable = false)
     private String region;
 
-    @Column(nullable = false)
-    private String chatLink;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RecruitmentStatus status;
@@ -68,7 +65,7 @@ public class CompanionPost extends BaseTimeEntity {
     }
 
     public void update(String title, String content, LocalDate startDate, LocalDate endDate,
-                       String country, String region, String chatLink,
+                       String country, String region,
                        RecruitmentStatus status, Integer capacity, Integer currentParticipants, String genderRatio,
                        GenderCondition genderCondition) {
         this.title = title;
@@ -77,7 +74,6 @@ public class CompanionPost extends BaseTimeEntity {
         this.endDate = endDate;
         this.country = country;
         this.region = region;
-        this.chatLink = chatLink;
         this.status = status;
         this.capacity = capacity;
         this.currentParticipants = currentParticipants;

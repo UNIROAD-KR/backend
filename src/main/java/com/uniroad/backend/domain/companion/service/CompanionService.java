@@ -43,7 +43,6 @@ public class CompanionService {
                 .endDate(request.endDate())
                 .country(request.country())
                 .region(request.region())
-                .chatLink(request.chatLink())
                 .status(request.status())
                 .capacity(request.capacity())
                 .currentParticipants(request.currentParticipants())
@@ -70,7 +69,6 @@ public class CompanionService {
                 request.endDate(),
                 request.country(),
                 request.region(),
-                request.chatLink(),
                 request.status(),
                 request.capacity(),
                 request.currentParticipants(),
