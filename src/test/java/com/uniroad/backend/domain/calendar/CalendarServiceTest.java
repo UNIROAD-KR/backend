@@ -408,8 +408,8 @@ class CalendarServiceTest {
     @DisplayName("카테고리는 처음 조회할 때 기본값이 생기고, 일정은 카테고리의 색을 따른다")
     void categories() {
         List<CalendarCategoryResponse> defaults = categoryService.getCategories(me);
-        assertThat(defaults).extracting(CalendarCategoryResponse::name).containsExactly("수업", "여행", "약속", "기타");
-        assertThat(categoryService.getCategories(me)).hasSize(4);
+        assertThat(defaults).extracting(CalendarCategoryResponse::name).containsExactly("기본");
+        assertThat(categoryService.getCategories(me)).hasSize(1);
 
         CalendarCategoryResponse club = categoryService.createCategory(me, new CalendarCategoryRequest(" 동아리 ", "#112233"));
         assertThat(club.name()).isEqualTo("동아리");

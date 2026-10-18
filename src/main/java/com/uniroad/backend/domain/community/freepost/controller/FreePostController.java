@@ -240,7 +240,7 @@ public class FreePostController {
         return ResponseEntity.ok(ApiResponse.success("자유게시판 스크랩 토글 성공", scrapped));
     }
 
-    @Operation(summary = "자유게시판 댓글 작성")
+    @Operation(summary = "자유게시판 댓글 작성", description = "parentId를 주면 그 댓글의 답글로 단다. 답글에는 답글을 달 수 없다.")
     @PostMapping("/{postId}/comments")
     public ResponseEntity<ApiResponse<FreePostCommentResponse>> createComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -251,7 +251,7 @@ public class FreePostController {
         return ResponseEntity.ok(ApiResponse.success("자유게시판 댓글 작성 성공", response));
     }
 
-    @Operation(summary = "자유게시판 댓글 삭제")
+    @Operation(summary = "자유게시판 댓글 삭제", description = "답글이 달린 댓글은 \"삭제된 댓글입니다\"로 자리만 남고, 답글이 없으면 완전히 지워진다.")
     @DeleteMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,

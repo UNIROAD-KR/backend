@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface TicketTransferRepository extends JpaRepository<TicketTransferPost, Long> {
@@ -100,4 +101,8 @@ public interface TicketTransferRepository extends JpaRepository<TicketTransferPo
     );
 
     void deleteByAuthorId(Long memberId);
+
+    /** 채팅 목록에 붙일 글 제목. [id, title] 순서다. */
+    @Query("SELECT t.id, t.title FROM TicketTransferPost t WHERE t.id IN :ids")
+    List<Object[]> findChatReferenceSummaries(@Param("ids") Collection<Long> ids);
 }

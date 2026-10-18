@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
@@ -89,4 +90,17 @@ public interface UsedItemRepository extends JpaRepository<UsedItemPost, Long> {
     );
 
     void deleteByAuthorId(Long memberId);
+
+    /**
+     * 채팅 목록에 붙일 글 제목과 대표 이미지. [id, title, thumbnailImageUrl, 첫 번째 이미지 주소] 순서다.
+     * 대표 이미지가 비어 있는 글이 있어 첫 번째 이미지를 함께 가져온다.
+     */
+    @Query("""
+            SELECT p.id, p.title, p.thumbnailImageUrl,
+                   (SELECT i.imageUrl FROM TradeCategoryImage i
+                    WHERE i.id = (SELECT MIN(i2.id) FROM TradeCategoryImage i2 WHERE i2.usedItemPost = p))
+            FROM UsedItemPost p
+            WHERE p.id IN :ids
+            """)
+    List<Object[]> findChatReferenceSummaries(@Param("ids") Collection<Long> ids);
 }

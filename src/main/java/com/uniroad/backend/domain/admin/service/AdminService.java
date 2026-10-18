@@ -79,7 +79,7 @@ public class AdminService {
         fcmTokenRepository.deleteByMemberId(memberId);
         chatRoomMemberRepository.deleteByMemberId(memberId);
         chatMessageRepository.deleteBySenderId(memberId);
-        freePostCommentRepository.deleteByMemberId(memberId);
+        freePostCommentRepository.deleteAllWrittenBy(memberId);
         freePostLikeRepository.deleteByMemberId(memberId);
         freePostRepository.deleteByMemberId(memberId);
         companionPostRepository.deleteByMemberId(memberId);

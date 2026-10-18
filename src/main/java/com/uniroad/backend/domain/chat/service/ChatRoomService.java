@@ -2,6 +2,7 @@ package com.uniroad.backend.domain.chat.service;
 
 import com.uniroad.backend.domain.chat.dto.ChatMessageResponse;
 import com.uniroad.backend.domain.chat.dto.ChatReadResponse;
+import com.uniroad.backend.domain.chat.dto.ChatReferenceSummary;
 import com.uniroad.backend.domain.chat.dto.ChatRoomResponse;
 import com.uniroad.backend.domain.chat.entity.ChatMessage;
 import com.uniroad.backend.domain.chat.entity.ChatRoom;
@@ -34,6 +35,7 @@ public class ChatRoomService {
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final MemberRepository memberRepository;
+    private final ChatReferenceResolver chatReferenceResolver;
 
     @Transactional
     public ChatRoom getOrCreateChatRoom(ChatReferenceType type, Long referenceId, List<Member> members) {
@@ -105,6 +107,8 @@ public class ChatRoomService {
                         (first, second) -> first
                 ));
 
+        Map<Long, ChatReferenceSummary> referenceByRoomId = chatReferenceResolver.resolve(rooms);
+
         Map<Long, Long> unreadByRoomId = new HashMap<>();
         for (Object[] row : chatRoomMemberRepository.countUnreadPerRoom(memberId)) {
             unreadByRoomId.put((Long) row[0], (Long) row[1]);
@@ -113,13 +117,11 @@ public class ChatRoomService {
         return myMemberships.stream()
                 .map(chatRoomMember -> {
                     ChatRoom room = chatRoomMember.getChatRoom();
-                    ChatMessage lastMessage = lastMessageByRoomId.get(room.getId());
                     return ChatRoomResponse.of(
                             room,
+                            referenceByRoomId.get(room.getId()),
                             opponentByRoomId.get(room.getId()),
-                            lastMessage != null ? lastMessage.getMessage() : null,
-                            lastMessage != null ? lastMessage.getType() : null,
-                            lastMessage != null ? lastMessage.getCreatedAt() : null,
+                            lastMessageByRoomId.get(room.getId()),
                             unreadByRoomId.getOrDefault(room.getId(), 0L),
                             chatRoomMember.getLastReadAt()
                     );
@@ -229,10 +231,9 @@ public class ChatRoomService {
 
         return ChatRoomResponse.of(
                 chatRoom,
+                chatReferenceResolver.resolve(chatRoom),
                 opponent,
-                lastMessage != null ? lastMessage.getMessage() : null,
-                lastMessage != null ? lastMessage.getType() : null,
-                lastMessage != null ? lastMessage.getCreatedAt() : null,
+                lastMessage,
                 unreadCount,
                 currentRoomMember.getLastReadAt()
         );

@@ -66,8 +66,7 @@ public class S3Service {
 
         PresignedPutObjectRequest presignedRequest = presignPutObject(putObjectRequest);
 
-        String fileUrl =
-                "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
+        String fileUrl = publicUrlPrefix() + key;
 
         return PresignedUrlResponseDto.builder()
                 .uploadUrl(presignedRequest.url().toString())
@@ -125,6 +124,25 @@ public class S3Service {
         return PrivatePresignedUrlResponseDto.builder()
                 .downloadUrl(presignedRequest.url().toString())
                 .build();
+    }
+
+    /**
+     * {@link #getPresignedUrl}로 올린 공개 이미지의 주소인지 확인한다.
+     * 클라이언트가 보내온 주소를 그대로 저장하는 곳(채팅 사진 등)에서 남의 서버 주소가 끼어들지 않게 막는다.
+     */
+    public boolean isPublicImageUrl(String url) {
+        if (url == null) {
+            return false;
+        }
+        String prefix = publicUrlPrefix() + "images/";
+        return url.startsWith(prefix)
+                && url.length() > prefix.length()
+                && !url.contains("..")
+                && url.chars().noneMatch(Character::isWhitespace);
+    }
+
+    private String publicUrlPrefix() {
+        return "https://" + bucket + ".s3." + region + ".amazonaws.com/";
     }
 
     /**

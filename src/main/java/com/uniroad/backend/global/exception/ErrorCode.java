@@ -63,6 +63,11 @@ public enum ErrorCode {
     UNIVERSITY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 학교입니다."),
     EXCHANGE_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "교환학생 정보를 찾을 수 없습니다."),
 
+    // Comment
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."),
+    REPLY_TO_REPLY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "답글에는 답글을 달 수 없습니다."),
+    REPLY_TO_DELETED_COMMENT(HttpStatus.BAD_REQUEST, "삭제된 댓글에는 답글을 달 수 없습니다."),
+
     // Calendar
     CALENDAR_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 일정입니다."),
     CALENDAR_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),

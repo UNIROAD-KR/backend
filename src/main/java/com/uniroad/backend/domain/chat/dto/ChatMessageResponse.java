@@ -24,8 +24,11 @@ public class ChatMessageResponse {
     @Schema(description = "메시지 내용")
     private String message;
 
-    @Schema(description = "메시지 타입 (TALK, ENTER 등)")
+    @Schema(description = "메시지 타입 (TALK, IMAGE 등)")
     private MessageType type;
+
+    @Schema(description = "사진 주소 (IMAGE 메시지만, 그 밖에는 null)")
+    private String imageUrl;
 
     @Schema(description = "메시지 생성 일시")
     private LocalDateTime createdAt;
@@ -40,6 +43,7 @@ public class ChatMessageResponse {
                 .senderId(message.getSenderId())
                 .message(message.getMessage())
                 .type(message.getType())
+                .imageUrl(message.getImageUrl())
                 .createdAt(message.getCreatedAt())
                 .isRead(false)
                 .build();
@@ -64,6 +68,7 @@ public class ChatMessageResponse {
                 .senderId(message.getSenderId())
                 .message(message.getMessage())
                 .type(message.getType())
+                .imageUrl(message.getImageUrl())
                 .createdAt(message.getCreatedAt())
                 .isRead(read)
                 .build();

@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum GenderCondition {
-    ANY("성별 무관"),
+    ANY("무관"),
     FEMALE_ONLY("여성만"),
     MALE_ONLY("남성만");
 

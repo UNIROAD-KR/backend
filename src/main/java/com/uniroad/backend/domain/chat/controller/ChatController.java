@@ -37,26 +37,28 @@ public class ChatController {
         }
 
         Long senderId = Long.parseLong(principal.getName());
-        sendMessage(request.getRoomId(), request.getMessage(), request.getType(), senderId);
+        sendMessage(request.getRoomId(), request.getMessage(), request.getType(), request.getImageUrl(), senderId);
     }
 
-    @Operation(summary = "채팅 메시지 전송 (HTTP)", description = "HTTP POST 요청을 통해 특정 채팅방에 메시지를 전송하고 저장합니다.")
+    @Operation(summary = "채팅 메시지 전송 (HTTP)", description = "HTTP POST 요청을 통해 특정 채팅방에 메시지를 전송하고 저장합니다. "
+            + "사진은 /api/s3/presigned-url(fileType=IMAGE)로 먼저 올린 뒤 type=IMAGE, imageUrl=받은 fileUrl로 보냅니다.")
     @PostMapping("/api/v1/chat/rooms/{roomId}/messages")
     public ResponseEntity<ChatMessageResponse> sendMessage(
             @PathVariable Long roomId,
             @Valid @RequestBody ChatMessageSendRequest request
     ) {
         Long senderId = SecurityUtil.getCurrentMemberId();
-        ChatMessageResponse response = sendMessage(roomId, request.getMessage(), request.getType(), senderId);
+        ChatMessageResponse response = sendMessage(roomId, request.getMessage(), request.getType(), request.getImageUrl(), senderId);
         return ResponseEntity.ok(response);
     }
 
-    private ChatMessageResponse sendMessage(Long roomId, String content, MessageType type, Long senderId) {
+    private ChatMessageResponse sendMessage(Long roomId, String content, MessageType type, String imageUrl, Long senderId) {
         ChatMessage message = chatService.saveMessage(
                 roomId,
                 senderId,
                 content,
-                type
+                type,
+                imageUrl
         );
 
         ChatMessageResponse response = ChatMessageResponse.from(message);

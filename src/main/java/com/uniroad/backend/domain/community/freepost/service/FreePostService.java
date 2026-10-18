@@ -30,7 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -114,7 +116,7 @@ public class FreePostService {
                         post,
                         freePostLikeRepository.countByFreePostId(post.getId()),
                         scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, post.getId()),
-                        freePostCommentRepository.countByFreePostId(post.getId())
+                        freePostCommentRepository.countByFreePostIdAndDeletedFalse(post.getId())
                 ))
                 .toList();
     }
@@ -127,7 +129,7 @@ public class FreePostService {
                         post,
                         freePostLikeRepository.countByFreePostId(post.getId()),
                         scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, post.getId()),
-                        freePostCommentRepository.countByFreePostId(post.getId())
+                        freePostCommentRepository.countByFreePostIdAndDeletedFalse(post.getId())
                 ))
                 .toList();
 
@@ -137,20 +139,40 @@ public class FreePostService {
 
     public FreePostDetailResponse getPost(Long memberId, Long postId) {
         FreePost post = getPostEntity(postId);
-        List<FreePostCommentResponse> comments = freePostCommentRepository.findByFreePostIdOrderByCreatedAtAsc(postId)
-                .stream()
-                .map(comment -> FreePostCommentResponse.from(comment, memberId))
-                .toList();
+        List<FreePostComment> all = freePostCommentRepository.findByFreePostIdOrderByIdAsc(postId);
+        List<FreePostCommentResponse> comments = toCommentTree(all, memberId);
+        long commentCount = all.stream().filter(comment -> !comment.isDeleted()).count();
 
         return FreePostDetailResponse.from(
                 post,
                 freePostLikeRepository.countByFreePostId(postId),
                 scrapRepository.countByTargetTypeAndTargetId(ScrapTargetType.FREE_POST, postId),
-                comments.size(),
+                commentCount,
                 freePostLikeRepository.existsByFreePostIdAndMemberId(postId, memberId),
                 memberId,
                 comments
         );
+    }
+
+    /**
+     * 일반 댓글 아래에 답글을 묶는다. 둘 다 작성 순서대로다.
+     * 삭제된 댓글은 답글이 남아 있을 때만 자리를 보여준다.
+     */
+    private List<FreePostCommentResponse> toCommentTree(List<FreePostComment> all, Long memberId) {
+        Map<Long, List<FreePostCommentResponse>> repliesByParentId = new HashMap<>();
+        for (FreePostComment comment : all) {
+            if (comment.isReply()) {
+                repliesByParentId.computeIfAbsent(comment.getParent().getId(), id -> new ArrayList<>())
+                        .add(FreePostCommentResponse.from(comment, memberId));
+            }
+        }
+
+        return all.stream()
+                .filter(comment -> !comment.isReply())
+                .map(comment -> FreePostCommentResponse.from(
+                        comment, memberId, repliesByParentId.getOrDefault(comment.getId(), List.of())))
+                .filter(response -> !response.deleted() || !response.replies().isEmpty())
+                .toList();
     }
 
     @Transactional
@@ -217,11 +239,13 @@ public class FreePostService {
     public FreePostCommentResponse createComment(Long memberId, Long postId, FreePostCommentRequest request) {
         FreePost post = getPostEntity(postId);
         Member member = getMember(memberId);
+        FreePostComment parent = request.parentId() != null ? getReplyTarget(postId, request.parentId()) : null;
 
         FreePostComment comment = freePostCommentRepository.save(FreePostComment.builder()
                 .freePost(post)
                 .member(member)
                 .content(request.content().trim())
+                .parent(parent)
                 .build());
 
         notificationService.notifyPostComment(
@@ -235,31 +259,62 @@ public class FreePostService {
         return FreePostCommentResponse.from(comment, memberId);
     }
 
+    /**
+     * 답글이 달린 댓글은 "삭제된 댓글입니다"로 자리만 남긴다. 답글이 없으면 행째 지운다.
+     * 답글을 지워서 삭제된 원댓글에 남은 답글이 없어지면 원댓글 자리도 함께 지운다.
+     */
     @Transactional
     public void deleteComment(Long memberId, Long postId, Long commentId) {
-        FreePostComment comment = freePostCommentRepository.findById(commentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-        if (!comment.getFreePost().getId().equals(postId)) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+        FreePostComment comment = getComment(postId, commentId);
         validateOwner(comment.getMember().getId(), memberId);
 
+        if (!comment.isReply() && freePostCommentRepository.existsByParentId(comment.getId())) {
+            comment.markDeleted();
+            return;
+        }
+
+        FreePostComment parent = comment.getParent();
         freePostCommentRepository.delete(comment);
+        freePostCommentRepository.flush();
+
+        if (parent != null && parent.isDeleted() && !freePostCommentRepository.existsByParentId(parent.getId())) {
+            freePostCommentRepository.delete(parent);
+        }
     }
 
     @Transactional
     public FreePostCommentResponse updateComment(Long memberId, Long postId, Long commentId, FreePostCommentRequest request) {
-        FreePostComment comment = freePostCommentRepository.findById(commentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
-
-        if (!comment.getFreePost().getId().equals(postId)) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+        FreePostComment comment = getComment(postId, commentId);
         validateOwner(comment.getMember().getId(), memberId);
 
         comment.updateContent(request.content().trim());
         return FreePostCommentResponse.from(comment, memberId);
+    }
+
+    /** 이 글에 달린, 지워지지 않은 댓글. 다른 글의 댓글 ID로 접근하면 없는 것으로 본다. */
+    private FreePostComment getComment(Long postId, Long commentId) {
+        FreePostComment comment = freePostCommentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+        if (!comment.getFreePost().getId().equals(postId) || comment.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
+        }
+        return comment;
+    }
+
+    /** 답글을 달 원댓글. 답글에는 답글을 달 수 없다. */
+    private FreePostComment getReplyTarget(Long postId, Long parentId) {
+        FreePostComment parent = freePostCommentRepository.findById(parentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+        if (!parent.getFreePost().getId().equals(postId)) {
+            throw new CustomException(ErrorCode.COMMENT_NOT_FOUND);
+        }
+        if (parent.isReply()) {
+            throw new CustomException(ErrorCode.REPLY_TO_REPLY_NOT_ALLOWED);
+        }
+        if (parent.isDeleted()) {
+            throw new CustomException(ErrorCode.REPLY_TO_DELETED_COMMENT);
+        }
+        return parent;
     }
 
     private FreePost getPostEntity(Long postId) {

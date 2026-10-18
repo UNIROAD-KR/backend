@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CompanionPostRepository extends JpaRepository<CompanionPost, Long> {
@@ -85,4 +86,8 @@ public interface CompanionPostRepository extends JpaRepository<CompanionPost, Lo
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+
+    /** 채팅 목록에 붙일 글 제목. [id, title] 순서다. */
+    @Query("SELECT c.id, c.title FROM CompanionPost c WHERE c.id IN :ids")
+    List<Object[]> findChatReferenceSummaries(@Param("ids") Collection<Long> ids);
 }

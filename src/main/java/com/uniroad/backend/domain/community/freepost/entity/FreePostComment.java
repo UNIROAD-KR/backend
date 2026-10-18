@@ -40,7 +40,28 @@ public class FreePostComment extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    /** 답글이면 원댓글, 일반 댓글이면 null. 답글에는 답글을 달 수 없어 깊이는 한 단계뿐이다. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private FreePostComment parent;
+
+    /**
+     * 답글이 달린 댓글을 지우면 행을 남기고 "삭제된 댓글입니다"로 보여준다. 답글이 없으면 행째 지운다.
+     * 이미 댓글이 있는 테이블에 not null 컬럼을 더하는 것이라 기본값을 함께 준다.
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false not null")
+    @Builder.Default
+    private boolean deleted = false;
+
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    public boolean isReply() {
+        return parent != null;
+    }
+
+    public void markDeleted() {
+        this.deleted = true;
     }
 }

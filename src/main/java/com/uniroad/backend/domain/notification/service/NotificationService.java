@@ -289,7 +289,7 @@ public class NotificationService {
     private void createChatNotification(Member receiver, ChatMessage message) {
         Long roomId = message.getChatRoom().getId();
         String title = "새 채팅 메시지";
-        String content = message.getMessage();
+        String content = message.getPreviewText();
 
         Notification notification = createNotification(
                 receiver,

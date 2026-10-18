@@ -27,11 +27,9 @@ public class CalendarCategoryService {
     private record DefaultCategory(String name, String color) {
     }
 
+    // 예전에는 수업·여행·약속·기타 네 개를 만들었다. 이미 받은 회원의 카테고리는 일정이 걸려 있을 수 있어 그대로 둔다.
     private static final List<DefaultCategory> DEFAULT_CATEGORIES = List.of(
-            new DefaultCategory("수업", "#4F8EF7"),
-            new DefaultCategory("여행", "#34C759"),
-            new DefaultCategory("약속", "#FF9500"),
-            new DefaultCategory("기타", "#8E8E93")
+            new DefaultCategory("기본", "#4F8EF7")
     );
 
     private final CalendarCategoryRepository categoryRepository;
