@@ -51,7 +51,7 @@ public record CompanionPostRequest(
     @Schema(description = "성비 (선택)", example = "1:1")
     String genderRatio,
 
-    @Schema(description = "성별 조건 (선택, 없으면 ANY)", example = "ANY", allowableValues = {"ANY", "FEMALE_ONLY", "MALE_ONLY"})
+    @Schema(description = "성별 조건 (선택, 없으면 무관)", example = "무관", allowableValues = {"무관", "여성만", "남성만"})
     GenderCondition genderCondition
 ) {
 }
