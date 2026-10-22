@@ -248,13 +248,29 @@ public class FreePostService {
                 .parent(parent)
                 .build());
 
-        notificationService.notifyPostComment(
-                post.getMember().getId(),
-                post.getId(),
-                post.getTitle(),
-                memberId,
-                comment.getContent()
-        );
+        Long postAuthorId = post.getMember().getId();
+
+        if (parent != null) {
+            notificationService.notifyCommentReply(
+                    parent.getMember().getId(),
+                    post.getId(),
+                    parent.getId(),
+                    post.getTitle(),
+                    memberId,
+                    comment.getContent()
+            );
+        }
+
+        // 글쓴이가 곧 원댓글 작성자면 위의 답글 알림으로 충분하다. 같은 답글에 알림이 두 번 가지 않게 한다.
+        if (parent == null || !parent.getMember().getId().equals(postAuthorId)) {
+            notificationService.notifyPostComment(
+                    postAuthorId,
+                    post.getId(),
+                    post.getTitle(),
+                    memberId,
+                    comment.getContent()
+            );
+        }
 
         return FreePostCommentResponse.from(comment, memberId);
     }

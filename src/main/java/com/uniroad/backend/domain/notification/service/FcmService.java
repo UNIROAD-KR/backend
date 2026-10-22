@@ -129,39 +129,6 @@ public class FcmService {
         return send(memberId, fcmTokenRepository.findByMemberId(memberId), title, body, data, channelId, collapseKey);
     }
 
-    /**
-     * 공지처럼 전 회원에게 같은 내용을 보낸다.
-     *
-     * 회원 단위로 발송하면 회원 수만큼 조회와 호출이 생긴다. 내용이 같으므로
-     * 토큰만 모아 500개씩 묶어 보낸다 — 기기 1만 대면 호출 20번이면 끝난다.
-     */
-    public int broadcast(String title, String body, Map<String, String> data, String channelId, String collapseKey) {
-        FirebaseMessaging firebaseMessaging = firebaseMessagingProvider.getIfAvailable();
-        if (firebaseMessaging == null) {
-            log.debug("FirebaseMessaging 빈이 없어 공지 푸시를 건너뜁니다.");
-            return 0;
-        }
-
-        List<String> tokens = fcmTokenRepository.findTokenValuesForNoticePush();
-        if (tokens.isEmpty()) {
-            return 0;
-        }
-
-        Map<String, String> payload = data == null ? Map.of() : data;
-        int successCount = 0;
-        List<String> deadTokens = new ArrayList<>();
-
-        for (int start = 0; start < tokens.size(); start += MULTICAST_LIMIT) {
-            List<String> chunk = tokens.subList(start, Math.min(start + MULTICAST_LIMIT, tokens.size()));
-            successCount += sendChunk(
-                    firebaseMessaging, chunk, title, body, payload, channelId, collapseKey, null, deadTokens);
-        }
-
-        fcmTokenCleaner.deleteDeadTokens(deadTokens);
-        log.info("공지 푸시 발송: 대상 {}대 / 성공 {}대", tokens.size(), successCount);
-        return successCount;
-    }
-
     private FcmPushResponse send(
             Long memberId,
             List<FcmToken> tokens,
@@ -300,8 +267,7 @@ public class FcmService {
     private ApnsConfig apnsConfig(String collapseKey, Integer badge) {
         Aps.Builder aps = Aps.builder().setSound("default");
 
-        // 공지처럼 여러 사람에게 같은 메시지를 보낼 때는 사람마다 숫자가 달라 넣을 수 없다.
-        // 틀린 숫자를 올리느니 건드리지 않는다.
+        // 숫자를 모를 때는 틀린 숫자를 올리느니 건드리지 않는다.
         if (badge != null) {
             aps.setBadge(badge);
         }

@@ -9,7 +9,6 @@ import com.uniroad.backend.domain.notification.dto.NotificationResponse;
 import com.uniroad.backend.domain.notification.dto.UnreadCountResponse;
 import com.uniroad.backend.domain.notification.entity.Notification;
 import com.uniroad.backend.domain.notification.entity.NotificationType;
-import com.uniroad.backend.domain.notification.event.NoticeBroadcastEvent;
 import com.uniroad.backend.domain.notification.event.PushNotificationEvent;
 import com.uniroad.backend.domain.notification.repository.NotificationRepository;
 import com.uniroad.backend.global.exception.CustomException;
@@ -147,6 +146,52 @@ public class NotificationService {
     }
 
     /**
+     * 내 댓글에 달린 답글을 원댓글 작성자에게 알린다. 알림함에 행을 남기고, 커밋 뒤 푸시를 한 번 보낸다.
+     *
+     * 자기 댓글에 자기가 단 답글은 알리지 않는다.
+     */
+    @Transactional
+    public void notifyCommentReply(Long parentAuthorId, Long postId, Long parentCommentId, String postTitle,
+                                   Long replierId, String replyContent) {
+        if (parentAuthorId.equals(replierId)) {
+            return;
+        }
+
+        Member receiver = getMember(parentAuthorId);
+        String title = "내 댓글에 답글이 달렸어요";
+        String content = "[" + postTitle + "] " + replyContent;
+
+        // 앱은 COMMENT 알림을 referenceId(글 ID)로 열므로 글 ID를 그대로 넣는다.
+        Notification notification = createNotification(
+                receiver,
+                NotificationType.COMMENT,
+                title,
+                content,
+                postId
+        );
+
+        if (!notificationSettingService.isPushAllowed(receiver.getId(), NotificationType.COMMENT)) {
+            return;
+        }
+
+        eventPublisher.publishEvent(new PushNotificationEvent(
+                receiver.getId(),
+                title,
+                content,
+                Map.of(
+                        "type", NotificationType.COMMENT.name(),
+                        "postId", String.valueOf(postId),
+                        "commentId", String.valueOf(parentCommentId),
+                        "referenceId", String.valueOf(postId),
+                        "notificationId", String.valueOf(notification.getId())
+                ),
+                NotificationType.COMMENT.channelId(),
+                // 같은 댓글에 달린 답글 알림은 하나로 덮어쓴다.
+                "reply-" + parentCommentId
+        ));
+    }
+
+    /**
      * 교환학생 인증이 승인됐음을 본인에게 알린다.
      *
      * 사용자는 서류를 올린 뒤 승인이 언제 났는지 알 방법이 없어서, 앱을 열어 직접
@@ -235,7 +280,8 @@ public class NotificationService {
     }
 
     /**
-     * 공지를 전 회원에게 알린다. 앱 알림함에 남길 행을 만들고, 커밋 뒤 푸시를 한 번 쏜다.
+     * 공지를 전 회원의 알림함에 남긴다. 푸시(FCM)는 보내지 않는다 — 공지는 앱을 열었을 때
+     * 알림함에서 확인하는 소식으로 두고, 기기에 울리는 알림은 개인에게 온 소식에만 쓴다.
      *
      * 회원 엔티티를 통째로 올리지 않고 id만 읽어 프록시로 참조를 건다.
      * 저장도 한 번에 몰아넣지 않고 끊어서 flush 한다 — 회원이 늘어도 메모리가 함께 늘지 않게.
@@ -265,20 +311,6 @@ public class NotificationService {
             notificationRepository.saveAll(rows);
             notificationRepository.flush();
         }
-
-        // 내용이 모두 같으므로 회원마다 이벤트를 띄우지 않고 한 번만 띄운다.
-        // 발송 쪽이 토큰을 묶어 보낸다.
-        eventPublisher.publishEvent(new NoticeBroadcastEvent(
-                safeTitle,
-                safeContent,
-                Map.of(
-                        "type", NotificationType.NOTICE.name(),
-                        "noticeId", String.valueOf(noticeId),
-                        "referenceId", String.valueOf(noticeId)
-                ),
-                NotificationType.NOTICE.channelId(),
-                "notice-" + noticeId
-        ));
     }
 
     private boolean shouldNotifyChat(Long receiverId, Long roomId) {

@@ -38,20 +38,4 @@ public class PushNotificationEventListener {
             log.warn("푸시 발송에 실패했습니다. memberId={}", event.memberId(), e);
         }
     }
-
-    @Async(AsyncConfig.PUSH_EXECUTOR)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(NoticeBroadcastEvent event) {
-        try {
-            fcmService.broadcast(
-                    event.title(),
-                    event.body(),
-                    event.data(),
-                    event.channelId(),
-                    event.collapseKey()
-            );
-        } catch (Exception e) {
-            log.warn("공지 푸시 발송에 실패했습니다.", e);
-        }
-    }
 }
